@@ -1,0 +1,14 @@
+name = CRADA
+description = Theme is based on Garland
+package = Core
+version = VERSION
+core = 7.x
+stylesheets[all][] = style.css
+stylesheets[print][] = print.css
+settings[garland_width] = fluid
+
+; Information added by Drupal.org packaging script on 2014-08-06
+version = "7.31"
+project = "drupal"
+datestamp = "1407346433"
+

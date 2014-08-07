@@ -1,0 +1,3 @@
+name = CRADA
+description = A Custom Module for CRADA Development
+core = 7.x
