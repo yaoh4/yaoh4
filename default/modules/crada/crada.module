@@ -1,0 +1,66 @@
+<?php
+
+function crada_help($section) {
+  switch ($section) {
+    case 'admin/help#hello_world':
+      $output = '<p>Hello world help...</p>';
+      return $output;
+    case 'admin/modules#description':
+      return 'Hello world module description...';
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function crada_menu() {
+  $items = array();
+    $items['crada/new_document'] = array(
+      'path' => 'crada/new_document', 
+      'title' => '', 
+      'page callback' => 'crada_new_document', 
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'document_builder.inc',
+    );
+    $items['crada/load_document'] = array(
+      'path' => 'crada/load_document', 
+      'title' => '', 
+      'page callback' => 'crada_load_document', 
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'document_builder.inc',
+    );
+    $items['crada/search_documents'] = array(
+      'path' => 'crada/search_documents', 
+      'title' => '', 
+      'page callback' => 'crada_search_documents', 
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'document_builder.inc',
+    );
+    
+    $items['crada/clear_database'] = array(
+      'path' => 'crada/clear_database', 
+      'title' => '', 
+      'page callback' => 'crada_clear_database', 
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'master_document.inc',
+    );
+    $items['crada/master_document'] = array(
+      'path' => 'crada/master_document', 
+      'title' => '', 
+      'page callback' => 'crada_master_document', 
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'master_document.inc',
+    );
+    
+  return $items;
+}
+
+/**
+ * Function which generate page (this generate any content - you need only your own code...)
+ */
+
