@@ -27,7 +27,7 @@ function clean_tables_form_submit($form, &$form_state) {
     $result = db_truncate('crada_valid_clause_group_by_answer')->execute();
     $result = db_truncate('crada_document_element')->execute();
     $result = db_truncate('crada_definition')->execute();
-    
+    $result = db_truncate('crada_definition_element_crosslink')->execute();
     $result = db_truncate('crada_clause_group_to_clause')->execute();
 	$result = db_truncate('crada_annotations')->execute();
 
