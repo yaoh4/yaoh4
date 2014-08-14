@@ -10,6 +10,7 @@ function crada_server() {
 		else if ($action == 'get_section_list') $output = db_get_section_list();
 		else if ($action == 'get_section') $output = db_get_section();
 		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers();
+		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
 	} catch (Exception $e) {
 		$output['status'] = 'Error';
 		$output['message'] =$e->getMessage();
@@ -96,6 +97,7 @@ function get_clauses_from_answers() {
 		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
 		foreach ($clauses as $clause) {
 			$full_clause = db_get_clause_information($document_id, $version, $clause);
+			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
 			array_push($clause_output, $full_clause);
 		}
 	}
@@ -299,6 +301,43 @@ function db_get_clause_information($document_id, $version, $clause) {
 	$clause_info['required'] = $record->required;
 
 	return $clause_info;
+
+}
+
+function db_get_definitions_for_clause($document_id, $clause_id) {
 	
+	$result = db_select('crada_definition_element_crosslink', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->condition('clause_id', $clause_id, '=')
+	->execute();
+	
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		array_push($list, trim($row->term));
+	}
+	return $list;	
+}
+
+function db_get_all_definitions() {
+	$document_id = $_REQUEST['document_id'];
+
+	$result = db_select('crada_definition', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->execute();
+	
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['term'] = $row->term;
+		$obj['definition'] = $row->definition;
+		array_push($list, $obj);
+	}
+	$output = array();
+    $output["status"] = "Ok";
+    $output["definitions"] = $list;
+	return $output;
+		
 	
 }
