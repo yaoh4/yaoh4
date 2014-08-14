@@ -5,6 +5,7 @@ var document_id;
 var sections = [];
 var current_section_number;
 var answers = {};
+var definitions;
 
 $(document).ready(function ($) {
 	$("#begin_question_button").click(function() {
@@ -22,6 +23,7 @@ $(document).ready(function ($) {
 	$("#demographics_button").click(function() {
 		$("#demographics").hide();
 		$("#questions").fadeIn();
+		get_all_definitions(document_id);
 		advance_progress_bar("questions");
 		setup_sections();
 	});	
@@ -62,6 +64,18 @@ function advance_progress_bar(step) {
 
 function setup_demographics() {
 
+}
+
+function get_all_definitions(document_id) {
+	ajax_caller('get_all_definitions', {'document_id': document_id}, get_all_definitions_callback);
+}
+
+function get_all_definitions_callback(data) {
+//	alert (JSON.stringify(data.definitions, null, 2));
+	definitions = {};
+	for (i=0;i<data.definitions.length;i++) {
+		definitions[data.definitions[i].term] = data.definitions[i].definition;
+	}
 }
 
 function setup_sections() {
@@ -108,15 +122,20 @@ function setup_questions_for_section_callback(data) {
 	var q = data.questions;
 	
 //	alert (JSON.stringify(q, null, 2));
+	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
 		if (q[i].text == 'REQUIRED') answers[q[i].question_id] = 0;
 		else {
+			number_of_questions_asked++;
 			display.append(q[i].text).append("<br />");
 			for (j=0;j<q[i].answers.length; j++) {
 				display.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT>"));
 			}
 			display.append("<br /><br />")
 		}
+	}
+	if (number_of_questions_asked == 0) {
+		display.append("<P>This section has no questions.</P>");
 	}
 }
 
@@ -153,15 +172,22 @@ function setup_document() {
 }
 
 function setup_document_callback(data) {
+//	alert (JSON.stringify(data, null, 2));
 	
 	var title = $("#document_title").val();
 	$("#crada_document").empty().append($("<H1>").append(title)).append("<hr />");
 
 	$("#crada_document").append("<br /><br />").append($("<H2>").append("Coversheet")).append("<hr />");
-	$("#crada_document").append("<br /><br /><br />Coming Soon<br /><br /><br />");
+	$("#crada_document").append("<br />Coming Soon<br />");
 
 	$("#crada_document").append("<br /><br />").append($("<H2>").append("Definitions")).append("<hr />");
-	$("#crada_document").append("<br /><br /><br />Coming Soon<br /><br /><br />");
+	var used_terms = get_used_terms(data.clauses);
+//	alert (JSON.stringify(definitions, null, 2));
+//	alert (used_terms[0] + ":" + definitions[used_terms[0]] + "\n" + JSON.stringify(definitions, null, 2))
+	for (i=0;i<used_terms.length; i++) {
+		var definition = definitions[used_terms[i]];
+		$("#crada_document").append("<P><B> " +used_terms[i] + "</B>: " + definition + "</P>");	
+	}
 
 	current_section = "";
 	for (var i=0; i<data.clauses.length; i++) {
@@ -173,9 +199,20 @@ function setup_document_callback(data) {
 			$("#crada_document").append($("<P>").append(data.clauses[i].text));	
 		} 
 	}
-//	alert (JSON.stringify(data, null, 2));
 }
 
+function get_used_terms(clauses) {
+	var used_terms = {};
+	for (i=0; i<clauses.length;i++) {
+		var terms = clauses[i].terms;
+		for (j=0;j<terms.length;j++) {
+			used_terms[terms[j]] = true;
+		}
+	}
+	
+	var terms = Object.keys(used_terms);
+	return Object.keys(used_terms);
+}
 //// Helper functions
 
 function ajax_caller (action, arguments, callback, type='GET') {
