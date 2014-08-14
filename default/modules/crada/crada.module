@@ -60,11 +60,16 @@ function crada_menu() {
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'master_document.inc',
     );
+ 
+    $items['crada/server'] = array(
+		'path' => 'crada/server', 
+		'title' => '', 
+		'page callback' => 'crada_server',
+		'access callback' => TRUE,
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'crada_server.inc',
+    );
     
   return $items;
 }
-
-/**
- * Function which generate page (this generate any content - you need only your own code...)
- */
 

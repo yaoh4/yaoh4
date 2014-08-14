@@ -1,0 +1,33 @@
+#progress_bar {
+	border-collapse:collapse;	
+	table-layout:fixed;
+}
+
+#progress_bar td {
+	border: 1px solid black;
+	vertical-align:middle;
+	text-align:center;
+}
+
+#progress_bar td.not_done {
+	background-color:#FAA;
+}
+
+#progress_bar td.working {
+	background-color:#FFA;
+}
+
+#progress_bar td.done {
+	background-color:#AFA;
+}
+
+#initial_step { width:10% }
+#demographic_step { width:10% }
+#question_step { width:70% }
+#conclusion_step { width:10% }
+
+#basic_document_info {
+	border:0px;
+	width:500px;
+	border-collapse:separate;
+}
