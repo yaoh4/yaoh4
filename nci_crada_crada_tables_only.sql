@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 14, 2014 at 06:25 PM
+-- Generation Time: Sep 04, 2014 at 08:20 PM
 -- Server version: 5.6.16
 -- PHP Version: 5.5.9
 
@@ -26,7 +26,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `crada_annotations`
 --
 
-DROP TABLE IF EXISTS `crada_annotations`;
 CREATE TABLE IF NOT EXISTS `crada_annotations` (
   `annotation_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `document_id` int(12) NOT NULL,
@@ -46,7 +45,6 @@ CREATE TABLE IF NOT EXISTS `crada_annotations` (
 -- Table structure for table `crada_answer`
 --
 
-DROP TABLE IF EXISTS `crada_answer`;
 CREATE TABLE IF NOT EXISTS `crada_answer` (
   `document_id` int(12) NOT NULL,
   `question_id` int(12) NOT NULL,
@@ -61,7 +59,6 @@ CREATE TABLE IF NOT EXISTS `crada_answer` (
 -- Table structure for table `crada_clause_group`
 --
 
-DROP TABLE IF EXISTS `crada_clause_group`;
 CREATE TABLE IF NOT EXISTS `crada_clause_group` (
   `group_id` int(12) NOT NULL AUTO_INCREMENT,
   `section` varchar(50) NOT NULL,
@@ -75,7 +72,6 @@ CREATE TABLE IF NOT EXISTS `crada_clause_group` (
 -- Table structure for table `crada_clause_group_to_clause`
 --
 
-DROP TABLE IF EXISTS `crada_clause_group_to_clause`;
 CREATE TABLE IF NOT EXISTS `crada_clause_group_to_clause` (
   `clause_group_id` int(12) NOT NULL,
   `document_id` int(12) NOT NULL,
@@ -90,7 +86,6 @@ CREATE TABLE IF NOT EXISTS `crada_clause_group_to_clause` (
 -- Table structure for table `crada_definition`
 --
 
-DROP TABLE IF EXISTS `crada_definition`;
 CREATE TABLE IF NOT EXISTS `crada_definition` (
   `document_id` int(12) NOT NULL,
   `term` varchar(100) NOT NULL,
@@ -104,7 +99,6 @@ CREATE TABLE IF NOT EXISTS `crada_definition` (
 -- Table structure for table `crada_definition_element_crosslink`
 --
 
-DROP TABLE IF EXISTS `crada_definition_element_crosslink`;
 CREATE TABLE IF NOT EXISTS `crada_definition_element_crosslink` (
   `document_id` int(12) NOT NULL,
   `clause_id` int(12) NOT NULL,
@@ -117,7 +111,6 @@ CREATE TABLE IF NOT EXISTS `crada_definition_element_crosslink` (
 -- Table structure for table `crada_document`
 --
 
-DROP TABLE IF EXISTS `crada_document`;
 CREATE TABLE IF NOT EXISTS `crada_document` (
   `document_id` int(12) NOT NULL AUTO_INCREMENT,
   `is_master` tinyint(1) NOT NULL,
@@ -132,7 +125,6 @@ CREATE TABLE IF NOT EXISTS `crada_document` (
 -- Table structure for table `crada_document_element`
 --
 
-DROP TABLE IF EXISTS `crada_document_element`;
 CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `document_element_id` int(12) NOT NULL,
   `document_version` int(12) NOT NULL,
@@ -157,7 +149,6 @@ CREATE TABLE IF NOT EXISTS `crada_document_element` (
 -- Table structure for table `crada_document_version`
 --
 
-DROP TABLE IF EXISTS `crada_document_version`;
 CREATE TABLE IF NOT EXISTS `crada_document_version` (
   `document_id` int(12) NOT NULL,
   `version` int(12) NOT NULL,
@@ -172,7 +163,6 @@ CREATE TABLE IF NOT EXISTS `crada_document_version` (
 -- Table structure for table `crada_question`
 --
 
-DROP TABLE IF EXISTS `crada_question`;
 CREATE TABLE IF NOT EXISTS `crada_question` (
   `document_id` int(12) NOT NULL,
   `question_id` int(12) NOT NULL AUTO_INCREMENT,
@@ -188,7 +178,6 @@ CREATE TABLE IF NOT EXISTS `crada_question` (
 -- Table structure for table `crada_section`
 --
 
-DROP TABLE IF EXISTS `crada_section`;
 CREATE TABLE IF NOT EXISTS `crada_section` (
   `location` int(12) NOT NULL,
   `shorthand` varchar(50) NOT NULL,
@@ -202,7 +191,6 @@ CREATE TABLE IF NOT EXISTS `crada_section` (
 -- Table structure for table `crada_valid_clause_group_by_answer`
 --
 
-DROP TABLE IF EXISTS `crada_valid_clause_group_by_answer`;
 CREATE TABLE IF NOT EXISTS `crada_valid_clause_group_by_answer` (
   `document_id` int(12) NOT NULL,
   `question_id` int(12) NOT NULL,

@@ -19,7 +19,8 @@ function crada_menu() {
       'path' => 'crada/new_document', 
       'title' => '', 
       'page callback' => 'crada_new_document', 
-      'access callback' => TRUE,
+			'access callback' => 'user_access',
+	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'document_builder.inc',
     );
@@ -27,7 +28,8 @@ function crada_menu() {
       'path' => 'crada/load_document', 
       'title' => '', 
       'page callback' => 'crada_current_document', 
-      'access callback' => TRUE,
+			'access callback' => 'user_access',
+	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'document_builder.inc',
     );
@@ -35,7 +37,8 @@ function crada_menu() {
       'path' => 'crada/search_documents', 
       'title' => '', 
       'page callback' => 'crada_search_documents', 
-      'access callback' => TRUE,
+			'access callback' => 'user_access',
+	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'document_builder.inc',
     );
@@ -46,7 +49,7 @@ function crada_menu() {
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array('clean_tables_form'),
 		'access callback' => 'user_access',
-        'access arguments' => array('administrator'),
+    'access arguments' => array('master document'),
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'clean_tables.inc',
     );
@@ -56,7 +59,7 @@ function crada_menu() {
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array('master_document_form'),
 		'access callback' => 'user_access',
-        'access arguments' => array('administrator'),
+    'access arguments' => array('master document'),
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'master_document.inc',
     );
@@ -73,3 +76,15 @@ function crada_menu() {
   return $items;
 }
 
+function crada_permission() {
+  return array(
+    'master document' => array(
+      'title' => t('CRADA Load Master Document'),
+      'description' => t('Load a Master Document into the database'),
+    ),
+    'build document' => array(
+      'title' => t('CRADA Build New Document'),
+      'description' => t('Create a new Master Document'),
+    ),
+  );
+}
