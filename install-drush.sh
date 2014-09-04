@@ -7,6 +7,15 @@
 # Requires: PHP or greater
 # Requires to run as root
 #
+echo "***************************************"
+echo "Warning this script is not fully tested."
+echo "***************************************"
+
+
+if [[ $EUID -eq 0 ]]; then
+    error "This script should not be run using sudo or as the root user"
+    exit 1
+fi
 
 yum install php-pear subversion
 pear channel-update pear.php.net
