@@ -7,24 +7,32 @@
 # Requires: PHP or greater
 # Requires to run as root
 #
-echo "***************************************"
-echo "Warning this script is not fully tested."
-echo "***************************************"
 
-
-if [[ $EUID -eq 0 ]]; then
-    error "This script should not be run using sudo or as the root user"
+if [[ $EUID -gt 0 ]]; then
+	echo "Run this script with sudo or as the root user"
+	echo 
+	echo "SYNTAX:"
+	echo "sudo ./install-drush.sh"
+	echo
     exit 1
 fi
 
+echo "Installing php-pear and subversion"
 yum install php-pear subversion
+echo "Setting channel-update pear.php.net"
 pear channel-update pear.php.net
+echo "upgrading required pear packages"
 pear upgrade --force Console_Getopt Console_Table
+echo "Setting channel-discover to pear.drush.org"
 pear channel-discover pear.drush.org
+echo "Installing drush"
 pear install drush/drush
 
-which drush
-drush
+echo "Checking version "
+/usr/bin/drush --version
+echo 
+echo "drush install completed"
+echo 
 
 #
 #  If any errors try removing the .drush dirctory in home directory   
