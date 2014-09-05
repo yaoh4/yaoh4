@@ -2,7 +2,7 @@
 
 # Install drupal site for CRADA
 # SYNTAX:  install-crada-site.sh <git username> <git password>
-#
+# REQUIRES: PHP, MySQL Client, drush
 #
 echo "***************************************"
 echo "Warning this script is not fully tested."
@@ -25,7 +25,7 @@ DRUPAL_ADMIN_PASSWORD=admin
 
 #Check parameters
 if [ -z ${GIT_PASSWORD+x} ]; then
-	ecjp 
+	echo
 	echo "SYNTAX:"
 	echo "install-crada-site.sh <git username> <git password>"
 	exit
@@ -51,13 +51,34 @@ rm -rf $tempdir
 cd $WEBSITE_ROOT
 drush si --db-url=mysql://$MYSQL_USERNAME:$MYSQL_PASSWORD@127.0.0.1:3306/$MYSQL_DRUPAL_DATABASE --account-pass=$DRUPAL_ADMIN_PASSWORD
 
+#Add Drupal Modules
+#dl = download
+drush dl ctools
+drush dl devel
+drush dl libraries
+drush dl phpexcel
+drush dl services
+#en = enable
+drush -y en ctools
+drush -y en devel
+drush -y en libraries
+drush -y en phpexcel
+drush -y en services
+
+
 #add crada site
 cd site
 git clone https://$GIT_USERNAME:$GIT_PASSWORD@github.com/$ORGANIZATION_NAME/$GIT_REPOSITORY site
 
 #IMPORT The two drupal and crada databases
 #TODO
+cd ..
+mysql -p $MYSQL_PASSWORD -u $MYSQL_USERNAME $MYSQL_DRUPAL_DATABASE < nci_crada_drupal_tables_only.sql
+mysql -p $MYSQL_PASSWORD -u $MYSQL_USERNAME $MYSQL_DRUPAL_DATABASE < nci_crada_drupal_tables_only.sql
 
-echo "Installation Complete"
-
-
+echo
+echo -n "Drupal Modules Enabled = "
+drush pml --status=enabled --pipe |wc -l
+echo 
+echo "CRADA Drupal Site Installation Complete"
+echo 
