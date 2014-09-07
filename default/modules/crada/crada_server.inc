@@ -4,6 +4,7 @@ function crada_server() {
 	$action = $_REQUEST['action'];
 
 	try {
+		// Functions for New Document
 		if ($action == 'get_title') $output = db_get_title();
 		else if ($action == 'get_document_templates') $output = db_get_document_templates();
 		else if ($action == 'get_questions_for_section') $output = db_get_questions_for_section();
@@ -11,6 +12,10 @@ function crada_server() {
 		else if ($action == 'get_section') $output = db_get_section();
 		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers();
 		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
+
+		// Functions for Load Document
+		else if ($action == 'get_all_documents') $output = db_get_all_documents();
+		
 	} catch (Exception $e) {
 		$output['status'] = 'Error';
 		$output['message'] =$e->getMessage();
@@ -338,6 +343,43 @@ function db_get_all_definitions() {
     $output["status"] = "Ok";
     $output["definitions"] = $list;
 	return $output;
-		
+
+}
+
+// Functions for Load Documents
+
+function db_get_all_documents() {
+
+	$result = db_select('crada_document', 'cd')
+	->fields('cd')
+	->execute();
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['document_id'] = $row->document_id;
+		$obj['is_master'] = $row->is_master;
+		$obj['name'] = $row->document_name;
+		$obj['title'] = $row->title;
+		array_push($list, $obj);
+	}
+	$output = array();
+    $output["status"] = "Ok";
+    $output["documents"] = $list;
+	return $output;
+
+
+	global $conn;
+
+	$query = "SELECT * from crada_document";
+	$result = $conn->query($query);
 	
+	$document_list = array();
+	for ($count = 0; $row = $result->fetch_object(); $count++) {
+		$document['id'] = $row->document_id;
+		$document['name'] = $row->document_name;
+		$document['title'] = $row->title;
+		array_push($document_list, $document);
+	}
+	return $document_list;
 }

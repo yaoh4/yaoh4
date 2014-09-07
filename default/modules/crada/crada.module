@@ -22,7 +22,7 @@ function crada_menu() {
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
-      'file' => 'document_builder.inc',
+      'file' => 'new_document.inc',
     );
     $items['crada/current_document'] = array(
       'path' => 'crada/load_document', 
@@ -31,7 +31,7 @@ function crada_menu() {
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
-      'file' => 'document_builder.inc',
+      'file' => 'current_document.inc',
     );
     $items['crada/search_documents'] = array(
       'path' => 'crada/search_documents', 
@@ -40,7 +40,7 @@ function crada_menu() {
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
-      'file' => 'document_builder.inc',
+      'file' => 'search_document.inc',
     );
     
     $items['crada/clear_database'] = array(
