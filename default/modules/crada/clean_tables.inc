@@ -30,6 +30,8 @@ function clean_tables_form_submit($form, &$form_state) {
     $result = db_truncate('crada_definition_element_crosslink')->execute();
     $result = db_truncate('crada_clause_group_to_clause')->execute();
 	$result = db_truncate('crada_annotations')->execute();
+    $result = db_truncate('crada_demographics')->execute();
+    $result = db_truncate('crada_demographics_pulldown_options')->execute();
 
     drupal_set_message(t('Crada Tables Have been reset to factory defaults. Good luck.'));
 }

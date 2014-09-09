@@ -118,7 +118,36 @@ function load_definitions() {
 
 function load_demographics() {
 	global $xls_reader, $filename;
-	drupal_set_message("Demographics Loading Comming Soon");
+	$section_name = "Demographics";
+	drupal_set_message("$section_name Loading");
+	$xls_reader->setLoadSheetsOnly($section_name);
+	$xls_data = $xls_reader->load($filename);
+	$array_data = $xls_data->getActiveSheet()->toArray(null,true,true,true);
+
+	$row_in_section = 0;
+	$first_row = true;
+	$previous_variable = "";
+	foreach ($array_data as $line) {
+		if ($first_row) {
+			drupal_set_message(implode(' | ', $line));
+			$first_row = false;
+		} else {
+			$question = $line["A"];
+			$type = $line["B"];
+			$option = $line["C"];
+			$variable = $line["D"];
+
+			drupal_set_message("question:$question, type:$type, option:$option, variable:$variable");
+			if($variable != $previous_variable) {
+				db_insert_crada_demographics($variable, $question, $type);
+			}
+			if(strtoupper($type) == strtoupper("pull down")) {
+				db_insert_crada_demographics_pulldown_options($variable, $option);
+			}
+			$previous_variable = $variable;
+		}
+		$row_in_section++;
+	}
 }
 
 function load_sections() {
@@ -279,6 +308,29 @@ function db_insert_crada_document() {
 	))->execute();
 	drupal_set_message("Successfully inserted into crada_document");
 	return $document_id;
+}
+
+
+function db_insert_crada_demographics($variable, $question, $type) {
+	global $document_id;
+	db_insert('crada_demographics')->fields(array(
+		'document_id' => $document_id,
+		'variable' => $variable,
+		'question' => $question,
+		'type' => $type
+	))->execute();
+	drupal_set_message("[$document_id:$variable]:$question:$type" );
+}
+
+function db_insert_crada_demographics_pulldown_options($variable, $pulldown_option) {
+	global $document_id;
+	drupal_set_message("Insert Crata Demographics Pulldown Options");
+	drupal_set_message("[$document_id:$variable]:$pulldown_option");
+	db_insert('crada_demographics_pulldown_options')->fields(array(
+		'document_id' => $document_id,
+		'variable' => $variable,
+		'pulldown_option' => $pulldown_option
+	))->execute();
 }
 
 function db_insert_definition($term, $definition) {

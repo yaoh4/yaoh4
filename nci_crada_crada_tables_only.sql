@@ -20,7 +20,34 @@ SET time_zone = "+00:00";
 -- Database: `nci_crada`
 --
 
+
 -- --------------------------------------------------------
+
+--
+-- Table structure for table `crada_demographics`
+--
+
+CREATE TABLE IF NOT EXISTS `crada_demographics` (
+  `document_id` int(12) NOT NULL,
+  `variable` varchar(50) NOT NULL,
+  `question` text NOT NULL,
+  `type` varchar(10) NOT NULL,
+  PRIMARY KEY (`document_id`,`variable`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `crada_demographics_pulldown_options`
+--
+
+CREATE TABLE IF NOT EXISTS `crada_demographics_pulldown_options` (
+  `document_id` int(12) NOT NULL,
+  `variable` varchar(50) NOT NULL,
+  `pulldown_option` varchar(50) NOT NULL,
+  PRIMARY KEY (`document_id`,`variable`,`option`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 
 --
 -- Table structure for table `crada_annotations`
