@@ -1,5 +1,5 @@
-function ajax_caller (action, arguments, callback, type='GET') {
-	
+function ajax_caller (action, arguments, callback, type) {
+	if (type == null) type='GET';
 	data = jQuery.extend({'action':action}, arguments)
  
 	jQuery.ajax({

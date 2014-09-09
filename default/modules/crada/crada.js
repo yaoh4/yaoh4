@@ -63,7 +63,7 @@ function advance_progress_bar(step) {
 }
 
 function setup_demographics() {
-
+ $("#demographics").append("Info Goes Here");
 }
 
 function get_all_definitions(document_id) {
