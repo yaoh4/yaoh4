@@ -66,8 +66,51 @@ function setup_demographics() {
 	ajax_caller('get_demographics', {'document_id': document_id}, get_demographics_callback);
 }
 function get_demographics_callback(data) {
-	$("#demographic_questions").append(JSON.stringify(data));
+	display_demographic_questions(data);
 }
+
+function display_demographic_questions(data) {
+	//$("#demographic_questions").append(JSON.stringify(data));
+	var demographics = data.demographics;
+	var row;
+
+	$.each( demographics, function( i, demographic ) {
+		row = "";
+		if(demographic.html_type == 'pull down') {
+			row = create_demographic_pulldown(demographic);
+		} else {
+			row = create_demographic_input(demographic);
+		}
+
+		row = '<div class="form-group">'+row+'</div>';
+		$("#demographic_questions").append(row);
+	});
+}
+
+function create_demographic_pulldown(demographic) {
+	var row;
+	//Add the label
+	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
+	//Add the pulldown box
+	row += '<select id="'+demographic.variable+'">';
+	row += '<option value="" selected></option>';
+	$.each(demographic.pulldown_options, function( i, pulldown_option) {
+		row += '<option value="'+pulldown_option+'">'+pulldown_option+'</option>';
+	});
+	row += '</select>\n';
+	row += '<div style="clear:both;"></div>'
+	return row;
+}
+
+function create_demographic_input(demographic) {
+	var row;
+	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
+	row += "<input class='demographic-input'  id='"+demographic.variable+"'>"; 
+	row += '<div style="clear:both;"></div>'
+	return row;
+}
+
+
 
 function get_all_definitions(document_id) {
 	ajax_caller('get_all_definitions', {'document_id': document_id}, get_all_definitions_callback);
@@ -124,7 +167,6 @@ function setup_questions_for_section_callback(data) {
 	
 	var q = data.questions;
 	
-//	alert (JSON.stringify(q, null, 2));
 	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
 		if (q[i].text == 'REQUIRED') answers[q[i].question_id] = 0;
@@ -199,9 +241,14 @@ function setup_document_callback(data) {
 				$("#crada_document").append("<br /><br />").append($("<H2>").append(data.clauses[i].section)).append("<hr />");
 				current_section = data.clauses[i].section;
 			}
-			$("#crada_document").append($("<P>").append(data.clauses[i].text));	
+			$("#crada_document").append($("<P>").append(add_demographics(data.clauses[i].text)));	
 		} 
 	}
+}
+
+//alert("do MadLib here");
+function add_demographics(text) {
+	return text;
 }
 
 function get_used_terms(clauses) {

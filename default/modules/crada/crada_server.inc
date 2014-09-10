@@ -336,9 +336,9 @@ function db_get_demographics() {
 		$obj = array();
 		$obj['variable'] = $row->variable;
 		$obj['question'] = $row->question;
-		$obj['type'] = $row->type;
-		
-		if(strtoupper($obj['type']) == strtoupper('pull down')) {
+		$obj['html_type'] = $row->type;
+
+		if(strtoupper($obj['html_type']) == strtoupper('pull down')) {
 			$r2 = db_select('crada_demographics_pulldown_options', 'cdpo')
 				->fields('cdpo')
 				->condition('document_id', $document_id, '=')
