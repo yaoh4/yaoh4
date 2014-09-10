@@ -85,7 +85,8 @@ function add_questions_div() {
 	return "
 
 <div id='questions' style='display:none'>
-	<div id='question_section'> </div>
+	<form id='demographic-form'>
+	</form>	
 	<BUTTON id='questions_button'>Advance to Next Section</BUTTON>
 </div>
 ";

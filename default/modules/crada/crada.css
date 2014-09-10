@@ -44,3 +44,27 @@
 	width:500px;
 	border-collapse:separate;
 }
+/*From bootstrap.css */
+/*style='display:block;margin-bottom:5px; float:left; width:400px;	padding-top: 5px;text-align:right;'*/
+.demographic-label {
+	float: left;
+	width: 400px;
+	padding-right: 8px;
+	text-align: right;
+}
+.demographic-input {
+	width:200px;
+}
+
+label {
+	display: block;
+	margin-bottom: 5px;
+}
+label, input, button, select, textarea {
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 20px;
+}
+label, select, button, input[type="button"], input[type="reset"], input[type="submit"], input[type="radio"], input[type="checkbox"] {
+	cursor: pointer;
+}
