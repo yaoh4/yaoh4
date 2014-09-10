@@ -73,10 +73,9 @@ function add_choose_template_div() {
 
 function add_demographics_div() {
 	return "
-
 <div id='demographics' style='display:none'>
-Demographical Information will go here.<br /><br />
-<BUTTON id='demographics_button'>Advance to Next Section</BUTTON>	
+	<div id='demographic_questions'></div>
+	<BUTTON id='demographics_button'>Advance to Next Section</BUTTON>	
 </div>
 ";
 

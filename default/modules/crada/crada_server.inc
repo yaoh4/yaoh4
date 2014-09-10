@@ -12,8 +12,7 @@ function crada_server() {
 		else if ($action == 'get_section') $output = db_get_section();
 		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers();
 		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
-
-		// Functions for Load Document
+		else if ($action == 'get_demographics') $output = db_get_demographics();
 		else if ($action == 'get_all_documents') $output = db_get_all_documents();
 		
 	} catch (Exception $e) {
@@ -322,6 +321,42 @@ function db_get_definitions_for_clause($document_id, $clause_id) {
 		array_push($list, trim($row->term));
 	}
 	return $list;	
+}
+
+function db_get_demographics() {
+	$document_id = $_REQUEST['document_id'];
+
+	$result = db_select('crada_demographics', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->execute();
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['variable'] = $row->variable;
+		$obj['question'] = $row->question;
+		$obj['type'] = $row->type;
+		
+		if(strtoupper($obj['type']) == strtoupper('pull down')) {
+			$r2 = db_select('crada_demographics_pulldown_options', 'cdpo')
+				->fields('cdpo')
+				->condition('document_id', $document_id, '=')
+				->condition('variable', $obj['variable'], '=')			
+				->execute();
+			$obj['pulldown_options'] = array();  //resetting this on each iteration
+			for ($c2 = 0; $row2 = $r2->fetchObject(); $c2++) {
+				$obj['pulldown_options'][$c2] = $row2->pulldown_option;
+			}
+		}
+		array_push($list, $obj);
+	}
+
+	$output = array();
+    $output["status"] = "Ok";
+    $output["demographics"] = $list;
+	return $output;
+
 }
 
 function db_get_all_definitions() {
