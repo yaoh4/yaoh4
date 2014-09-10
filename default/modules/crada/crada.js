@@ -63,7 +63,10 @@ function advance_progress_bar(step) {
 }
 
 function setup_demographics() {
- $("#demographics").append("Info Goes Here");
+	ajax_caller('get_demographics', {'document_id': document_id}, get_demographics_callback);
+}
+function get_demographics_callback(data) {
+	$("#demographic_questions").append(JSON.stringify(data));
 }
 
 function get_all_definitions(document_id) {
