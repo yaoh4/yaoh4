@@ -6,6 +6,7 @@ var sections = [];
 var current_section_number;
 var answers = {};
 var definitions;
+var demographics;
 
 $(document).ready(function ($) {
 	$("#begin_question_button").click(function() {
@@ -20,7 +21,10 @@ $(document).ready(function ($) {
 		advance_progress_bar("demographics");
 		setup_demographics();
 	});
+
 	$("#demographics_button").click(function() {
+		//Save demographic answers
+		demographics = $('#demographic-form').serializeObject();
 		$("#demographics").hide();
 		$("#questions").fadeIn();
 		get_all_definitions(document_id);
@@ -83,7 +87,7 @@ function display_demographic_questions(data) {
 		}
 
 		row = '<div class="form-group">'+row+'</div>';
-		$("#demographic_questions").append(row);
+		$("#demographic-form").append(row);
 	});
 }
 
@@ -92,7 +96,7 @@ function create_demographic_pulldown(demographic) {
 	//Add the label
 	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
 	//Add the pulldown box
-	row += '<select id="'+demographic.variable+'">';
+	row += '<select id="'+demographic.variable+'" name="'+demographic.variable+'">';
 	row += '<option value="" selected></option>';
 	$.each(demographic.pulldown_options, function( i, pulldown_option) {
 		row += '<option value="'+pulldown_option+'">'+pulldown_option+'</option>';
@@ -105,7 +109,7 @@ function create_demographic_pulldown(demographic) {
 function create_demographic_input(demographic) {
 	var row;
 	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
-	row += "<input class='demographic-input'  id='"+demographic.variable+"'>"; 
+	row += "<input type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>"; 
 	row += '<div style="clear:both;"></div>'
 	return row;
 }
@@ -231,7 +235,7 @@ function setup_document_callback(data) {
 //	alert (used_terms[0] + ":" + definitions[used_terms[0]] + "\n" + JSON.stringify(definitions, null, 2))
 	for (i=0;i<used_terms.length; i++) {
 		var definition = definitions[used_terms[i]];
-		$("#crada_document").append("<P><B> " +used_terms[i] + "</B>: " + definition + "</P>");	
+		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");	
 	}
 
 	current_section = "";
@@ -241,14 +245,28 @@ function setup_document_callback(data) {
 				$("#crada_document").append("<br /><br />").append($("<H2>").append(data.clauses[i].section)).append("<hr />");
 				current_section = data.clauses[i].section;
 			}
+
 			$("#crada_document").append($("<P>").append(add_demographics(data.clauses[i].text)));	
 		} 
 	}
 }
 
-//alert("do MadLib here");
-function add_demographics(text) {
-	return text;
+function add_demographics(madlib) {
+	//serarch and replace {} with demographic answers
+	//Example search {Agency} replace with FDA
+    var search_term;
+    var replace_term;
+    //Check to make sure a madlib is defined
+	if (typeof madlib == 'undefined') 
+		return;
+
+    $.each(demographics, function(key, val) {
+        search_term = "{"+key+"}";
+        replace_term = "<span class='demographic-changed'>"+val+"</span>";
+        madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+    });
+
+	return madlib;
 }
 
 function get_used_terms(clauses) {

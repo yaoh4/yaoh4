@@ -55,6 +55,10 @@
 .demographic-input {
 	width:200px;
 }
+.demographic-changed {
+	color:red;
+	font-weight:bold;
+}
 
 label {
 	display: block;
