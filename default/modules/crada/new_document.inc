@@ -74,7 +74,7 @@ function add_choose_template_div() {
 function add_demographics_div() {
 	return "
 <div id='demographics' style='display:none'>
-	<div id='demographic_questions'></div>
+	<form id='demographic-form'></form>
 	<BUTTON id='demographics_button'>Advance to Next Section</BUTTON>	
 </div>
 ";
@@ -85,9 +85,8 @@ function add_questions_div() {
 	return "
 
 <div id='questions' style='display:none'>
-	<form id='demographic-form'>
-	</form>	
 	<BUTTON id='questions_button'>Advance to Next Section</BUTTON>
+	<div id='debug-output'></div>
 </div>
 ";
 
