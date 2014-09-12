@@ -85,6 +85,7 @@ function add_questions_div() {
 	return "
 
 <div id='questions' style='display:none'>
+	<DIV id='question_section'> </DIV>
 	<BUTTON id='questions_button'>Advance to Next Section</BUTTON>
 	<div id='debug-output'></div>
 </div>

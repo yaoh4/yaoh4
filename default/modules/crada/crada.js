@@ -175,6 +175,7 @@ function setup_questions_for_section_callback(data) {
 	for (i=0;i<q.length; i++) {
 		if (q[i].text == 'REQUIRED') answers[q[i].question_id] = 0;
 		else {
+//			alert(JSON.stringify(q[i],null,2));
 			number_of_questions_asked++;
 			display.append(q[i].text).append("<br />");
 			for (j=0;j<q[i].answers.length; j++) {
