@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `crada_demographics_pulldown_options` (
   `document_id` int(12) NOT NULL,
   `variable` varchar(50) NOT NULL,
   `pulldown_option` varchar(50) NOT NULL,
-  PRIMARY KEY (`document_id`,`variable`,`option`)
+  PRIMARY KEY (`document_id`,`variable`,`pulldown_option`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
