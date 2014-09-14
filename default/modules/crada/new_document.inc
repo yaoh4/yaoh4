@@ -62,7 +62,7 @@ function add_choose_template_div() {
 <div id='choose_template' style='display:none'> 
 <TABLE id='basic_document_info'>
 <TR><TD>Document Title: </TD><TD><INPUT id='document_title' size='40' type='text' /></TD></TR>
-<TR><TD>Document Filename: </TD><TD><INPUT id='document_title' size='30' type='text' /></TD></TR>	
+<TR><TD>Document Filename: </TD><TD><INPUT id='document_name' size='30' type='text' /></TD></TR>	
 <TR><TD>Choose your template: </TD><TD><SELECT id='template_chooser'> </SELECT></TD></TR>
 <TR><TD></TD><TD><BUTTON id='template_chooser_button'>Advance to Next Section</BUTTON></TD></TR>
 </TABLE>
