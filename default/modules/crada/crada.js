@@ -221,7 +221,7 @@ function setup_document() {
 	ajax_caller('get_clauses_from_answers', {'document_id':1, 'answers':answers_encoded}, setup_document_callback, 'POST');
 }
 
-function setup_document_callback(data) {
+function old_setup_document_callback(data) {
 //	alert (JSON.stringify(data, null, 2));
 	
 	var title = $("#document_title").val();
@@ -250,6 +250,52 @@ function setup_document_callback(data) {
 			$("#crada_document").append($("<P>").append(add_demographics(data.clauses[i].text)));	
 		} 
 	}
+}
+
+function setup_document_callback(data) {
+
+// What to do with definitions?
+//	for (i=0;i<used_terms.length; i++) {
+//		var definition = definitions[used_terms[i]];
+//		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");	
+//	}
+
+	var new_clauses = new Object();
+
+	var used_terms = get_used_terms(data.clauses);
+	for (i=0;i<used_terms.length; i++) {
+		var definition = definitions[used_terms[i]];
+		new_clauses[i] = new Object();
+		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);	
+		new_clauses[i].section = 	"Definitions";
+	}
+
+// Add the values to the database all at once...
+// Substitute the demographics here
+
+	
+	for (var i=0; i<data.clauses.length; i++) {
+		new_clauses[used_terms.length+i] = new Object();
+		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
+		new_clauses[used_terms.length+i].section = 	data.clauses[i].section;
+	}
+	var new_clauses_encoded = JSON.stringify(new_clauses);
+
+	var title = $("#document_title").val();
+	if (title == null || title == "") title = "New Title";
+	var name = $("#document_name").val();
+	if (name == null || name == "") name = "filename";
+	
+//	alert (new_clauses_encoded);
+	ajax_caller('create_new_document', {'user':'breml', 'data':new_clauses_encoded, 'name':name, 'title':title}, 
+		create_new_document_callback, 'POST');
+}
+
+function create_new_document_callback(data) {
+//	alert (JSON.stringify(data, null, 2));
+	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=0";
+//	$("#crada_document").empty().append(JSON.stringify(data, null, 2));
+
 }
 
 function add_demographics(madlib) {

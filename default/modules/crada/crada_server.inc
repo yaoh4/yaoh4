@@ -14,6 +14,9 @@ function crada_server() {
 		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
 		else if ($action == 'get_demographics') $output = db_get_demographics();
 		else if ($action == 'get_all_documents') $output = db_get_all_documents();
+		else if ($action == 'create_new_document') $output = create_new_document();
+		else if ($action == 'get_full_document') $output = get_full_document();
+		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
 		$output['status'] = 'Error';
@@ -417,4 +420,143 @@ function db_get_all_documents() {
 		array_push($document_list, $document);
 	}
 	return $document_list;
+}
+
+function create_new_document () {
+	$data = json_decode($_REQUEST['data'], true);
+	$user = $_REQUEST['user'];
+	$name = $_REQUEST['name'];
+	$title = $_REQUEST['title'];
+  $output["status"] = "Ok";
+
+
+	$transaction = db_transaction();
+	try {
+		$document_id = db_insert_new_document($name, $title);
+		db_insert_new_version($document_id, $user);
+
+		for ($i=0;$i<count($data); $i++) {
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $user);
+			$output["row"][$i] = $data[$i]['text'];
+			
+		}
+
+	  $output["document_id"] = $document_id;
+	  $output["count"] = count($data);
+  
+  	return $output;
+
+
+
+	} catch (Exception $e) {
+		$transaction->rollback();
+		watchdog_exception('crada', $e, $e->getMessage());
+ 	 	$output["status"] = "Error";
+ 	 	$output["error"] = $e->getMessage();
+ 	 	return $output;
+	}
+	
+	
+	
+}
+
+function db_insert_new_document ($name, $title) {
+	$nid = db_insert('crada_document') // Table name no longer needs {}
+	->fields(array(
+	  'is_master' => 0,
+	  'document_name' => $name,
+	  'title' => $title,
+	))
+	->execute();	
+	
+	return $nid;
+}
+
+function db_insert_new_version ($document_id, $user) {
+	$nid = db_insert('crada_document_version') // Table name no longer needs {}
+	->fields(array(
+	  'document_id' => $document_id,
+	  'version' => 0,
+	  'updated_by' => $user,
+	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	))
+	->execute();	
+	
+	return $nid;
+}
+
+function db_insert_document_element ($document_id, $document_element_id, $section, $text, $user) {
+	$nid = db_insert('crada_document_element') // Table name no longer needs {}
+	->fields(array(
+	  'document_element_id' => $document_element_id,
+	  'document_version' => 0,
+	  'document_id' => $document_id,
+	  'section' => $section,
+	  'location' => $document_element_id,
+	  'alternate_text_type' => 'default',
+	  'document_element_text' => $text,
+	  'survivable' => 0,
+	  'required' => 0,
+	  'updated_by' => $user,
+	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	))
+	->execute();	
+	
+	return $nid;
+}
+
+function get_full_document() {
+	$user = $_REQUEST['user'];
+	$document_id = $_REQUEST['document_id'];
+	$version = $_REQUEST['version'];
+	
+	$output['status'] = 'Ok';
+	$output['title'] = db_get_title_for_document($document_id);
+	
+	$output['clauses'] = db_get_document_elements($document_id, $version);
+	return $output;
+	
+}
+
+function db_get_title_for_document($document_id) {
+
+	$record = db_select('crada_document', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->execute()
+	->fetchObject();
+	
+	return $record->title;
+}
+
+function db_get_document_elements ($document_id, $version) {
+	// if version == null, We will need to get the clause that is maximum version
+	
+	$result = db_select('crada_document_element', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->condition('document_version', $version, '=')
+	->execute();
+	
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['text'] = $row->document_element_text;
+		$obj['section'] = $row->section;
+		array_push($list, $obj);
+	}
+	return $list;
+}
+
+// Debugging functions
+
+function echo_stream() {
+	$output = array();
+  $output["status"] = "Ok";
+  $output["echo"] = file_get_contents("php://input");
+//  $output["echo"] = json_decode(file_get_contents("php://input"));
+  return $output;
+}
+
+function echo_data() {
 }

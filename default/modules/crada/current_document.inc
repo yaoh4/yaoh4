@@ -10,6 +10,7 @@ function crada_current_document() {
 	$data = "";
 	$data .= add_command_bar();
 	$data .= add_load_dialog();
+	$data .= "<DIV id='current_document_content'></DIV>";
 	
  	return $data;
 }
