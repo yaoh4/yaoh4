@@ -543,6 +543,8 @@ function db_get_document_elements ($document_id, $version) {
 		$obj = array();
 		$obj['text'] = $row->document_element_text;
 		$obj['section'] = $row->section;
+		$obj['confidential_annotation'] = trim($row->confidential_annotation);
+		$obj['public_annotation'] = trim($row->public_annotation);
 		array_push($list, $obj);
 	}
 	return $list;

@@ -6,15 +6,41 @@ function crada_current_document() {
 	drupal_add_css($module_path . '/crada.css');
 	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_js($module_path . '/current_document.js',array('cache' => false, 'preprocess' => false));
+//  testing annotator
+//	drupal_add_css('http://assets.annotateit.org/annotator/v1.1.0/annotator.min.css');
+//	drupal_add_js('http://assets.annotateit.org/annotator/v1.1.0/annotator-full.min.js',array('cache' => false, 'preprocess' => false));
+
 	
 	$data = "";
 	$data .= add_command_bar();
+//  Annotator test	
+//	$data .= add_annotator_div_test();
+
 	$data .= add_load_dialog();
 	$data .= "<DIV id='current_document_content'></DIV>";
+	$data .= "<DIV id='current_annotation_content'></DIV>";
 	
  	return $data;
 }
 
+function add_annotator_div_test() {
+	return "
+	<h3>annotator</h3>
+	<div id='annotator' style='height:200px;border:1px solid red;'>
+not statutory but good business practice -- ask OGC if this is required by statute and if it needs to say \"carried out by Parties\".
+
+	</div>
+	<h3>annotator1</h3>
+	<div id='annotator1' style='height:200px;border:1px solid blue;'>
+		Public vs Privite Annotations
+	</div>
+	<h3>annotator2</h3>
+	<div id='annotator2' style='height:200px;border:1px solid green;'>
+		Statutory requirement.  ICD must ensure that the government retains specific rights; i.e., ICD requires the Collaborator to grant licenses for specific health and safety purposes or public use regulations.  See 15USC§3710a(b)(1)(B)
+	</div>
+
+	";
+}
 
 // Command Bar
 function add_command_bar() {
