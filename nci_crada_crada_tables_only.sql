@@ -160,6 +160,8 @@ CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `location` int(4) NOT NULL,
   `alternate_text_type` varchar(50) NOT NULL,
   `document_element_text` longtext NOT NULL,
+  `confidential_annotation` longtext,
+  `public_annotation` longtext,
   `survivable` tinyint(1) NOT NULL,
   `required` tinyint(1) NOT NULL,
   `updated_by` varchar(50) NOT NULL,

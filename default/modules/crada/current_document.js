@@ -16,6 +16,8 @@ $(document).ready(function () {
 		ajax_caller("get_full_document", {'document_id':document_id, 'version':version}, get_document_elements_callback);
 	}
 
+//Testing annotator
+//  	$('#annotator').annotator().anotator('setupPlugins');
 
 });
 
@@ -62,15 +64,26 @@ function get_document_elements_callback(data) {
 
 	$("#current_document_content").empty().append($("<H1>").append(data.title)).append("<hr />");
 	
-	current_section = "";
+	var current_section = "";
+	var confidential_annotation;
+	var public_annotation;
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent') ) {
 			if (data.clauses[i].section != current_section) {
-				$("#current_document_content").append("<br /><br />").append($("<H2>").append(data.clauses[i].section)).append("<hr />");
+				$("#current_document_content").append("<br /><br />");
+				$("#current_document_content").append($("<h2>").append(data.clauses[i].section));
 				current_section = data.clauses[i].section;
 			}
 
-			$("#current_document_content").append($("<P>").append(data.clauses[i].text));	
+			$("#current_document_content").append($("<P>").append(data.clauses[i].text));
+
+			console.dir(data.clauses[i]);
+			if( JSON.stringify(data.clauses[i].confidential_annotation).length > 2) {
+				$("#current_annotation_content").append($("<p>").append(data.clauses[i].confidential_annotation).addClass('annotation').addClass('confidential_annotation'));	
+			}
+			if( JSON.stringify(data.clauses[i].public_annotation).length > 2) {
+				$("#current_annotation_content").append($("<p>").append(data.clauses[i].public_annotation).addClass('annotation').addClass('public_annotation'));
+			}
 		} 
 	}
 
