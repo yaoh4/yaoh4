@@ -25,15 +25,29 @@ $(document).ready(function () {
 function change_annotation_options() {
 	var annotationOption = $( "#annotation_options" ).val();
 	if( annotationOption == 'off') {
-		$('#current_document_content').width(960);
 		$('#current_annotation_content').hide();
+		$('#current_document_content').animate({width:'960px'});
+		$('.annotation_footnote').hide();		
 	} else {
-		$('#current_document_content').width(750);
-		$('#current_annotation_content').show();
-
+		$('#current_document_content').animate({width: '700px'}, "normal", function(){
+			$('#current_annotation_content').show();
+			$('.annotation_footnote').show();		
+		});
+		switch(annotationOption) {
+		    case "both":
+		        $('.confidential_annotation').show();
+		        $('.public_annotation').show();
+		        break;
+		    case "confidential":
+		        $('.confidential_annotation').show();
+		        $('.public_annotation').hide();
+		        break;
+		    case "public":
+		        $('.confidential_annotation').hide();
+		        $('.public_annotation').show();
+		        break;
+		}		
 	}
-
-
 }
 
 function create_dialogs() {
@@ -91,9 +105,10 @@ function get_document_elements_callback(data) {
 				current_section = data.clauses[i].section;
 			}
 
-			$("#current_document_content").append($("<a href='#'>").append("<p><sup>"+(i+1)+".</sup> "+data.clauses[i].text+"</p>").addClass('clause').attr( "id", "clause-" + i));
+			$("#current_document_content").append($("<a href='#'>").append("<p><sup class='annotation_footnote'>"+(i+1)+".</sup> "+data.clauses[i].text+"</p>").addClass('clause').attr( "id", "clause-" + i));
 
 			if( JSON.stringify(data.clauses[i].confidential_annotation).length > 2) {
+				short_annotation = trimAnnoation(JSON.stringify(data.clauses[i].confidential_annotation));
 				annotationLabel = "<b>Comment [Conf"+(i+1)+"]:  </b>";
 				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].confidential_annotation).addClass('annotation').addClass('confidential_annotation'));	
 			}
@@ -106,6 +121,16 @@ function get_document_elements_callback(data) {
 	documentSections = data;
 	console.info("documentSections")
 	console.dir(documentSections);
+}
+function trimAnnoation(annotation) {
+	//If length is greater than 60 then trim at then find next previous space and trim
+	var max_size = 60;
+	if(annotation.length > max_size) {
+		//find the next previous space
+		
+	}
+
+	return annotation;
 }
 //// Helper to get the query string to see if need to autoload document
 
