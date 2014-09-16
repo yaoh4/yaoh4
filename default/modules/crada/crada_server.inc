@@ -306,6 +306,8 @@ function db_get_clause_information($document_id, $version, $clause) {
 	$clause_info['section'] = $record->section;
 	$clause_info['alternate_text'] = $record->alternate_text_type;
 	$clause_info['text'] = $record->document_element_text;
+	$clause_info['confidential_annotation'] = $record->confidential_annotation;
+	$clause_info['public_annotation'] = $record->public_annotation;
 	$clause_info['survivable'] = $record->survivable;
 	$clause_info['required'] = $record->required;
 
@@ -431,7 +433,7 @@ function create_new_document () {
 	$name = $_REQUEST['name'];
 	$title = $_REQUEST['title'];
   	$output["status"] = "Ok";
-  	
+
 
 
 	$transaction = db_transaction();
