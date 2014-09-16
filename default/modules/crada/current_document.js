@@ -23,7 +23,16 @@ $(document).ready(function () {
 });
 
 function change_annotation_options() {
-	alert("change_annotation_options");
+	var annotationOption = $( "#annotation_options" ).val();
+	if( annotationOption == 'off') {
+		$('#current_document_content').width(960);
+		$('#current_annotation_content').hide();
+	} else {
+		$('#current_document_content').width(750);
+		$('#current_annotation_content').show();
+
+	}
+
 
 }
 
@@ -95,6 +104,7 @@ function get_document_elements_callback(data) {
 		} 
 	}
 	documentSections = data;
+	console.info("documentSections")
 	console.dir(documentSections);
 }
 //// Helper to get the query string to see if need to autoload document

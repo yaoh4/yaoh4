@@ -252,6 +252,8 @@ function db_get_section() {
 		$element["section"] = $record->section;
 		$element["location"] = $record->location;
 		$element["text"] = $record->document_element_text;
+		$element["confidential_annotation"] = $record->confidential_annotation;
+		$element["public_annotation"] = $record->public_annotation;
 		$element["survivable"] = $record->survivable;
 		$element["required"] = $record->required;
 		array_push($list, $element);
@@ -428,7 +430,8 @@ function create_new_document () {
 	$user = $_REQUEST['user'];
 	$name = $_REQUEST['name'];
 	$title = $_REQUEST['title'];
-  $output["status"] = "Ok";
+  	$output["status"] = "Ok";
+  	
 
 
 	$transaction = db_transaction();
@@ -437,7 +440,7 @@ function create_new_document () {
 		db_insert_new_version($document_id, $user);
 
 		for ($i=0;$i<count($data); $i++) {
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $user);
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $user);
 			$output["row"][$i] = $data[$i]['text'];
 			
 		}
@@ -486,7 +489,7 @@ function db_insert_new_version ($document_id, $user) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $text, $user) {
+function db_insert_document_element ($document_id, $document_element_id, $section, $text, $confidential_annotation, $public_annotation, $user) {
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
@@ -496,6 +499,8 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'location' => $document_element_id,
 	  'alternate_text_type' => 'default',
 	  'document_element_text' => $text,
+	  'confidential_annotation' => $confidential_annotation,
+	  'public_annotation' => $public_annotation,
 	  'survivable' => 0,
 	  'required' => 0,
 	  'updated_by' => $user,

@@ -278,6 +278,8 @@ function setup_document_callback(data) {
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
 		new_clauses[used_terms.length+i].section = 	data.clauses[i].section;
+		new_clauses[used_terms.length+i].confidential_annotation = 	data.clauses[i].confidential_annotation;
+		new_clauses[used_terms.length+i].public_annotation = 	data.clauses[i].public_annotation;
 	}
 	var new_clauses_encoded = JSON.stringify(new_clauses);
 

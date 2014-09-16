@@ -41,6 +41,9 @@
     padding:5px;
     float:left;
 }
+#current_document_fullscreen {
+	width:900px;
+}
 
 #current_annotation_content {
 	position:absolute;
@@ -77,12 +80,12 @@
 	font-weight:bold;
 }
 .confidential_annotation {
-	border:3px solid #FF0000; /*red*/
+	border:2px solid #FF0000; /*red*/
     background: #FFD5D5; /*pink*/
     margin-left:5px;
 }
 .public_annotation{
-    border: 3px solid green;
+    border: 2px solid green;
     background: #99FF99;
     margin-left:32px;
  	overflow: hidden;
