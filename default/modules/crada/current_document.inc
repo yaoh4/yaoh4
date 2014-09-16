@@ -45,6 +45,15 @@ not statutory but good business practice -- ask OGC if this is required by statu
 // Command Bar
 function add_command_bar() {
 	$data = "<DIV id='command_bar'>";
+	$data .= "<div id='annotation_selector'>";
+	$data .= "<label for='annotation_options'>Annotation: </label>";
+	$data .='<select id="annotation_options">
+				<option value="confidential">confidential</option>
+  				<option value="public">public</option>
+  				<option value="both" selected>both</option>
+  				<option value="off">off</option>
+			</select>';
+	$data .= "</div>";
 	$data .= add_button("load_button", "Load New Document");
 	$data .= add_button("save_button", "Save Document");
 	$data .= "</DIV>";

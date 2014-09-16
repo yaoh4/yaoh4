@@ -1,5 +1,5 @@
 jQuery(function($) {
-
+var documentSections;
 $(document).ready(function () {
 	create_dialogs();
 
@@ -7,6 +7,7 @@ $(document).ready(function () {
 	$("#load_button").click(click_load_button);
 	$("#save_button").click(click_save_button);
 	$("#select_document_button").click(click_select_document_button);
+	$("#annotation_options").change(change_annotation_options);
 
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
@@ -20,6 +21,11 @@ $(document).ready(function () {
 //  	$('#annotator').annotator().anotator('setupPlugins');
 
 });
+
+function change_annotation_options() {
+	alert("change_annotation_options");
+
+}
 
 function create_dialogs() {
 	$("#load_dialog").dialog({
@@ -67,6 +73,7 @@ function get_document_elements_callback(data) {
 	var current_section = "";
 	var confidential_annotation;
 	var public_annotation;
+	var annotationLabel;
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent') ) {
 			if (data.clauses[i].section != current_section) {
@@ -75,18 +82,20 @@ function get_document_elements_callback(data) {
 				current_section = data.clauses[i].section;
 			}
 
-			$("#current_document_content").append($("<P>").append(data.clauses[i].text));
+			$("#current_document_content").append($("<a href='#'>").append("<p><sup>"+(i+1)+".</sup> "+data.clauses[i].text+"</p>").addClass('clause').attr( "id", "clause-" + i));
 
-			console.dir(data.clauses[i]);
 			if( JSON.stringify(data.clauses[i].confidential_annotation).length > 2) {
-				$("#current_annotation_content").append($("<p>").append(data.clauses[i].confidential_annotation).addClass('annotation').addClass('confidential_annotation'));	
+				annotationLabel = "<b>Comment [Conf"+(i+1)+"]:  </b>";
+				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].confidential_annotation).addClass('annotation').addClass('confidential_annotation'));	
 			}
 			if( JSON.stringify(data.clauses[i].public_annotation).length > 2) {
-				$("#current_annotation_content").append($("<p>").append(data.clauses[i].public_annotation).addClass('annotation').addClass('public_annotation'));
+				annotationLabel = "<b>Comment [Pub"+(i+1)+"]:  </b>";
+				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].public_annotation).addClass('annotation').addClass('public_annotation'));
 			}
 		} 
 	}
-
+	documentSections = data;
+	console.dir(documentSections);
 }
 //// Helper to get the query string to see if need to autoload document
 
