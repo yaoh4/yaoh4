@@ -94,7 +94,7 @@
 	clear:both;
 }
 .clause a:hover {
-	background: #999966;
+	background: red;
 	text-decoration:none;
 }
 

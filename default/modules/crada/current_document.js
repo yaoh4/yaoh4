@@ -108,13 +108,14 @@ function get_document_elements_callback(data) {
 			$("#current_document_content").append($("<a href='#'>").append("<p><sup class='annotation_footnote'>"+(i+1)+".</sup> "+data.clauses[i].text+"</p>").addClass('clause').attr( "id", "clause-" + i));
 
 			if( JSON.stringify(data.clauses[i].confidential_annotation).length > 2) {
-				short_annotation = trimAnnoation(JSON.stringify(data.clauses[i].confidential_annotation));
+				data.clauses[i].confidential_annotation_short = trimAnnoation(JSON.stringify(data.clauses[i].confidential_annotation));
 				annotationLabel = "<b>Comment [Conf"+(i+1)+"]:  </b>";
-				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].confidential_annotation).addClass('annotation').addClass('confidential_annotation'));	
+				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].confidential_annotation_short).addClass('annotation').addClass('confidential_annotation'));	
 			}
 			if( JSON.stringify(data.clauses[i].public_annotation).length > 2) {
+				data.clauses[i].public_annotation_short = trimAnnoation(JSON.stringify(data.clauses[i].public_annotation));
 				annotationLabel = "<b>Comment [Pub"+(i+1)+"]:  </b>";
-				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].public_annotation).addClass('annotation').addClass('public_annotation'));
+				$("#current_annotation_content").append($("<p>").append(annotationLabel+data.clauses[i].public_annotation_short).addClass('annotation').addClass('public_annotation'));
 			}
 		} 
 	}
@@ -127,7 +128,11 @@ function trimAnnoation(annotation) {
 	var max_size = 60;
 	if(annotation.length > max_size) {
 		//find the next previous space
-		
+	    for (i = max_size; i >= 0; i--) {
+	        if (annotation[i] == " ") {break;}
+	    }
+	    annotation =  annotation.substr(0, i) + " ...";
+
 	}
 
 	return annotation;
