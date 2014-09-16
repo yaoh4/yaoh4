@@ -390,6 +390,7 @@ function db_get_all_documents() {
 
 	$result = db_select('crada_document', 'cd')
 	->fields('cd')
+	->condition('is_master', 1, '!=')
 	->execute();
 
 	$list = array();

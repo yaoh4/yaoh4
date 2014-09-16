@@ -160,7 +160,7 @@ function setup_sections_callback(data) {
 }
 
 function setup_questions_for_section(i) {
-	ajax_caller('get_questions_for_section', {'document_id':1, 'section':sections[i]}, setup_questions_for_section_callback);
+	ajax_caller('get_questions_for_section', {'document_id':document_id, 'section':sections[i]}, setup_questions_for_section_callback);
 	
 }
 
@@ -200,7 +200,7 @@ function store_current_answers(section_number) {
 }
 
 function setup_template_chooser() {
-	ajax_caller('get_document_templates', {'document_id':1}, setup_template_chooser_callback);
+	ajax_caller('get_document_templates', {}, setup_template_chooser_callback);
 	$("#document_title").focus();
 	advance_progress_bar("template");
 }
@@ -218,7 +218,7 @@ function setup_template_chooser_callback(data) {
 function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
 	var answers_encoded = JSON.stringify(answers)
-	ajax_caller('get_clauses_from_answers', {'document_id':1, 'answers':answers_encoded}, setup_document_callback, 'POST');
+	ajax_caller('get_clauses_from_answers', {'document_id':document_id, 'answers':answers_encoded}, setup_document_callback, 'POST');
 }
 
 function old_setup_document_callback(data) {

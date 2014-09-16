@@ -419,7 +419,7 @@ function db_insert_crada_document_element($clause_id, $section, $alternate_type,
 		'updated_date' => date("Y-m-d H:i:s", time())
 	))->execute();
 	
-	drupal_set_message("Adding Clause($document_id:$clause_id):($alternate_type) $text ");
+	drupal_set_message("Adding Clause($document_id:$clause_id):($alternate_type) $text ($confidential_annotation)($public_annotation)");
 }
 
 function db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id) {
