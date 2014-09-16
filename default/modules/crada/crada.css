@@ -49,9 +49,11 @@
 	width:250px;
 	border:1px solid grey;
     padding:5px;
+    font-family:"calibri", "Garamond", "Comic Sans";
 }
 #current_annotation_content h1 {
-	font-weight:large;
+	font-weight:bold;
+ 	line-height: 95%;    
 }
 
 .doc {
@@ -64,26 +66,40 @@
 .annotation {
 	width:200px;
     padding: 3px 5px; 
+ 	line-height: 80%;    
     border-radius: 12px;
     font-weight:6px;
     margin-top:5px;
     margin-bottom:5px;
 
 }
+.annotation_label {
+	font-weight:bold;
+}
 .confidential_annotation {
-	border:3px solid #CC99CC;
-    background: #FFCCCC;
+	border:3px solid #FF0000; /*red*/
+    background: #FFD5D5; /*pink*/
+    margin-left:5px;
 }
 .public_annotation{
     border: 3px solid green;
     background: #99FF99;
-    margin-left:30px;
+    margin-left:32px;
+ 	overflow: hidden;
 }
 .both {
 	clear:both;
 }
+.clause a:hover {
+	background: #999966;
+	text-decoration:none;
+}
 
 #save_button {
+	float:right;
+}
+
+#annotation_selector {
 	float:right;
 }
 
@@ -125,3 +141,8 @@ label, input, button, select, textarea {
 label, select, button, input[type="button"], input[type="reset"], input[type="submit"], input[type="radio"], input[type="checkbox"] {
 	cursor: pointer;
 }
+#command_bar label {
+	display: inline-block;
+	width: 140px;
+	text-align: right;
+}​
