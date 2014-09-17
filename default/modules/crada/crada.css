@@ -106,7 +106,7 @@
 	clear:both;
 }
 
-p:hover {
+#current_document_content p:hover {
 	background: #CCCCCC;
 	text-decoration:none;
 }
