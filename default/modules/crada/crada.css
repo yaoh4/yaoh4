@@ -80,21 +80,34 @@
 	font-weight:bold;
 }
 .confidential_annotation {
-	border:2px solid #FF0000; /*red*/
-    background: #FFD5D5; /*pink*/
+	border:2px solid #E1DAC1; /*off white*/
+    background: #FFFFCC; /*light off white*/
     margin-left:5px;
 }
+.data_clause_textarea {
+    background:'#E0E0E0';
+    width:400px;
+	resize: none;
+	border:1px solid red;
+    box-shadow: 0 0 10px #719ECE;	
+}
+.edit-section {
+    background:'#E0E0E0';
+	border:"1px dotted black";
+}
+
 .public_annotation{
-    border: 2px solid green;
-    background: #99FF99;
+    border: 2px solid blue; /*blue*/
+    background: #CCFFFF; /*light blue*/
     margin-left:32px;
  	overflow: hidden;
 }
 .both {
 	clear:both;
 }
-.clause a:hover {
-	background: red;
+
+p:hover {
+	background: #CCCCCC;
 	text-decoration:none;
 }
 
@@ -128,8 +141,12 @@
 	width:200px;
 }
 .demographic-changed {
-	color:red;
+	color:blue;
 	font-weight:bold;
+}
+div.ui-tooltip {
+    max-width: 400px;
+    padding:5px;
 }
 
 label {
