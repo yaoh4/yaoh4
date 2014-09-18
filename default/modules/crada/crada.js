@@ -75,10 +75,10 @@ function get_demographics_callback(data) {
 
 function display_demographic_questions(data) {
 	//$("#demographic_questions").append(JSON.stringify(data));
-	var demographics = data.demographics;
+	//var demographics = data.demographics;
 	var row;
 
-	$.each( demographics, function( i, demographic ) {
+	$.each( data.demographics, function( i, demographic ) {
 		row = "";
 		if(demographic.html_type == 'pull down') {
 			row = create_demographic_pulldown(demographic);
@@ -273,7 +273,6 @@ function setup_document_callback(data) {
 // Add the values to the database all at once...
 // Substitute the demographics here
 
-	
 	for (var i=0; i<data.clauses.length; i++) {
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	

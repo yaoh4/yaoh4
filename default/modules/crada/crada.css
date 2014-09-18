@@ -2,7 +2,6 @@
 	border-collapse:collapse;	
 	table-layout:fixed;
 }
-
 #progress_bar td {
 	border: 1px solid black;
 	vertical-align:middle;
@@ -21,7 +20,7 @@
 	background-color:#AFA;
 }
 
-#command_bar {
+.document_toolbar {
 	position:absolute;
 	width:97.6%;
 	left:13px;
@@ -29,43 +28,54 @@
 	background-color: #d3ebf9;
 	padding:5px;
 }
-
+.content {
+	margin:-15 -15 0px;
+}
 #current_document_content {
-	position:absolute;
+	/*position:absolute;
 	left:13px;
 	top:94px;
+	*/
 	background-color: #EEE;
 	width:700px;
 	border:1px solid grey;
     box-shadow: 10px 10px 5px #888888;
     padding:5px;
+    margin-top:15px;
+    margin-left:-20px;
     float:left;
+    font-family:"calibri", "Garamond", "Comic Sans";
 }
+
 #current_document_fullscreen {
 	width:900px;
 }
 
 #current_annotation_content {
+	/*
 	position:absolute;
 	left:733px;
 	top:94px;
-	width:250px;
+	*/
+	float:right;
+	width:245px;
 	border:1px solid grey;
     padding:5px;
     font-family:"calibri", "Garamond", "Comic Sans";
+    margin-top:15px;
+    margin-right:-20px;
+
 }
 #current_annotation_content h1 {
 	font-weight:bold;
  	line-height: 95%;    
 }
-
 .doc {
 	background-color: #EEE;
 	width:450px;
 	border:3px solid black;
     box-shadow: 10px 10px 5px #888888;
 }
-
 .annotation {
 	width:200px;
     padding: 3px 5px; 
@@ -74,7 +84,6 @@
     font-weight:6px;
     margin-top:5px;
     margin-bottom:5px;
-
 }
 .annotation_label {
 	font-weight:bold;
@@ -115,8 +124,22 @@
 	float:right;
 }
 
+.pull-right {
+	float:right;
+}
+.pull-left {
+	float:left;
+}
+
 #annotation_selector {
 	float:right;
+}
+
+#document_footer {
+	background-color: #d3ebf9;
+	height:50px;
+	margin:40 0 5 -20px;
+	padding:5px;
 }
 
 #initial_step { width:10% }
