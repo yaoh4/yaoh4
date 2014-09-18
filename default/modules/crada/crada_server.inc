@@ -16,6 +16,8 @@ function crada_server() {
 		else if ($action == 'get_all_documents') $output = db_get_all_documents();
 		else if ($action == 'create_new_document') $output = create_new_document();
 		else if ($action == 'get_full_document') $output = get_full_document();
+		else if ($action == 'get_answers') $output = get_answers();
+
 		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
@@ -84,7 +86,44 @@ function crada_server() {
 	
 	
 }
+function get_answers() {
+	//$document_id = intval($_REQUEST['document_id']);
+	//
+	//Hard coded for now.  Retrieve master_document_id from crada_question
+	//
 
+	$master_document_id = 1;
+	
+	$result = db_select('crada_question', 'cq')
+		->fields('cq')
+		->condition('document_id', $master_document_id, '=')
+		->condition('question_text', 'REQUIRED', '<>')
+		->execute();
+	
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+
+		$question["question_id"] = $row->question_id;
+		$question["section"] = $row->section;
+		$question["question_text"] = $row->question_text;
+		$question_id = $row->question_id;
+
+		$r2 = db_select('crada_answer', 'c')
+			->fields('c')
+			->condition('document_id', $master_document_id, '=')
+			->condition('question_id', $question_id, '=')
+			->execute();
+		$question['answers'] = array();  //resetting this on each iteration
+		for ($c2 = 0; $row2 = $r2->fetchObject(); $c2++) {
+			$question['answers'][$c2] = $row2->answer_text;
+		}
+		array_push($list, $question);
+	}
+	$output = array();
+    $output["status"] = "Ok";
+    $output["questions"] = $list;
+	return $output;
+}
 function get_clauses_from_answers() {
 	$document_id = $_REQUEST['document_id'];
 	$answers = json_decode($_REQUEST['answers']);
@@ -116,8 +155,6 @@ function get_clauses_from_answers() {
 
 function db_get_title() {
 	$document_id = $_REQUEST['document_id'];
-	
-
 		$record = db_select('crada_document', 'cd')
 			->fields('cd')
 			->condition('document_id', $document_id, '=')

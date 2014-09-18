@@ -12,39 +12,25 @@ function crada_current_document() {
 
 	
 	$data = "";
+	$data .= "<div id='current_document_container'>";
 	$data .= add_command_bar();
-//  Annotator test	
-//	$data .= add_annotator_div_test();
-
 	$data .= add_load_dialog();
-	$data .= "<DIV id='current_document_content'></DIV>";
-	$data .= "<DIV id='current_annotation_content'></DIV>";
-	
+	$data .= "  <DIV id='current_document_content'></DIV>";
+	$data .= "  <DIV id='current_annotation_content'></DIV>";
+	$data .= "</div>";
+
+	$data .= "<div id='change_answer_container' style='display:none;'>";
+	$data .= add_change_answer_bar();
+	$data .= "</div>";
+	$data .= "<div class='both' style='height:15px;'></div>";
+	$data .= "<div id='document_footer' class='both'></div>";
+
  	return $data;
-}
-
-function add_annotator_div_test() {
-	return "
-	<h3>annotator</h3>
-	<div id='annotator' style='height:200px;border:1px solid red;'>
-not statutory but good business practice -- ask OGC if this is required by statute and if it needs to say \"carried out by Parties\".
-
-	</div>
-	<h3>annotator1</h3>
-	<div id='annotator1' style='height:200px;border:1px solid blue;'>
-		Public vs Privite Annotations
-	</div>
-	<h3>annotator2</h3>
-	<div id='annotator2' style='height:200px;border:1px solid green;'>
-		Statutory requirement.  ICD must ensure that the government retains specific rights; i.e., ICD requires the Collaborator to grant licenses for specific health and safety purposes or public use regulations.  See 15USC§3710a(b)(1)(B)
-	</div>
-
-	";
 }
 
 // Command Bar
 function add_command_bar() {
-	$data = "<DIV id='command_bar'>";
+	$data = "<DIV id='command_bar' class='document_toolbar'>";
 	$data .= "<div id='annotation_selector'>";
 	$data .= "<label for='annotation_options'>Annotation: </label>";
 	$data .='<select id="annotation_options">
@@ -54,6 +40,7 @@ function add_command_bar() {
   				<option value="off">off</option>
 			</select>';
 	$data .= "</div>";
+	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
 	$data .= add_button("load_button", "Load New Document");
 	$data .= add_button("save_button", "Save Document");
 	$data .= "</DIV>";
@@ -61,8 +48,26 @@ function add_command_bar() {
 	return $data;
 }
 
-function add_button($id, $name) {
-	return "<BUTTON class='button' id='$id'>$name</BUTTON>";
+// change answer Bar
+function add_change_answer_bar() {
+	$data = "<DIV id='change_answer_bar' class='document_toolbar'>";
+	$data .= add_button("back_button_answer", "Back", "Return to document", "pull-right");
+	$data .= "</DIV>";
+	
+	return $data;
+}
+
+function add_button($id, $name, $title="", $class="") {
+	$button = "";
+	if($title == ""){
+		$button = "<BUTTON class='button' id='$id'>$name</BUTTON>";
+	} else {
+		$button = "<BUTTON class='button' id='$id' title='$title'>$name</BUTTON>";
+	}
+	if($class != ""){
+		$button = "<BUTTON class='button' id='$id' title='$title' class='$class'>$name</BUTTON>";
+	}
+	return $button;
 }
 
 // Dialogs

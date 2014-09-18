@@ -6,6 +6,9 @@ $(document).ready(function () {
 	$("#current_annotation_content").tooltip({show: {delay: 350}}); /*Adding jQuery tooltip for annotations*/
 	$("#load_button").click(click_load_button);
 	$("#save_button").click(click_save_button);
+	$("#change_answer_button").click(click_change_answer_button);
+	$("#back_button_answer").click(click_back_button_answer);
+
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(change_annotation_options);
  	$("#current_document_content").on( "click", "p", function(event) {
@@ -18,12 +21,8 @@ $(document).ready(function () {
 	if (querystring["action"] == 'Load') {
 		document_id = querystring["document_id"];
 		version = querystring["version"];
-//		alert("Preloading: " + document_id + ":" + version);
 		ajax_caller("get_full_document", {'document_id':document_id, 'version':version}, get_document_elements_callback);
 	}
-
-//Testing annotator
-//  	$('#annotator').annotator().anotator('setupPlugins');
 
 });
 
@@ -32,7 +31,7 @@ function editClause(e) {
 	$("#"+ref).attr("contenteditable", "true").addClass('edit-section');
 	var data_clause = $("#"+ref).attr("data-clause");
 	var content;
-	content = '<textarea rows="5" cols="90" class="data_clause_textarea">';
+	content = '<textarea rows="5" cols="70" class="data_clause_textarea">';
 	content += data_clause;
 	content += '</textarea>';
 	$(content).dialog({
@@ -58,7 +57,7 @@ function editAnnotation(e) {
 	var data_annotate = $("#"+ref).attr("data-annotate");
 	var content;
 
-	content = '<textarea rows="5" cols="90" class="data_clause_textarea">';
+	content = '<textarea rows="5" cols="70" class="data_clause_textarea">';
 	content += data_annotate;
 	content += '</textarea>';
 	$(content).dialog({
@@ -129,6 +128,27 @@ function load_document_into_select(data) {
 	for (i=0;i<documents.length; i++) {
 		$("#document_select").append($("<OPTION value='" + documents[i].document_id + "'>" + documents[i].name + "</OPTION>"));
 	}
+}
+function click_back_button_answer() {
+	$('#current_document_container').show();
+	$('#change_answer_container').hide();
+}
+function click_change_answer_button() {
+	$('#current_document_container').hide();
+	$('#change_answer_container').show();
+
+	ajax_caller("get_answers", null, load_change_answer);
+}
+function load_change_answer(data) {
+
+	$('#change_answer_container').append("<div style='height:25px;'></div>");
+	alert(JSON.stringify(data));
+	var questions = data.questions;
+	$.each(questions , function( key, value ) {
+		$('#change_answer_container').append("<div>"+ key + "  question_id:" + value.question_id+
+			 " section: "+value.section+" questin_text:   "+value.question_text+"</div>" );
+	});
+
 }
 
 function click_save_button () {
