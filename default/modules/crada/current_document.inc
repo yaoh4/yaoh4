@@ -97,8 +97,8 @@ function add_command_bar() {
   				<option value="off">off</option>
 			</select>';
 	$data .= "</div>";
-	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
 	$data .= add_button("load_button", "Load New Document");
+	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
 	$data .= add_button("save_button", "Save Document");
 	$data .= "</DIV>";
 	
