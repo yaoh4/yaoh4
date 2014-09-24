@@ -17,6 +17,10 @@ $(document).ready(function () {
  	$("#current_annotation_content").on( "click", "p", function(event) {
             editAnnotation(event);
 	});
+	
+	$("#change_answer_container").on( "change", "select", function(event) {
+		changedAnswer(event);
+	});	
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
 		document_id = querystring["document_id"];
@@ -25,6 +29,12 @@ $(document).ready(function () {
 	}
 
 });
+function changedAnswer(e) {
+	var ref = e.target.id;
+	var new_value = $("#"+ref).val();
+
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+new_value);
+}
 
 function editClause(e) {
 	var ref = e.target.id;
@@ -144,6 +154,11 @@ function load_change_answer(data) {
 
 	$('#change_answer_container').empty().append("<div style='height:25px;'></div>");
 	$('#change_answer_container').append(
+		$("<p>")
+			.append("Changing a document answer below will immediately replace the appropriate clauses into the current document.")
+			.addClass("change-answer-intro")
+		);
+	$('#change_answer_container').append(
 		$("<form>")
 			.attr('id', 'change-answer')
 	);
@@ -206,7 +221,8 @@ function load_change_answer(data) {
 
 			);
 			//Select correct answer
-			$("#question"+value.question_id).val(value.answer).css('color', 'red');
+			$("#question-"+value.question_id).val(value.answer).prop('selected', true);
+			//$("#question-"+value.question_id).val(value.answer).css('color', 'red');
 
 		}	
 		$('#'+key).append(
