@@ -143,8 +143,9 @@ CREATE TABLE IF NOT EXISTS `crada_document` (
   `is_master` tinyint(1) NOT NULL,
   `document_name` varchar(50) NOT NULL,
   `title` text NOT NULL,
+  `master_document_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`document_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;
 
 -- --------------------------------------------------------
 
@@ -164,6 +165,9 @@ CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `public_annotation` longtext,
   `survivable` tinyint(1) NOT NULL,
   `required` tinyint(1) NOT NULL,
+  `source_question` int(12) DEFAULT NULL,
+  `source_answer` int(12) DEFAULT NULL,
+  `answer_changed` tinyint(1) NOT NULL DEFAULT '0',
   `updated_by` varchar(50) NOT NULL,
   `updated_date` datetime NOT NULL,
   PRIMARY KEY (`document_element_id`,`document_version`,`document_id`),

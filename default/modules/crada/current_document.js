@@ -36,8 +36,8 @@ function editClause(e) {
 	content += '</textarea>';
 	$(content).dialog({
 		resizable: false,
-		height:430,
-		width:700,
+		height: 430,
+		width: 700,
 		modal: true,
 		title: $("#"+ref).attr("dialog-title"),
 		buttons: {
@@ -136,18 +136,65 @@ function click_back_button_answer() {
 function click_change_answer_button() {
 	$('#current_document_container').hide();
 	$('#change_answer_container').show();
+	var document_id = $("#document_select").val();
 
-	ajax_caller("get_answers", null, load_change_answer);
+	ajax_caller("get_answers", {'document_id':document_id}, load_change_answer);
 }
 function load_change_answer(data) {
 
 	$('#change_answer_container').append("<div style='height:25px;'></div>");
-	alert(JSON.stringify(data));
 	var questions = data.questions;
+	var previous_section = "";
 	$.each(questions , function( key, value ) {
-		$('#change_answer_container').append("<div>"+ key + "  question_id:" + value.question_id+
-			 " section: "+value.section+" questin_text:   "+value.question_text+"</div>" );
+		console.dir(value);
+
+		//$('#change_answer_container').append("<div> "+ "  question_id:" + value.question_id+
+		//	 " section: "+value.section+" questin_text:   "+value.question_text+"</div>" );
+//					.append(value.question_text)
+		if(previous_section != value.section){
+			//section_change
+			$('#change_answer_container').append(
+				$("<h2>")
+					.append(value.section)
+					.addClass('current_question')
+				);
+			previous_section = value.section;
+			$('#change_answer_container').append(
+				$("<hr>")
+				);
+			previous_section = value.section;
+		};
+
+		$('#change_answer_container').append($('<div>').attr('id', key).addClass('form-group'));
+		$('#'+key).append(
+				$("<label>")
+					.append(value.question_text)
+					.addClass('current_question')
+				);
+		$('#'+key).append(
+				$("<select>")
+					.append("Answer")
+					.addClass('current_answer')
+					.attr('id', value.question_id)
+				);
+		for(i=0;value.answers.length>i;i++)
+			$('#'+value.question_id).append(
+				$('<option>')
+						.append(value.answers[i])
+				);
+
+		$('#change_answer_container').append(
+				$("<div>")
+					.addClass('both')
+				);
+
+		
 	});
+	//alert(JSON.stringify(data));
+	$('#change_answer_container').append(
+			$("<div>")
+				.append(JSON.stringify(data))
+			);
 
 }
 

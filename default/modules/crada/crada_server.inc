@@ -91,9 +91,16 @@ function get_answers() {
 	//
 	//Hard coded for now.  Retrieve master_document_id from crada_question
 	//
+	//Look up maste
 
-	$master_document_id = 1;
-	
+	$document_id = $_REQUEST['document_id'];
+	$result = db_select('crada_document', 'cd')
+		->fields('cd')
+		->condition('document_id', $document_id, '=')
+		->execute();
+	$row = $result->fetchObject();
+	$master_document_id = $row->master_document_id;
+
 	$result = db_select('crada_question', 'cq')
 		->fields('cq')
 		->condition('document_id', $master_document_id, '=')
@@ -107,6 +114,14 @@ function get_answers() {
 		$question["section"] = $row->section;
 		$question["question_text"] = $row->question_text;
 		$question_id = $row->question_id;
+
+		$r3 = db_select('crada_document_element', 'cde')
+				->fields('cde')
+				->condition('document_id', $document_id, '=')
+				->condition('source_question', $question["question_id"], '=')
+				->execute();
+		$row3 = $r3->fetchObject();
+		$question["answer"] = $row3->source_answer;
 
 		$r2 = db_select('crada_answer', 'c')
 			->fields('c')
@@ -127,6 +142,8 @@ function get_answers() {
 function get_clauses_from_answers() {
 	$document_id = $_REQUEST['document_id'];
 	$answers = json_decode($_REQUEST['answers']);
+	// Save answers in crada_document
+
 	if (isset($_REQUEST['alternate_text'])) $alternate_text = $_REQUEST['alternate_text'];
 	else $alternate_text = 'default';
 	if (isset($_REQUEST['version'])) $version = intval($_REQUEST['version']);
@@ -143,6 +160,7 @@ function get_clauses_from_answers() {
 		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
 		foreach ($clauses as $clause) {
 			$full_clause = db_get_clause_information($document_id, $version, $clause);
+			// put q&a
 			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
 			array_push($clause_output, $full_clause);
 		}
@@ -446,6 +464,8 @@ function db_get_all_documents() {
 	$output = array();
     $output["status"] = "Ok";
     $output["documents"] = $list;
+	file_put_contents ( "crada_debug.txt" , "You just got db_get_all_documents", FILE_APPEND);
+
 	return $output;
 
 
@@ -465,21 +485,32 @@ function db_get_all_documents() {
 }
 
 function create_new_document () {
+	//global $user;
+
 	$data = json_decode($_REQUEST['data'], true);
 	$user = $_REQUEST['user'];
 	$name = $_REQUEST['name'];
+	$master_document_id = $_REQUEST['master_document_id'];
+	crada_log('$master_document_id');
+	crada_log($master_document_id);
+
 	$title = $_REQUEST['title'];
+	$answers = $_REQUEST['answers'];
   	$output["status"] = "Ok";
-
-
+  	crada_log('*** You passed in this: $_REQUEST');
+  	crada_log(json_encode($_REQUEST));
+  	crada_log($_REQUEST['master_document_id']);
+  	crada_log("In create_new_document");
+  	crada_log(json_encode($answers));
 
 	$transaction = db_transaction();
 	try {
-		$document_id = db_insert_new_document($name, $title);
+	  	crada_log("In db_insert_new_document");
+		$document_id = db_insert_new_document($name, $title, $master_document_id, $answers);
 		db_insert_new_version($document_id, $user);
 
 		for ($i=0;$i<count($data); $i++) {
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $user);
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
 			$output["row"][$i] = $data[$i]['text'];
 			
 		}
@@ -492,25 +523,28 @@ function create_new_document () {
 
 
 	} catch (Exception $e) {
+		crada_log("Rolling Back - something went wrong");
+		crada_log($e->getMessage(), 1);
+
 		$transaction->rollback();
 		watchdog_exception('crada', $e, $e->getMessage());
  	 	$output["status"] = "Error";
  	 	$output["error"] = $e->getMessage();
  	 	return $output;
 	}
-	
-	
-	
 }
 
-function db_insert_new_document ($name, $title) {
+function db_insert_new_document ($name, $title, $master_document_id, $answers) {
 	$nid = db_insert('crada_document') // Table name no longer needs {}
 	->fields(array(
 	  'is_master' => 0,
 	  'document_name' => $name,
 	  'title' => $title,
+	  'master_document_id' => $master_document_id,
+	  'answers' => $answers
 	))
 	->execute();	
+	  //'master_document_id' => $master_document_id
 	
 	return $nid;
 }
@@ -528,7 +562,7 @@ function db_insert_new_version ($document_id, $user) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $text, $confidential_annotation, $public_annotation, $user) {
+function db_insert_document_element ($document_id, $document_element_id, $section, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer, $user) {
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
@@ -540,6 +574,8 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'document_element_text' => $text,
 	  'confidential_annotation' => $confidential_annotation,
 	  'public_annotation' => $public_annotation,
+	  'source_question' => $source_question,
+	  'source_answer' => $source_answer,
 	  'survivable' => 0,
 	  'required' => 0,
 	  'updated_by' => $user,
@@ -570,7 +606,8 @@ function db_get_title_for_document($document_id) {
 	->condition('document_id', $document_id, '=')
 	->execute()
 	->fetchObject();
-	
+	file_put_contents ( "crada_debug.txt" , "You just got db_get_title_for_document", FILE_APPEND);
+
 	return $record->title;
 }
 
@@ -606,4 +643,25 @@ function echo_stream() {
 }
 
 function echo_data() {
+}
+
+function crada_log($data, $debug_level=0) {
+
+	$filename = "/tmp/crada.log";
+	$timestamp = date("Y-m-d H:i:s", time());
+	$output = $timestamp . " " . $data ;
+
+	if($debug_level > 0 ) {
+		file_put_contents($filename,  "*******************************************" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+	}
+
+	file_put_contents($filename,  $output . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+
+	if($debug_level > 0 ) {
+		foreach (debug_backtrace() as $key => $value) {
+			//alert( index + ": " + value );
+			file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
+		}
+	}
+
 }

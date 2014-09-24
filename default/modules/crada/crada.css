@@ -1,4 +1,7 @@
-#progress_bar {
+ body {
+ 	font: 76%/170% Verdana, sans-serif;
+ }
+ #progress_bar {
 	border-collapse:collapse;	
 	table-layout:fixed;
 }
@@ -44,7 +47,8 @@
     margin-top:15px;
     margin-left:-20px;
     float:left;
-    font-family:"calibri", "Garamond", "Comic Sans";
+    font-family:"Cambria", Georgia, serif;
+    font-size:1.2em;
 }
 
 #current_document_fullscreen {
@@ -58,17 +62,13 @@
 	top:94px;
 	*/
 	float:right;
-	width:245px;
+	width:225px;
 	border:1px solid grey;
     padding:5px;
     font-family:"calibri", "Garamond", "Comic Sans";
     margin-top:15px;
     margin-right:-20px;
-
-}
-#current_annotation_content h1 {
-	font-weight:bold;
- 	line-height: 95%;    
+    font-size: 1.2em;
 }
 .doc {
 	background-color: #EEE;
@@ -81,17 +81,21 @@
     padding: 3px 5px; 
  	line-height: 80%;    
     border-radius: 12px;
-    font-weight:6px;
+    font-size: 0.9em;
     margin-top:5px;
     margin-bottom:5px;
-}
-.annotation_label {
-	font-weight:bold;
+ 	overflow: hidden;
 }
 .confidential_annotation {
 	border:2px solid #E1DAC1; /*off white*/
     background: #FFFFCC; /*light off white*/
-    margin-left:5px;
+    margin-left:15px;
+}
+
+.public_annotation{
+    border: 2px solid blue; /*blue*/
+    background: #CCFFFF; /*light blue*/
+    margin-left:15px;
 }
 .data_clause_textarea {
     background:'#E0E0E0';
@@ -103,16 +107,6 @@
 .edit-section {
     background:'#E0E0E0';
 	border:"1px dotted black";
-}
-
-.public_annotation{
-    border: 2px solid blue; /*blue*/
-    background: #CCFFFF; /*light blue*/
-    margin-left:32px;
- 	overflow: hidden;
-}
-.both {
-	clear:both;
 }
 
 #current_document_content p:hover {
@@ -188,4 +182,27 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
 	display: inline-block;
 	width: 170px;
 	text-align: right;
-}​
+}
+
+.both {
+	clear:both;
+}
+​
+/* Change answer */
+.current_question {
+	float: left;
+    padding-right: 8px;
+    text-align: right;
+    width: 400px;
+	border:1px solid red;
+}
+.current_answer {
+	float:left;
+	width:300px;
+	border:1px solid blue;
+}
+.change_answer {
+	float:left;
+	width:300px;
+	border:1px solid green;
+}

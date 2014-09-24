@@ -253,6 +253,10 @@ function old_setup_document_callback(data) {
 }
 
 function setup_document_callback(data) {
+	console.log("In setup_document_callback");
+	console.log("Where are the question/answers????");
+	console.log("data");
+	console.dir(data);
 
 // What to do with definitions?
 //	for (i=0;i<used_terms.length; i++) {
@@ -261,7 +265,11 @@ function setup_document_callback(data) {
 //	}
 
 	var new_clauses = new Object();
-
+	//
+	//Larry said get master_document_id here
+	//
+	//new_clauses.master_id = <master>;
+	console.log("TODO: new_clauses.master_id should be here.");
 	var used_terms = get_used_terms(data.clauses);
 	for (i=0;i<used_terms.length; i++) {
 		var definition = definitions[used_terms[i]];
@@ -269,6 +277,8 @@ function setup_document_callback(data) {
 		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);	
 		new_clauses[i].section = 	"Definitions";
 	}
+	console.log("new_clauses");
+	console.dir(new_clauses);
 
 // Add the values to the database all at once...
 // Substitute the demographics here
@@ -276,26 +286,38 @@ function setup_document_callback(data) {
 	for (var i=0; i<data.clauses.length; i++) {
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
-		new_clauses[used_terms.length+i].section = 	data.clauses[i].section;
-		new_clauses[used_terms.length+i].confidential_annotation = 	data.clauses[i].confidential_annotation;
-		new_clauses[used_terms.length+i].public_annotation = 	data.clauses[i].public_annotation;
+		new_clauses[used_terms.length+i].section = data.clauses[i].section;
+		new_clauses[used_terms.length+i].confidential_annotation = data.clauses[i].confidential_annotation;
+		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
+		console.log("new clauses populate where i = "+i);
+		console.log("question  = "+i);
+		console.log("answer = "+answers[i]);
+		new_clauses[used_terms.length+i].source_question = (i+1);
+		new_clauses[used_terms.length+i].source_answer = answers[i+1];
+		console.log("new_clauses["+(used_terms.length+i)+"]");
+		console.dir(new_clauses[used_terms.length+i]);
+
 	}
+
+
 	var new_clauses_encoded = JSON.stringify(new_clauses);
 
 	var title = $("#document_title").val();
 	if (title == null || title == "") title = "New Title";
 	var name = $("#document_name").val();
 	if (name == null || name == "") name = "filename";
+	var master_document_id = $("#template_chooser").val();
+	if (master_document_id == null || master_document_id == "") master_document_id = "1";
 	
-//	alert (new_clauses_encoded);
-	ajax_caller('create_new_document', {'user':'breml', 'data':new_clauses_encoded, 'name':name, 'title':title}, 
+	ajax_caller('create_new_document', {'data':new_clauses_encoded, 'user':'breml', 'name':name, 'title':title, 'master_document_id':master_document_id}, 
 		create_new_document_callback, 'POST');
 }
 
 function create_new_document_callback(data) {
-//	alert (JSON.stringify(data, null, 2));
+	//alert (JSON.stringify(data, null, 2));
+	alert('before redirection');
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=0";
-//	$("#crada_document").empty().append(JSON.stringify(data, null, 2));
+	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 
 }
 
