@@ -6,7 +6,7 @@ body {
   margin: 0;
   padding: 0;
   background: #edf5fa;
-  font: 76%/170% Verdana, sans-serif;
+ /* font: 76%/170% Verdana, sans-serif;*/
   color: #494949;
 }
 
@@ -38,10 +38,12 @@ h1 {
 }
 
 h2,
+/*
 #center h1 {
   font-size: 160%;
   line-height: 130%;
 }
+*/
 
 h3 {
   font-size: 140%;
