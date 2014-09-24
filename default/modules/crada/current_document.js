@@ -142,7 +142,11 @@ function click_change_answer_button() {
 }
 function load_change_answer(data) {
 
-	$('#change_answer_container').append("<div style='height:25px;'></div>");
+	$('#change_answer_container').empty().append("<div style='height:25px;'></div>");
+	$('#change_answer_container').append(
+		$("<form>")
+			.attr('id', 'change-answer')
+	);
 	var questions = data.questions;
 	var previous_section = "";
 	$.each(questions , function( key, value ) {
@@ -153,42 +157,63 @@ function load_change_answer(data) {
 //					.append(value.question_text)
 		if(previous_section != value.section){
 			//section_change
-			$('#change_answer_container').append(
+			$('#change-answer').append(
 				$("<h2>")
 					.append(value.section)
 					.addClass('current_question')
 				);
 			previous_section = value.section;
-			$('#change_answer_container').append(
+			$('#change-answer').append(
 				$("<hr>")
 				);
 			previous_section = value.section;
 		};
 
-		$('#change_answer_container').append($('<div>').attr('id', key).addClass('form-group'));
+		$('#change-answer').append($('<div>').attr('id', key).addClass('form-group'));
+		//Add question LABEL
 		$('#'+key).append(
 				$("<label>")
 					.append(value.question_text)
-					.addClass('current_question')
+					.addClass('question-label')
+					.attr('for', 'question-'+value.question_id)
 				);
+		//Add question SELECT
 		$('#'+key).append(
 				$("<select>")
 					.append("Answer")
-					.addClass('current_answer')
-					.attr('id', value.question_id)
+					.attr('id', 'question-'+value.question_id)
+					.attr('name', 'question-'+value.question_id)
 				);
+		//Add question OPTIONS
 		for(i=0;value.answers.length>i;i++)
-			$('#'+value.question_id).append(
+			$('#question-'+value.question_id).append(
 				$('<option>')
 						.append(value.answers[i])
+						.attr('value', i)
 				);
+		//Select the correct answer
+		if(value.answer == null){
+			$('#'+key).append(
+				$("<span>")
+					.append("answer is null")
+					.css('color', 'red')
+			);
 
-		$('#change_answer_container').append(
-				$("<div>")
-					.addClass('both')
-				);
+		} else {
+			$('#'+key).append(
+				$("<span>")
+					.append(value.answer)
 
-		
+			);
+			//Select correct answer
+			$("#question"+value.question_id).val(value.answer).css('color', 'red');
+
+		}	
+		$('#'+key).append(
+			$("<div>")
+				.addClass('both')
+			);
+
 	});
 	//alert(JSON.stringify(data));
 	$('#change_answer_container').append(

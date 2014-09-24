@@ -206,3 +206,10 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
 	width:300px;
 	border:1px solid green;
 }
+
+.question-label {
+	float: left;
+	width: 400px;
+	padding-right: 8px;
+	text-align: right;
+}
