@@ -264,6 +264,7 @@ function setup_document_callback(data) {
 //		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");	
 //	}
 
+
 	var new_clauses = new Object();
 	//
 	//Larry said get master_document_id here
