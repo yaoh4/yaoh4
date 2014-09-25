@@ -285,6 +285,9 @@ function setup_document_callback(data) {
 // Substitute the demographics here
 
 	for (var i=0; i<data.clauses.length; i++) {
+		//Set answers index to 0 if user did not answer the question.
+		if(answers[i+1] == null)
+			answers[i+1] = 0;
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
