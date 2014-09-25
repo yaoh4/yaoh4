@@ -213,6 +213,8 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
 	padding-right: 8px;
 	text-align: right;
 }
+
 .change-answer-intro {
-	padding:10 200px;
+	margin: 25px 50px;
+	font-weight: bold;
 }

@@ -26,6 +26,8 @@ function crada_current_document() {
 
 	$data .= "<div id='change_answer_container' style='display:none;'>";
 	$data .= add_change_answer_bar();
+	$data .= "<p class='change-answer-intro'>Changing a document answer below will immediately replace the appropriate clauses into the current document.</p>";
+	$data .= "<div id='change_answer_questions'></div>";
 	$data .= "</div>";
 	$data .= "<div class='both' style='height:15px;'></div>";
 	$data .= "<div id='document_footer' class='both'></div>";

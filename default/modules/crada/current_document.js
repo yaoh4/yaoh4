@@ -180,13 +180,16 @@ function click_change_answer_button() {
 }
 
 function load_change_answer(data) {
+	change_answer_questions
 
-	$('#change_answer_container').empty().append(
+/*
+	$('#change_answer_questions').empty().append(
 		$("<p>")
 			.append("Changing a document answer below will immediately replace the appropriate clauses into the current document.")
 			.addClass("change-answer-intro")
 	);
-	$('#change_answer_container').append(
+*/
+	$('#change_answer_questions').empty().append(
 		$("<form>")
 			.attr('id', 'change-answer')
 	);
