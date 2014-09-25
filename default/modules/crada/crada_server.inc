@@ -495,7 +495,7 @@ function create_new_document () {
 	crada_log($master_document_id);
 
 	$title = $_REQUEST['title'];
-	$answers = $_REQUEST['answers'];
+	//$answers = $_REQUEST['answers'];
   	$output["status"] = "Ok";
   	crada_log('*** You passed in this: $_REQUEST');
   	crada_log(json_encode($_REQUEST));
@@ -506,7 +506,7 @@ function create_new_document () {
 	$transaction = db_transaction();
 	try {
 	  	crada_log("In db_insert_new_document");
-		$document_id = db_insert_new_document($name, $title, $master_document_id, $answers);
+		$document_id = db_insert_new_document($name, $title, $master_document_id);
 		db_insert_new_version($document_id, $user);
 
 		for ($i=0;$i<count($data); $i++) {
@@ -534,14 +534,13 @@ function create_new_document () {
 	}
 }
 
-function db_insert_new_document ($name, $title, $master_document_id, $answers) {
+function db_insert_new_document ($name, $title, $master_document_id) {
 	$nid = db_insert('crada_document') // Table name no longer needs {}
 	->fields(array(
 	  'is_master' => 0,
 	  'document_name' => $name,
 	  'title' => $title,
-	  'master_document_id' => $master_document_id,
-	  'answers' => $answers
+	  'master_document_id' => $master_document_id
 	))
 	->execute();	
 	  //'master_document_id' => $master_document_id

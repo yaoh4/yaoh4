@@ -316,7 +316,6 @@ function setup_document_callback(data) {
 
 function create_new_document_callback(data) {
 	//alert (JSON.stringify(data, null, 2));
-	alert('before redirection');
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=0";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 
