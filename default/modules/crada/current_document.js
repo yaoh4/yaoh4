@@ -1,5 +1,7 @@
 jQuery(function($) {
 var documentSections;
+var current_document_id = 2;
+var current_version = 0;
 $(document).ready(function () {
 	create_dialogs();
 
@@ -23,17 +25,41 @@ $(document).ready(function () {
 	});	
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
-		document_id = querystring["document_id"];
-		version = querystring["version"];
-		ajax_caller("get_full_document", {'document_id':document_id, 'version':version}, get_document_elements_callback);
+		current_document_id = querystring["document_id"];
+		current_version = querystring["version"];
+		set_footer();
+		ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
+	} else {
+		//Reload what ever is currently stored under current_document_id and current_version
+		ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
 	}
 
 });
+function set_footer(){
+	$("#document_footer").empty().append(
+		$('<div>')
+		.append("Document Id: "+current_document_id)
+	);
+	$("#document_footer").append(
+		$('<div>')
+		.append("Version: "+current_version)
+	);
+}
+
 function changedAnswer(e) {
 	var ref = e.target.id;
-	var new_value = $("#"+ref).val();
+	var question_id = $("#"+ref).prop('question_id');
+	var answer = $("#"+ref).val();
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+new_value);
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer);
+	ajax_caller("set_answer", {'document_id':current_document_id, 'question_id':question_id, 'answer':answer}, set_answer_callback);
+}
+
+function set_answer_callback(data) {
+	alert(JSON.stringify(data));
+	alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
+	location.href = "load_document?action=Load&document_id=" + current_document_id + "&version="+current_version;
+
 }
 
 function editClause(e) {
@@ -139,73 +165,73 @@ function load_document_into_select(data) {
 		$("#document_select").append($("<OPTION value='" + documents[i].document_id + "'>" + documents[i].name + "</OPTION>"));
 	}
 }
+
 function click_back_button_answer() {
 	$('#current_document_container').show();
 	$('#change_answer_container').hide();
 }
+
 function click_change_answer_button() {
 	$('#current_document_container').hide();
 	$('#change_answer_container').show();
-	var document_id = $("#document_select").val();
+	//var document_id = $("#document_select").val();
 
-	ajax_caller("get_answers", {'document_id':document_id}, load_change_answer);
+	ajax_caller("get_answers", {'document_id':current_document_id}, load_change_answer);
 }
+
 function load_change_answer(data) {
 
-	$('#change_answer_container').empty().append("<div style='height:25px;'></div>");
-	$('#change_answer_container').append(
+	$('#change_answer_container').empty().append(
 		$("<p>")
 			.append("Changing a document answer below will immediately replace the appropriate clauses into the current document.")
 			.addClass("change-answer-intro")
-		);
+	);
 	$('#change_answer_container').append(
 		$("<form>")
 			.attr('id', 'change-answer')
 	);
+
 	var questions = data.questions;
 	var previous_section = "";
 	$.each(questions , function( key, value ) {
 		console.dir(value);
-
-		//$('#change_answer_container').append("<div> "+ "  question_id:" + value.question_id+
-		//	 " section: "+value.section+" questin_text:   "+value.question_text+"</div>" );
-//					.append(value.question_text)
 		if(previous_section != value.section){
 			//section_change
 			$('#change-answer').append(
 				$("<h2>")
 					.append(value.section)
 					.addClass('current_question')
-				);
+			);
 			previous_section = value.section;
 			$('#change-answer').append(
 				$("<hr>")
-				);
+			);
 			previous_section = value.section;
 		};
 
 		$('#change-answer').append($('<div>').attr('id', key).addClass('form-group'));
 		//Add question LABEL
 		$('#'+key).append(
-				$("<label>")
-					.append(value.question_text)
-					.addClass('question-label')
-					.attr('for', 'question-'+value.question_id)
-				);
+			$("<label>")
+				.append(value.question_text)
+				.addClass('question-label')
+				.attr('for', 'question-'+value.question_id)
+			);
 		//Add question SELECT
 		$('#'+key).append(
-				$("<select>")
-					.append("Answer")
-					.attr('id', 'question-'+value.question_id)
-					.attr('name', 'question-'+value.question_id)
-				);
+			$("<select>")
+				.append("Answer")
+				.attr('id', 'question-'+value.question_id)
+				.attr('name', 'question-'+value.question_id)
+		);
 		//Add question OPTIONS
-		for(i=0;value.answers.length>i;i++)
+		for(i=0;value.answers.length>i;i++) {
 			$('#question-'+value.question_id).append(
 				$('<option>')
-						.append(value.answers[i])
-						.attr('value', i)
-				);
+					.append(value.answers[i])
+					.attr('value', i)
+			);
+		}
 		//Select the correct answer
 		if(value.answer == null){
 			$('#'+key).append(
@@ -222,20 +248,14 @@ function load_change_answer(data) {
 			);
 			//Select correct answer
 			$("#question-"+value.question_id).val(value.answer).prop('selected', true);
-			//$("#question-"+value.question_id).val(value.answer).css('color', 'red');
 
 		}	
 		$('#'+key).append(
 			$("<div>")
 				.addClass('both')
-			);
+		);
 
 	});
-	//alert(JSON.stringify(data));
-	$('#change_answer_container').append(
-			$("<div>")
-				.append(JSON.stringify(data))
-			);
 
 }
 
@@ -245,10 +265,11 @@ function click_save_button () {
 
 function click_select_document_button() {
 //	alert("Clicked Select Document Button: " + $("#document_select").val());
-	var document_id = $("#document_select").val();
-	var version = 0;
+	current_document_id = $("#document_select").val();
+	current_version = $("#document_version").val();
+	set_footer();
 	
-	ajax_caller("get_full_document", {'document_id':document_id, 'version':version}, get_document_elements_callback);
+	ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
 	$("#load_dialog").dialog( "close" );
 	
 }

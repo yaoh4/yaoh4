@@ -17,6 +17,7 @@ function crada_server() {
 		else if ($action == 'create_new_document') $output = create_new_document();
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
+		else if ($action == 'set_answer') $output = set_answer();
 
 		else if ($action == 'echo') $output = echo_data();
 		
@@ -86,6 +87,29 @@ function crada_server() {
 	
 	
 }
+
+function set_answer() {
+	$document_id = $_REQUEST['document_id'];
+	$question_id = $_REQUEST['question_id'];
+	$answer = $_REQUEST['answer'];
+	crada_log("set_answer()");
+	crada_log("documet_id=".$document_id." question_id=".$question_id." answer=".$answer);
+
+	$result = db_select('crada_document', 'cd')
+		->fields('cd')
+		->condition('document_id', $document_id, '=')
+		->execute();
+	$row = $result->fetchObject();
+	$master_document_id = $row->master_document_id;
+
+	crada_log("master_document_id=".$master_document_id);
+
+	$output = array();
+    $output["status"] = "Ok";
+
+	return $output;
+}
+
 function get_answers() {
 	//$document_id = intval($_REQUEST['document_id']);
 	//

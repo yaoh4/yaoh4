@@ -7,25 +7,14 @@ function crada_current_document() {
 	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_js($module_path . '/current_document.js',array('cache' => false, 'preprocess' => false));
 
-	//$data = "Hello00";
-	//$filename = "/tmp/crada.log";
 	//dpm($module_path, "Module Path");
-	//dpm($filename, "Attempting to create this file");
-	crada_log("Attempting to create this file.");
 	crada_log("Now this is cool.");
-
 
 	//drupal_add_css("sites/all/modules/libraries/bootstrap/css/bootstrap.min.css", 'theme', 'all', FALSE);
 	//drupal_add_js("sites/all/modules/libraries/bootstrap/js/bootstrap.min.js",array('cache' => false, 'preprocess' => false));
     //drupal_add_css('sites/all/modules/libraries/fontawesome/css/font-awesome.css');
 
-	// C:\a\htdocs\drupal\sites\all\modules\libraries\fontawesome\css
 	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
-	//drupal_set_message("Base_path(): ".base_path());
-//  testing annotator
-//	drupal_add_css('http://assets.annotateit.org/annotator/v1.1.0/annotator.min.css');
-//	drupal_add_js('http://assets.annotateit.org/annotator/v1.1.0/annotator-full.min.js',array('cache' => false, 'preprocess' => false));
-
 	
 	$data = "";
 	$data .= "<div id='current_document_container'>";
@@ -43,6 +32,7 @@ function crada_current_document() {
 
  	return $data;
 }
+
 function crada_log($data) {
 
 	$filename = "/tmp/crada.log";
@@ -58,16 +48,9 @@ function crada_log($data) {
 		//alert( index + ": " + value );
 		file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
 	}
-
-
 }
 
-// Command Bar
 function add_command_bar() {
-	//drupal_set_message(t('Fontawesome location'));
-	//$hello = libraries_get_path('fontawesome');
-	//$hold = drupal_get_path('library', 'fontawesome');
-	//drupal_set_message("Hold: ".json_encode($hold));
 
 	$data = "<DIV id='command_bar' class='document_toolbar'>";
 /*
@@ -85,7 +68,7 @@ function add_command_bar() {
 </div>';
 	$data .= '<a class="btn btn-large btn-danger" href="#">
   <i class="icon-flag icon-2x pull-left"></i> Font Awesome<br>Version 3.2.1</a>';
-  */
+*/
 
 	$data .= "<div id='annotation_selector'>";
 
@@ -128,8 +111,10 @@ function add_button($id, $name, $title="", $class="") {
 }
 
 // Dialogs
-
 function add_load_dialog() {
+	//
+	//TODO: Need to add a list of documents and versions per document.
+	//  When selecting a document an new list of version needs to be shown.
 	$data = "<DIV id='load_dialog'>";
 	$data .= "<TABLE>";
 	$data .= "<TR><TD>Document:</TD><TD> <SELECT id='document_select'>";
