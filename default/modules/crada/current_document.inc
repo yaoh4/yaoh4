@@ -8,13 +8,26 @@ function crada_current_document() {
 	drupal_add_js($module_path . '/current_document.js',array('cache' => false, 'preprocess' => false));
 
 	//dpm($module_path, "Module Path");
-	crada_log("Now this is cool.");
+//	crada_log("Now this is cool.");
 
 	//drupal_add_css("sites/all/modules/libraries/bootstrap/css/bootstrap.min.css", 'theme', 'all', FALSE);
 	//drupal_add_js("sites/all/modules/libraries/bootstrap/js/bootstrap.min.js",array('cache' => false, 'preprocess' => false));
     //drupal_add_css('sites/all/modules/libraries/fontawesome/css/font-awesome.css');
 
 	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
+	
+//	 Set default cookie if it does not exists.
+	/*
+	crada_log("**** Loading current document");
+	crada_log("_COOKIE");
+	crada_log(http_build_query($_COOKIE));
+	//crada_log($_COOKIE['Drupal_visitor_document_id']);
+	//crada_log(isset($_COOKIE['Drupal_visitor_document_id']));
+	if(!isset($_COOKIE['Drupal_visitor_document_id'])) {
+		$document = array("id"=>3,"version"=>0);
+		crada_cookie_save('document', $document);
+	}
+	*/
 	
 	$data = "";
 	$data .= "<div id='current_document_container'>";
@@ -131,4 +144,15 @@ function add_load_dialog() {
 	$data .= "</TABLE>";
 	$data .= "</DIV>";
 	return $data;
+}
+
+function crada_cookie_save($key, array $values) {
+  foreach ($values as $field => $value) {
+    // Set cookie for 365 days.
+    setrawcookie('Drupal.visitor.' . $key . '.' . $field, rawurlencode($value), REQUEST_TIME + 31536000, '/');
+  }
+}
+
+function crada_cookie_delete($key, $cookie_name) {
+	setrawcookie('Drupal.visitor.' . $key . '.' . $cookie_name, '', REQUEST_TIME - 3600, '/');
 }

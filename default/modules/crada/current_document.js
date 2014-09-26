@@ -11,6 +11,7 @@ $(document).ready(function () {
 	$("#change_answer_button").click(click_change_answer_button);
 	$("#back_button_answer").click(click_back_button_answer);
 
+	$('#document_select').click(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(change_annotation_options);
  	$("#current_document_content").on( "click", "p", function(event) {
@@ -25,36 +26,57 @@ $(document).ready(function () {
 	});	
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
-		current_document_id = querystring["document_id"];
-		current_version = querystring["version"];
-		set_footer();
-		ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
-	} else {
-		//Reload what ever is currently stored under current_document_id and current_version
-		ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
+		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
+		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
 
+	ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
+	set_footer();
 });
+
 function set_footer(){
 	$("#document_footer").empty().append(
 		$('<div>')
-		.append("Document Id: "+current_document_id)
+		.append("Document Id: " + getCookie("Drupal.visitor.document.id"))
 	);
 	$("#document_footer").append(
 		$('<div>')
-		.append("Version: "+current_version)
+		.append("Version: " + getCookie("Drupal.visitor.document.version"))
 	);
 }
 
 function changedAnswer(e) {
 	var ref = e.target.id;
-	var question_id = $("#"+ref).prop('question_id');
-	var answer = $("#"+ref).val();
+	var question_id = $("#"+ref).attr('question_id');
+	var answer_id = $("#"+ref).val();
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer);
-	ajax_caller("set_answer", {'document_id':current_document_id, 'question_id':question_id, 'answer':answer}, set_answer_callback);
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_answer_retrieve_new_element', {'document_id':current_document_id, 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+	//ajax_caller("set_answer", {'document_id':current_document_id, 'question_id':question_id, 'answer':answer}, set_answer_callback);
 }
 
+function set_answer_retrieve_new_element_callback(data) {
+	alert(JSON.stringify(data));
+	alert("set_answer_retrieve_new_element_callback completed. Send clause to madlib to add demographic info. " + current_document_id);
+	//Add madlib to clause with demographic answers.
+	alert("about to call addMadLib");
+	console.log('data.demographic_answers');
+	console.log(data.demographic_answers);
+	console.log('JSON.parse(data.demographic_answers)');
+	console.dir(JSON.parse(data.demographic_answers));
+	alert("about to call addMadLib");
+
+	var new_mad_lib = addMadLib(data.element.document_element_text, JSON.parse(data.demographic_answers));
+	data.element.document_element_text = new_mad_lib;
+
+	//
+	//Add new record with next version number in crada_document_element table for this document
+	//
+	alert("calling set_answer");
+
+	ajax_caller('set_answer', {'data':JSON.stringify(data)}, set_answer_callback, "POST");
+
+}
 function set_answer_callback(data) {
 	alert(JSON.stringify(data));
 	alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
@@ -147,23 +169,72 @@ function create_dialogs() {
 		position:['middle',100],
 		autoOpen: false,
 		height:'auto',
-		width:[300]
+		width:[300],
+		modal: true
 	});	
 }
 
 function click_load_button () {
 	$("#load_dialog").dialog("open");	
 	// Need to call into database to pull back the documents, then versions
-	ajax_caller("get_all_documents", null, load_document_into_select);
+	ajax_caller("get_all_documents_info", null, load_document_info_into_select);
 	
 }
 
-function load_document_into_select(data) {
+function changed_document_id() {
+	var document_id = $("#document_select").val();
+	//setCookie("Drupal.visitor.document.id", document_id, 365);
+	//set the load_latest to 1
+	setCookie("Drupal.visitor.document.loadLatest", 1, 365);
+	ajax_caller("get_all_documents_info", null,	load_document_version_into_select);
+}
+
+function load_document_info_into_select(data) {
 	var documents = data.documents;
+	var document_id = parseInt(getCookie("Drupal.visitor.document.id"));
+
+	console.log("load_document_info_into_select");
+	console.dir(data);
+
+	//populate select
 	$("#document_select").empty();
-	for (i=0;i<documents.length; i++) {
-		$("#document_select").append($("<OPTION value='" + documents[i].document_id + "'>" + documents[i].name + "</OPTION>"));
+	$.each( documents, function( document_id, doc ) {
+		$("#document_select").append($("<OPTION value='" + doc.document_id + "'>" + doc.name + "</OPTION>"));
+	});
+
+	if(isNaN(document_id)) {
+		document_id = $("#document_select").val();
+		setCookie("Drupal.visitor.document.id", document_id, 365);
+	};
+
+	//select the current document
+	$("#document_select").val(document_id).prop('selected', true);
+
+	load_document_version_into_select(data);
+}
+
+function load_document_version_into_select(data) {
+	var documents = data.documents;
+	var version_id = parseInt(getCookie("Drupal.visitor.document.version"));
+	var document_id = $("#document_select").val();
+	console.log("document_id = "+document_id);
+
+	//populate select
+	$("#document_version").empty();
+	$.each( documents[document_id].versions, function( key, version_id ) {
+		$("#document_version").append($("<OPTION value='" + version_id + "'>" + version_id + "</OPTION>"));
+	});
+
+	if(isNaN(version_id)) {
+		version_id = $("#document_version").val();
+		setCookie("Drupal.visitor.document.version", version_id, 365);
+	};
+	if(parseInt(getCookie("Drupal.visitor.document.loadLatest")) == 1) {
+		version_id = documents[document_id].versions[documents[document_id].versions.length-1];
+		setCookie("Drupal.visitor.document.loadLatest", 0, 365);
 	}
+	//set the current version
+	$("#document_version").val(version_id).prop('selected', true);;
 }
 
 function click_back_button_answer() {
@@ -226,6 +297,7 @@ function load_change_answer(data) {
 				.append("Answer")
 				.attr('id', 'question-'+value.question_id)
 				.attr('name', 'question-'+value.question_id)
+				.attr('question_id', value.question_id)
 		);
 		//Add question OPTIONS
 		for(i=0;value.answers.length>i;i++) {
@@ -268,11 +340,15 @@ function click_save_button () {
 
 function click_select_document_button() {
 //	alert("Clicked Select Document Button: " + $("#document_select").val());
-	current_document_id = $("#document_select").val();
-	current_version = $("#document_version").val();
+	document_id = $("#document_select").val();
+	version_id = $("#document_version").val();
+	//Set cookies
+	setCookie("Drupal.visitor.document.id", document_id, 365);
+	setCookie("Drupal.visitor.document.version", version_id, 365);
+
 	set_footer();
 	
-	ajax_caller("get_full_document", {'document_id':current_document_id, 'version':current_version}, get_document_elements_callback);
+	ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
 	$("#load_dialog").dialog( "close" );
 	
 }
@@ -280,7 +356,7 @@ function click_select_document_button() {
 function get_document_elements_callback(data) {
 //	alert (JSON.stringify(data, null, 2));
 
-	$("#current_document_content").empty().append($("<H1>").append(data.title)).append("<hr />");
+	$("#current_document_content").empty().append($("<h1>").append(data.title)).append("<hr />");
 	
 	var current_section = "";
 	var confidential_annotation;
@@ -364,7 +440,7 @@ function addAnnotationDiv(annotation_data, section_reference, annotation_type) {
 	//split the annotation data on excel return
 	//annotations = JSON.stringify(annotation_data);
 	//console.log("section_reference: ");
-	console.dir(annotation_data);
+	//console.dir(annotation_data);
 }
 
 function trimAnnoation(annotation) {

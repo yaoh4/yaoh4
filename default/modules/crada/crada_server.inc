@@ -13,99 +13,94 @@ function crada_server() {
 		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers();
 		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
 		else if ($action == 'get_demographics') $output = db_get_demographics();
-		else if ($action == 'get_all_documents') $output = db_get_all_documents();
+		else if ($action == 'get_all_documents_info') $output = db_get_all_documents_info();
 		else if ($action == 'create_new_document') $output = create_new_document();
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
+		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
 
 		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
 		$output['status'] = 'Error';
-		$output['message'] =$e->getMessage();
+		$output['message'] = $e->getMessage();
 	}
 
 	if (isset($output))
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	else {
 		$output["status"] = 'Error';
-		$output["message"] = 'Unknown Function Called';
+		$output["message"] = 'Unknown Function Called. action = '.$action;
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
-	
-/*	
-	else if ($action == 'get_annotations') {
-		$list = db_get_annotations();
-		$output["status"] = $status;
-		$output["name"] = $section;
-		$output["elements"] = $list;
-	} else if ($action == 'get_clauses_for_q_and_a') {
-		$list = get_valid_clauses_by_question_answer_and_alternate_text_type();
-		$output["status"] = $status;
-		$output["clauses"] = $list;
-	} else if ($action == 'load_document') {
-		$list = db_get_all_document_elements();
-		$output["status"] = $status;
-		$output["elements"] = $list;
-	} else if ($action == 'delete_document_element') {
-		db_delete_document_element();
-		$output["status"] = $status;
-	} else if ($action == 'edit_document_element') {
-		db_edit_document_element();
-		$output["status"] = $status;
-	} else if ($action == 'edit_annotation') {
-		db_edit_annotation();
-		$output["status"] = $status;
-	} else if ($action == 'get_documents') {
-		$output["documents"] = get_all_documents();
-		$output["status"] = $status;
-	} else if ($action == 'get_versions') {
-		$output["versions"] = get_all_versions();
-		$output["status"] = $status;
-	} else if ($action == 'get_clause_groups') {
-		$output["groups"] = get_clause_groups();
-		$output["status"] = $status;
-	} else if ($action == 'get_question') {
-		$output["question"] = get_question();
-		$output["status"] = $status;
-	} else if ($action == 'get_valid_clause_groups') {
-		$output["valid_group_ids"] = get_valid_clause_groups_by_answer();
-		$output["status"] = $status;
-	} else if ($action == 'get_clauses_from_clause_group') {
-		$output["clauses"] = get_clauses_from_clause_group();
-		$output["status"] = $status;
-	} else if ($action == 'get_all_document_elements_for_group') {
-		$list = get_all_document_elements_for_group();
-		$output["status"] = $status;
-		$output["elements"] = $list;
-	} elseif  ($action = 'save_document') {
-		db_save_document();
-		$output["status"] = $status;
-	}
-*/	
-	
-	
 }
 
-function set_answer() {
+function set_answer_retrieve_new_element() {
+
+	$output = array();
+	$list = array();
+
 	$document_id = $_REQUEST['document_id'];
 	$question_id = $_REQUEST['question_id'];
-	$answer = $_REQUEST['answer'];
-	crada_log("set_answer()");
-	crada_log("documet_id=".$document_id." question_id=".$question_id." answer=".$answer);
+	$answer_id = $_REQUEST['answer_id'];
 
-	$result = db_select('crada_document', 'cd')
+	crada_log("set_answer_retrieve_new_element");
+	crada_log("document_id = $document_id question_id = $question_id answer_id = $answer_id");
+
+	$query = "SELECT cde.document_element_text, cde.confidential_annotation, cde.public_annotation ";
+	$query .= "FROM drupal.crada_document cd, crada_valid_clause_group_by_answer cv, crada_clause_group_to_clause cc, crada_document_element cde ";
+	$query .= "where cd.document_id = $document_id  ";
+	$query .= "and cv.question_id = $question_id ";
+	$query .= "and cv.answer_id = $answer_id ";
+	$query .= "and cd.master_document_id = cv.document_id ";
+	$query .= "and cc.document_id = cd.master_document_id  ";
+	$query .= "and cc.clause_group_id = cv.clause_group_id ";
+	$query .= "and cde.document_element_id = cc.clause_id  ";
+	$query .= "and cde.document_id = cd.master_document_id; ";
+
+	$result=db_query($query);
+
+	$row = $result->fetchObject();
+	$list["document_element_text"] = $row->document_element_text;
+	$list["confidential_annotation"] = $row->confidential_annotation;
+	$list["public_annotation"] = $row->public_annotation;
+	$output["status"] = "Ok";
+    $output["element"] = $list;
+
+    $result = db_select('crada_document', 'cd')
 		->fields('cd')
 		->condition('document_id', $document_id, '=')
 		->execute();
 	$row = $result->fetchObject();
-	$master_document_id = $row->master_document_id;
+	$output["demographic_answers"] = $row->demographic_answers;
 
-	crada_log("master_document_id=".$master_document_id);
+	$output["document_id"] = $document_id;
+	$output["question_id"] = $question_id;
+	$output["answer_id"] = $answer_id;
+
+    return $output;
+}
+
+function set_answer() {
+	$data = $_REQUEST['data'];
+
+	crada_log("set_answer()");
+	crada_log("documet_id=".$data['document_id']." question_id=".$data['question_id']." answer=".$data['answer']);
+
+//get last version and copy to an new record.  add
+	$result = db_select('crada_document', 'cd')
+		->fields('cd')
+		->condition('document_id', $data.['document_id'], '=')
+		->execute();
+
+	$row = $result->fetchObject();
+	$master_document_id = $row->master_document_id;
 
 	$output = array();
     $output["status"] = "Ok";
+    $output["questions"] = $list;
+
 
 	return $output;
 }
@@ -115,7 +110,7 @@ function get_answers() {
 	//
 	//Hard coded for now.  Retrieve master_document_id from crada_question
 	//
-	//Look up maste
+	//Look up master
 
 	$document_id = $_REQUEST['document_id'];
 	$result = db_select('crada_document', 'cd')
@@ -469,7 +464,7 @@ function db_get_all_definitions() {
 
 // Functions for Load Documents
 
-function db_get_all_documents() {
+function db_get_all_documents_info() {
 
 	$result = db_select('crada_document', 'cd')
 	->fields('cd')
@@ -483,7 +478,17 @@ function db_get_all_documents() {
 		$obj['is_master'] = $row->is_master;
 		$obj['name'] = $row->document_name;
 		$obj['title'] = $row->title;
-		array_push($list, $obj);
+
+		$r2 = db_select('crada_document_version', 'cdv')
+			->fields('cdv')
+			->condition('document_id', $row->document_id, '=')
+			->execute();
+		$obj['versions'] = array();  //resetting this on each iteration
+		for ($c2 = 0; $row2 = $r2->fetchObject(); $c2++) {
+			$obj['versions'][$c2] = $row2->version;
+		}
+
+		$list[$row->document_id] = $obj;
 	}
 	$output = array();
     $output["status"] = "Ok";
@@ -510,6 +515,12 @@ function db_get_all_documents() {
 
 function create_new_document () {
 	//global $user;
+	crada_log("create_new_document");
+	crada_log("_REQUEST['demographic_answers']");
+	crada_log($_REQUEST['demographic_answers']);
+	$demographic_answers = json_decode($_REQUEST['demographic_answers'], true);
+	crada_log("demographic_answers");
+	crada_log(json_encode($demographic_answers));
 
 	$data = json_decode($_REQUEST['data'], true);
 	$user = $_REQUEST['user'];
@@ -521,16 +532,12 @@ function create_new_document () {
 	$title = $_REQUEST['title'];
 	//$answers = $_REQUEST['answers'];
   	$output["status"] = "Ok";
-  	crada_log('*** You passed in this: $_REQUEST');
-  	crada_log(json_encode($_REQUEST));
-  	crada_log($_REQUEST['master_document_id']);
-  	crada_log("In create_new_document");
   	crada_log(json_encode($answers));
 
 	$transaction = db_transaction();
 	try {
-	  	crada_log("In db_insert_new_document");
-		$document_id = db_insert_new_document($name, $title, $master_document_id);
+	  	crada_log("**About to step into db_insert_new_document");
+		$document_id = db_insert_new_document($name, $title, $master_document_id, $_REQUEST['demographic_answers']);
 		db_insert_new_version($document_id, $user);
 
 		for ($i=0;$i<count($data); $i++) {
@@ -558,13 +565,21 @@ function create_new_document () {
 	}
 }
 
-function db_insert_new_document ($name, $title, $master_document_id) {
+function db_insert_new_document ($name, $title, $master_document_id, $demographic_answers) {
+  	crada_log("***We are in db_insert_new_document");
+
+	crada_log("db_insert_new_document");
+	crada_log("name =$name, $master_document_id = $master_document_id");
+	crada_log("**************************** DEMOGRAPHIC_ANSWERS");
+	crada_log("demographic_answers = $demographic_answers");
+
 	$nid = db_insert('crada_document') // Table name no longer needs {}
 	->fields(array(
 	  'is_master' => 0,
 	  'document_name' => $name,
 	  'title' => $title,
-	  'master_document_id' => $master_document_id
+	  'master_document_id' => $master_document_id,
+	  'demographic_answers' => $demographic_answers
 	))
 	->execute();	
 	  //'master_document_id' => $master_document_id
