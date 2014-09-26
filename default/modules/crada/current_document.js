@@ -52,34 +52,31 @@ function changedAnswer(e) {
 
 	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
 	ajax_caller('set_answer_retrieve_new_element', {'document_id':current_document_id, 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
-	//ajax_caller("set_answer", {'document_id':current_document_id, 'question_id':question_id, 'answer':answer}, set_answer_callback);
 }
 
 function set_answer_retrieve_new_element_callback(data) {
-	alert(JSON.stringify(data));
-	alert("set_answer_retrieve_new_element_callback completed. Send clause to madlib to add demographic info. " + current_document_id);
+//	alert(JSON.stringify(data));
+//	alert("set_answer_retrieve_new_element_callback completed. Send clause to madlib to add demographic info. " + current_document_id);
 	//Add madlib to clause with demographic answers.
-	alert("about to call addMadLib");
+//	alert("about to call addMadLib");
 	console.log('data.demographic_answers');
 	console.log(data.demographic_answers);
 	console.log('JSON.parse(data.demographic_answers)');
 	console.dir(JSON.parse(data.demographic_answers));
-	alert("about to call addMadLib");
+//	alert("about to call addMadLib");
+	//
+	//  Perform addMadLib and send back to server 
+	//
 
 	var new_mad_lib = addMadLib(data.element.document_element_text, JSON.parse(data.demographic_answers));
 	data.element.document_element_text = new_mad_lib;
 
-	//
-	//Add new record with next version number in crada_document_element table for this document
-	//
-	alert("calling set_answer");
-
-	ajax_caller('set_answer', {'data':JSON.stringify(data)}, set_answer_callback, "POST");
+	ajax_caller('set_answer', {'user':getCookie('Drupal.visitor.user.name'), 'data':JSON.stringify(data)}, set_answer_callback, "POST");
 
 }
 function set_answer_callback(data) {
-	alert(JSON.stringify(data));
-	alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
+	//alert(JSON.stringify(data));
+	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
 	location.href = "load_document?action=Load&document_id=" + current_document_id + "&version="+current_version;
 
 }
