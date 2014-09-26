@@ -83,12 +83,38 @@ function set_answer_retrieve_new_element() {
 }
 
 function set_answer() {
-	$data = $_REQUEST['data'];
-
 	crada_log("set_answer()");
-	crada_log("documet_id=".$data['document_id']." question_id=".$data['question_id']." answer=".$data['answer']);
+	crada_log($_REQUEST['data']);
+	$data = json_decode($_REQUEST['data'], true);
+	$user = $_REQUEST['user'];
+	$document_id = $data['document_id'];
+	$question_id = $data['question_id'];
+	$answer_id = $data['answer_id'];
 
-//get last version and copy to an new record.  add
+
+	crada_log("document_id=".$data['document_id']." question_id=".$data['question_id']." answer_id =".$data['answer_id']. " user =".$user);
+	//Find the latest version in crada_document_version
+
+//	get last version and copy to an new record.  add
+	$query = "SELECT max(version) as max_version FROM crada_document_version where document_id = $document_id";
+ 	$result=db_query($query);
+  	$row = $result->fetchObject();	
+  	crada_log("max_version = ".$row->max_version);
+  	$max_version = $row->max_version;
+
+
+	$transaction = db_transaction();
+	try {
+		db_insert('crada_document_version')
+		->fields(array(
+		  'document_id' => $document_id,
+		  'version' => $max_version+1,
+		  'updated_by' => $user,
+		  'updated_date' =>  date("Y-m-d H:i:s", time())
+		))
+		->execute();	
+/*
+
 	$result = db_select('crada_document', 'cd')
 		->fields('cd')
 		->condition('document_id', $data.['document_id'], '=')
@@ -96,13 +122,25 @@ function set_answer() {
 
 	$row = $result->fetchObject();
 	$master_document_id = $row->master_document_id;
+*/
+		$output = array();
+	    $output["status"] = "Ok";
+	    $output["questions"] = $list;
 
-	$output = array();
-    $output["status"] = "Ok";
-    $output["questions"] = $list;
+	    crada_log("*** Leaving set_answer");
+		return $output;
 
+	} catch (Exception $e) {
+		crada_log("Rolling Back - something went wrong");
+		crada_log($e->getMessage(), 1);
 
-	return $output;
+		$transaction->rollback();
+		watchdog_exception('crada', $e, $e->getMessage());
+ 	 	$output["status"] = "Error";
+ 	 	$output["error"] = $e->getMessage();
+ 	 	return $output;
+	}
+
 }
 
 function get_answers() {
@@ -573,7 +611,7 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 	crada_log("**************************** DEMOGRAPHIC_ANSWERS");
 	crada_log("demographic_answers = $demographic_answers");
 
-	$nid = db_insert('crada_document') // Table name no longer needs {}
+	$nid = db_insert('crada_document')
 	->fields(array(
 	  'is_master' => 0,
 	  'document_name' => $name,

@@ -7,6 +7,19 @@ function crada_current_document() {
 	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_js($module_path . '/current_document.js',array('cache' => false, 'preprocess' => false));
 
+	global $user;
+	if (!isset($user->uid)) {
+	  //user is not logged in
+		crada_log("User is not logged in");
+		$user_info = array("uid"=>0, "name"=>"unknown");
+	} else {
+		$user_info = array("id"=> $user->uid,"name"=> $user->name);
+		crada_log("user->uid = ". $user->uid);
+		crada_log("user->name = ". $user->name);
+	}
+	crada_cookie_save('user', $user_info);
+	//unset($user);
+
 	//dpm($module_path, "Module Path");
 //	crada_log("Now this is cool.");
 
@@ -48,21 +61,25 @@ function crada_current_document() {
  	return $data;
 }
 
-function crada_log($data) {
+function crada_log($data, $debug_level=0) {
 
 	$filename = "/tmp/crada.log";
 	$timestamp = date("Y-m-d H:i:s", time());
 	$output = $timestamp . " " . $data ;
 
-	//file_put_contents($filename, $timestamp, FILE_USE_INCLUDE_PATH | FILE_APPEND );
-	file_put_contents($filename,  "*******************************************" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+	if($debug_level > 0 ) {
+		file_put_contents($filename,  "*******************************************" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+	}
+
 	file_put_contents($filename,  $output . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
 
-	//$.each(debug_backtrace(), function( index, value ) {
-	foreach (debug_backtrace() as $key => $value) {
-		//alert( index + ": " + value );
-		file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
+	if($debug_level > 0 ) {
+		foreach (debug_backtrace() as $key => $value) {
+			//alert( index + ": " + value );
+			file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
+		}
 	}
+
 }
 
 function add_command_bar() {
