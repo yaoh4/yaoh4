@@ -138,14 +138,18 @@ CREATE TABLE IF NOT EXISTS `crada_definition_element_crosslink` (
 -- Table structure for table `crada_document`
 --
 
+DROP TABLE IF EXISTS `crada_document`;
 CREATE TABLE IF NOT EXISTS `crada_document` (
   `document_id` int(12) NOT NULL AUTO_INCREMENT,
   `is_master` tinyint(1) NOT NULL,
   `document_name` varchar(50) NOT NULL,
   `title` text NOT NULL,
   `master_document_id` int(11) DEFAULT NULL,
+  `demographic_answers` text,
   PRIMARY KEY (`document_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
 
 -- --------------------------------------------------------
 
