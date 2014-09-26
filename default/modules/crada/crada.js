@@ -167,14 +167,16 @@ function setup_questions_for_section(i) {
 function setup_questions_for_section_callback(data) {
 
 	var display = $("#question_section");
-	display.empty().append("<br />");
+	display.empty().append("<br />"); //Empty div and add room at top of page
 	
-	var q = data.questions;
+	var q = data.questions; //Set q to array of questions sent in
 	
 	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
-		if (q[i].text == 'REQUIRED') answers[q[i].question_id] = 0;
-		else {
+		if (q[i].text == 'REQUIRED') {
+			answers[q[i].question_id] = 0;  //If the question is == "REQUIRED", skip and set answer to 0
+		} else {
+			answers[q[i].question_id] = 0;  //Set default to 0
 //			alert(JSON.stringify(q[i],null,2));
 			number_of_questions_asked++;
 			display.append(q[i].text).append("<br />");
@@ -196,7 +198,9 @@ function store_current_answers(section_number) {
 		str += $(this).attr("name") + ":" + $(this).val() + "\n";
 		answers[$(this).attr("name")] = $(this).val();
 	})
-//	alert (str);
+	console.log("store_current_answers");
+	console.dir(answers);
+	alert (JSON.stringify(answers));
 }
 
 function setup_template_chooser() {
@@ -286,8 +290,9 @@ function setup_document_callback(data) {
 
 	for (var i=0; i<data.clauses.length; i++) {
 		//Set answers index to 0 if user did not answer the question.
-		if(answers[i+1] == null)
+		if(typeof answers[i+1] === 'undefined' || answers[i+1] == null) {
 			answers[i+1] = 0;
+		}
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
@@ -296,13 +301,12 @@ function setup_document_callback(data) {
 		console.log("new clauses populate where i = "+i);
 		console.log("question  = "+i);
 		console.log("answer = "+answers[i]);
-		new_clauses[used_terms.length+i].source_question = (i+1);
+		new_clauses[used_terms.length+i].source_question = (i+1);  // this is wrong
 		new_clauses[used_terms.length+i].source_answer = answers[i+1];
 		console.log("new_clauses["+(used_terms.length+i)+"]");
 		console.dir(new_clauses[used_terms.length+i]);
 
 	}
-
 
 	var new_clauses_encoded = JSON.stringify(new_clauses);
 
@@ -312,13 +316,18 @@ function setup_document_callback(data) {
 	if (name == null || name == "") name = "filename";
 	var master_document_id = $("#template_chooser").val();
 	if (master_document_id == null || master_document_id == "") master_document_id = "1";
-	
-	ajax_caller('create_new_document', {'data':new_clauses_encoded, 'user':'breml', 'name':name, 'title':title, 'master_document_id':master_document_id}, 
+	console.log("About to send demographic");
+	console.dir(demographics);
+	console.log(JSON.stringify(demographics));
+	alert("About to send demographics");
+
+	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':'breml', 'name':name, 'title':title, 'master_document_id':master_document_id}, 
 		create_new_document_callback, 'POST');
 }
 
 function create_new_document_callback(data) {
 	//alert (JSON.stringify(data, null, 2));
+	alert("Before redirection");
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=0";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 
