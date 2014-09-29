@@ -626,10 +626,21 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 }
 
 function db_insert_new_version ($document_id, $user) {
+	// All new documents will have a version 0 and 1.
+	// Version 0 represents the initial state of the document while all new edits will be saved under version1
 	$nid = db_insert('crada_document_version') // Table name no longer needs {}
 	->fields(array(
 	  'document_id' => $document_id,
 	  'version' => 0,
+	  'updated_by' => $user,
+	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	))
+	->execute();
+
+	$nid = db_insert('crada_document_version') // Table name no longer needs {}
+	->fields(array(
+	  'document_id' => $document_id,
+	  'version' => 1,
 	  'updated_by' => $user,
 	  'updated_date' => date("Y-m-d H:i:s", time()), 
 	))
@@ -689,13 +700,46 @@ function db_get_title_for_document($document_id) {
 
 function db_get_document_elements ($document_id, $version) {
 	// if version == null, We will need to get the clause that is maximum version
-	
+	/* Example query 
+SELECT * FROM crada_document_element WHERE document_element_id IN (
+	select cde.document_element_id from (
+		SELECT document_element_id, MAX(document_version) AS ver
+			FROM crada_document_element
+			WHERE document_id = 2 
+				and document_version <= 2 			
+			GROUP BY document_element_id
+		) as cde
+	)
+	and document_id =2;
+*/
+
+	$query = "SELECT * FROM crada_document_element WHERE document_element_id IN (";
+	$query .= "  select cde.document_element_id from (";
+	$query .= "    SELECT document_element_id, MAX(document_version) AS ver";
+	$query .= "			FROM crada_document_element ";
+	$query .= "			WHERE document_id = $document_id ";
+	$query .= "				and document_version <= $version ";
+	$query .= "			GROUP BY document_element_id ";
+	$query .= "		) as cde ";
+	$query .= "	) ";
+	$query .= "	and document_id = $document_id; ";
+
+	$result=db_query($query);
+
+	//$list["document_element_text"] = $row->document_element_text;
+	//$list["confidential_annotation"] = $row->confidential_annotation;
+	//$list["public_annotation"] = $row->public_annotation;
+
+	//$output["status"] = "Ok";
+    //$output["element"] = $list;
+/*    
+
 	$result = db_select('crada_document_element', 'cd')
 	->fields('cd')
 	->condition('document_id', $document_id, '=')
 	->condition('document_version', $version, '=')
 	->execute();
-	
+*/	
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$obj = array();
