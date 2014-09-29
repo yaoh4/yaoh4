@@ -13,7 +13,7 @@ $(document).ready(function () {
 
 	$('#document_select').click(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
-	$("#annotation_options").change(change_annotation_options);
+	$("#annotation_options").change(user_changed_annotation_option);
  	$("#current_document_content").on( "click", "p", function(event) {
             editClause(event);
 	});
@@ -31,8 +31,25 @@ $(document).ready(function () {
 	}
 
 	ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
+
 	set_footer();
 });
+
+function change_annotation_selection() {
+
+	annotation_option = getCookie("Drupal.visitor.annotation.option");
+	if( annotation_option != "") {
+		console.log('annotation_option is set');
+		console.log(annotation_option);
+		$( "#annotation_options" ).val(annotation_option);
+		change_annotation_options('fast');		
+
+	} else {
+		console.log('annotation_option is NOT set');
+		console.log(annotation_option);
+	}
+
+}
 
 function set_footer(){
 	$("#document_footer").empty().append(
@@ -41,7 +58,7 @@ function set_footer(){
 	);
 	$("#document_footer").append(
 		$('<div>')
-		.append("Version: " + getCookie("Drupal.visitor.document.version"))
+		.append("Version: v" + getCookie("Drupal.visitor.document.version"))
 	);
 }
 
@@ -132,32 +149,57 @@ function editAnnotation(e) {
 	});		
 }
 
-function change_annotation_options() {
+function user_changed_annotation_option() {
+	change_annotation_options('slow');	
+}
+
+function change_annotation_options(speed) {
+	console.log('speed');
+	console.log(typeof speed);
+	console.log(speed);
+
 	var annotationOption = $( "#annotation_options" ).val();
 	if( annotationOption == 'off') {
 		$('#current_annotation_content').hide();
-		$('#current_document_content').animate({width:'960px'});
+		if(speed == 'slow')
+			$('#current_document_content').animate({width:'960px'});
+		else
+			$('#current_document_content').css('width','960px');
+
 		$('.annotation_footnote').hide();		
+
 	} else {
-		$('#current_document_content').animate({width: '700px'}, "normal", function(){
+		if(speed == 'slow') {
+			$('#current_document_content').animate({width: '700px'}, "normal", function(){
+				$('#current_annotation_content').show();
+				$('.annotation_footnote').show();		
+			});
+		} else {
+			$('#current_document_content').css('width', '700px');
 			$('#current_annotation_content').show();
 			$('.annotation_footnote').show();		
-		});
+		}
+		console.log('Selected '+annotationOption);
 		switch(annotationOption) {
 		    case "both":
 		        $('.confidential_annotation').show();
 		        $('.public_annotation').show();
+		        console.log('both should be showing');
 		        break;
 		    case "confidential":
 		        $('.confidential_annotation').show();
 		        $('.public_annotation').hide();
+		        console.log('confidential should be showing');
 		        break;
 		    case "public":
 		        $('.confidential_annotation').hide();
 		        $('.public_annotation').show();
+		        console.log('public should be showing');
 		        break;
 		}		
 	}
+	setCookie("Drupal.visitor.annotation.option", annotationOption, 365);
+
 }
 
 function create_dialogs() {
@@ -217,9 +259,15 @@ function load_document_version_into_select(data) {
 	console.log("document_id = "+document_id);
 
 	//populate select
+	var version_name;
+	var version_index = 0;
 	$("#document_version").empty();
 	$.each( documents[document_id].versions, function( key, version_id ) {
-		$("#document_version").append($("<OPTION value='" + version_id + "'>" + version_id + "</OPTION>"));
+		version_index++;
+		version_name = "v"+version_id;
+		if(version_index == documents[document_id].versions.length)
+			version_name += " (current)";
+		$("#document_version").append($("<OPTION value='" + version_id + "'>" + version_name + "</OPTION>"));
 	});
 
 	if(isNaN(version_id)) {
@@ -430,6 +478,7 @@ function get_document_elements_callback(data) {
 	console.dir(documentSections);
 	$( ".annotation" ).tooltip({ track: true });
 
+	change_annotation_selection();
 }
 
 function addAnnotationDiv(annotation_data, section_reference, annotation_type) {

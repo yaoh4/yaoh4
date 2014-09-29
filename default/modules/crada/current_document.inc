@@ -25,7 +25,7 @@ function crada_current_document() {
 
 	//drupal_add_css("sites/all/modules/libraries/bootstrap/css/bootstrap.min.css", 'theme', 'all', FALSE);
 	//drupal_add_js("sites/all/modules/libraries/bootstrap/js/bootstrap.min.js",array('cache' => false, 'preprocess' => false));
-    //drupal_add_css('sites/all/modules/libraries/fontawesome/css/font-awesome.css');
+    drupal_add_css('sites/all/modules/libraries/fontawesome/css/font-awesome.css');
 
 	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
 	
