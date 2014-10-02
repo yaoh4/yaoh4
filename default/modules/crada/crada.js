@@ -200,7 +200,7 @@ function store_current_answers(section_number) {
 	})
 	console.log("store_current_answers");
 	console.dir(answers);
-	alert (JSON.stringify(answers));
+	//alert (JSON.stringify(answers));
 }
 
 function setup_template_chooser() {
@@ -319,9 +319,9 @@ function setup_document_callback(data) {
 	console.log("About to send demographic");
 	console.dir(demographics);
 	console.log(JSON.stringify(demographics));
-	alert("About to send demographics");
+//	alert("About to send demographics");
 
-	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':'breml', 'name':name, 'title':title, 'master_document_id':master_document_id}, 
+	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':getCookie('Drupal.visitor.user.name'), 'name':name, 'title':title, 'master_document_id':master_document_id}, 
 		create_new_document_callback, 'POST');
 }
 
