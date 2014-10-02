@@ -416,7 +416,7 @@ function get_document_elements_callback(data) {
 	}
 	//$("#current_document_content").append($('<span', {'class':'document-title'}).append(data.title));
 	$("#current_document_content").append(
-			$('<span>').append(data.title)
+			$('<span>').addClass('document-title').append(data.title)
 		);
 //	$("#current_document_content").append($("<h1>").append(data.title));
 	$("#current_document_content").append("<hr />");
