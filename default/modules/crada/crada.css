@@ -107,10 +107,12 @@
 	border:"1px dotted black";
 }
 
+/*
 #current_document_content p:hover {
 	background: #CCCCCC;
 	text-decoration:none;
 }
+*/
 
 #save_button {
 	float:right;
@@ -278,5 +280,5 @@ p.clause.clause-changed {
 	background-color:white;
 }
 .document-title {
-	font-size:1.2em;
+	font-size:1.5em;
 }
