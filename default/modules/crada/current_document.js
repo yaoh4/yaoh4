@@ -67,7 +67,7 @@ function changedAnswer(e) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
 	ajax_caller('set_answer_retrieve_new_element', {'document_id':current_document_id, 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 }
 
@@ -87,14 +87,16 @@ function set_answer_retrieve_new_element_callback(data) {
 
 	var new_mad_lib = addMadLib(data.element.document_element_text, JSON.parse(data.demographic_answers));
 	data.element.document_element_text = new_mad_lib;
-
+	//don't user cookies here, use data.document_id and data.user instead
 	ajax_caller('set_answer', {'user':getCookie('Drupal.visitor.user.name'), 'data':JSON.stringify(data)}, set_answer_callback, "POST");
 
 }
 function set_answer_callback(data) {
-	//alert(JSON.stringify(data));
+	console.log("set answer callback");
+	console.dir(data);
+	alert(JSON.stringify(data));
 	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
-	location.href = "load_document?action=Load&document_id=" + current_document_id + "&version="+current_version;
+	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 
 }
 
@@ -400,8 +402,26 @@ function click_select_document_button() {
 
 function get_document_elements_callback(data) {
 //	alert (JSON.stringify(data, null, 2));
-
-	$("#current_document_content").empty().append($("<h1>").append(data.title)).append("<hr />");
+	console.log("Get the highlighting right");
+	console.log("Lock document if uneditable");
+	console.log("Determine if this is the current. Editable document");
+	console.log("Here is the data");
+	console.dir(data);
+	$("#current_document_content").empty();
+	if(data.editable) {
+		$("#current_document_content").removeClass("document-locked");
+	} else {
+		$("#current_document_content").addClass("document-locked");
+		$("#current_document_content").append('<i class="fa fa-lock fa-2x lock-color" title="Archived document is not editable"></i>');
+	}
+	//$("#current_document_content").append($('<span', {'class':'document-title'}).append(data.title));
+	$("#current_document_content").append(
+			$('<span>').append(data.title)
+		);
+//	$("#current_document_content").append($("<h1>").append(data.title));
+	$("#current_document_content").append("<hr />");
+	//$("#current_document_content").append('<i class="fa fa-camera-retro fa-3x"></i> fa-3x');
+	displayCurrentDocument(data);
 	
 	var current_section = "";
 	var confidential_annotation;
@@ -409,18 +429,28 @@ function get_document_elements_callback(data) {
 	var annotation_footnote;
 	var section_reference;
 	var section_number = 0;
+	var clause_number = 0;
 	var data_clause;
+	var element_id = 'current_document_content';
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent') ) {
 			if (data.clauses[i].section != current_section) {
-				$("#current_document_content").append("<br /><br />");
-				$("#current_document_content").append($("<h2>").append(data.clauses[i].section));
+				// Add new section
+				//$("#current_document_content").append("<br /><br />");
+				//$("#current_document_content").append($("<h2>").append(data.clauses[i].section));
 				current_section = data.clauses[i].section;
 				section_number++;
+				clause_number = 0;  //Reset clause number for each new section
+				displaySectionHeader(section_number, current_section, element_id);
 			}
+			clause_number++;
 			section_reference = section_number+"."+(i+1);
 			//data_clause = ​typeof data.clauses[i].text;
 			//alert(data_clause);
+			
+			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, element_id, data.editable);
+
+			/*
 			$("#current_document_content")
 				.append(
 					$("<p>")
@@ -431,7 +461,7 @@ function get_document_elements_callback(data) {
 						.attr("title", "Click to edit section")
 						.attr("data-clause", data.clauses[i].text)
 					);
-
+			*/
 			//addAnnotationDiv(data.clauses[i].confidential_annotation, section_reference, 'Confid');
 			addAnnotationDiv("test", section_reference, "Confid");
 			//addAnnotationDiv(data.clauses[i].public_annotation, section_reference, 'Pub');
@@ -479,6 +509,153 @@ function get_document_elements_callback(data) {
 	$( ".annotation" ).tooltip({ track: true });
 
 	change_annotation_selection();
+}
+
+function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
+/* EXAMPLE
+		<div class="clause-paragraph">
+			<div class='minor-version'>7-11</div>
+			<div class='clause-container'>
+				<p class='clause changed-answer'>
+	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
+				</p>
+			</div>
+		</div>
+		<div class="both"></div>
+*/
+	console.log("section_number "+section_number);
+	console.log("minor_number "+minor_number);
+	console.log("current_section "+clause.text);
+	console.log("element_id "+element_id);
+
+/*
+	$("#current_document_content").append(
+		$('<div>')
+			.addClass('clause-paragraph')
+			.append($('<div').append("hello"))
+	);
+	$('<div')
+				.addClass('major-version')
+				.append(section_number)
+			)
+*/
+	$("#"+element_id).append(
+	    $('<div/>', {'class': 'clause-paragraph'}).append(
+	        $('<div/>', {'class': 'minor-version'}).append(
+	            section_number+"-"+minor_number
+	        )
+	    )
+	    .append(
+	        $('<div/>', {'class': 'clause-container'}).append(
+		        $('<p/>', {'class': 'clause'}).append(
+		            clause.text
+		        )
+		        .attr('id', 'clause-'+index)
+	        )
+	    )
+	);
+	/*
+	$("#"+element_id).append(
+	    $('<div/>', {'class': 'clear'})
+	);
+	*/
+	if(!editable) {
+		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
+	}
+	console.log("document_version = "+parseInt(clause.document_verison));
+	if(parseInt(clause.document_version) > 0) {
+		$('#clause-'+index).addClass('clause-changed');
+	}
+	console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
+	if(parseInt(clause.answer_changed) == 1) {
+		$('#clause-'+index).addClass('answer-changed');
+	}
+
+
+}
+
+function displaySectionHeader(section_number, current_section, element_id) {
+/* EXAMPLE
+	<div class="clause-paragraph">
+		<div class='major-version'>7.</div>
+		<div class='section-name'>Patent Filing, Prosecution, and Mantenance</div>
+	</div>
+	<div class="both"></div>
+*/
+	console.log("section_nubmer "+section_number);
+	console.log("current_section "+current_section);
+	console.log("element_id "+element_id);
+
+/*
+	$("#current_document_content").append(
+		$('<div>')
+			.addClass('clause-paragraph')
+			.append($('<div').append("hello"))
+	);
+	$('<div')
+				.addClass('major-version')
+				.append(section_number)
+			)
+*/
+	$("#"+element_id).append(
+	    $('<div/>', {'class': 'clause-paragraph'}).append(
+	        $('<div/>', {'class': 'major-version'}).append(
+	            section_number
+	        )
+	    )
+	    .append(
+	        $('<div/>', {'class': 'section-name'}).append(
+	            current_section
+	        )
+	    )
+	);
+
+	$("#"+element_id).append(
+	    $('<div/>', {'class': 'clear'})
+	);
+
+}
+
+function displayCurrentDocument(data) {
+	/*
+<body>
+	<div class="section">
+		<div class="clause-paragraph">
+			<div class='major-version'>7.</div>
+			<div class='section-name'>Patent Filing, Prosecution, and Mantenance</div>
+		</div>
+		<div class="both"></div>
+		<div class="clause-paragraph">
+			<div class='minor-version'>7.11</div>
+			<div class='clause-container'>
+				<p class='clause changed-answer'>
+	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
+				</p>
+			</div>
+		</div>
+		<div class="both"></div>
+		<div class="clause-paragraph">
+			<div class='minor-version'>7.12</div>
+			<div class='clause-container'>
+				<p class="clause changed-clause">
+	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
+				</p>
+			</div>
+		</div>
+		<div class="both"></div>
+
+	</div>
+	<div class="clear"></div>
+
+	<div class="section">
+		<div class="major-version">8.</div>
+		<div class="section-name">		Hello
+		</div>
+	</div>
+	<div class="clear"></div>
+</body>
+
+	*/
 }
 
 function addAnnotationDiv(annotation_data, section_reference, annotation_type) {

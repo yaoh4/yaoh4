@@ -83,6 +83,7 @@ function set_answer_retrieve_new_element() {
 }
 
 function set_answer() {
+	/*
 	crada_log("set_answer()");
 	crada_log($_REQUEST['data']);
 	$data = json_decode($_REQUEST['data'], true);
@@ -101,18 +102,59 @@ function set_answer() {
   	$row = $result->fetchObject();	
   	crada_log("max_version = ".$row->max_version);
   	$max_version = $row->max_version;
+  	crad_log("Max Version = "+$max_version);
+  	return;
 
+//	Determine if element exists
+  	crada_log("Does row already exist");
+  	$query ="SELECT count(*) as count FROM crada_document_element ";
+  	$query .= "  where document_id = $document_id ";
+  	$query .= "    and source_question = $question_id ";
+  	$query .= "    and document_version = $max_version;";
+ 	$result = db_query($query);
+  	$row = $result->fetchObject();	
+  	$count = $row->count;
+  	crada_log("Row Count = "+$count)
+  	return;
+  	if($count == 0) {
+  		//Insert new row
+		$query  = "insert into crada_document_element select cde.document_element_id, cdv.max_version, cde.document_id,	cde.section, ";
+		$query .= " 	cde.location, cde.alternate_text_type, cde.document_element_text, cde.confidential_annotation, ";
+		$query .= " 	cde.public_annotation, 	cde.survivable, cde.required, cde.source_question, cde.source_answer, 1, ";
+		$query .= " 		'unknown', 	now()";
+		$query .= " 	from (SELECT * FROM crada_document_element where document_id = $document_id and source_question = $question_id and document_version = $max_version) ";
+		$query .= " 	cde, ";
+		$query .= " 	(SELECT max(version) as max_version FROM crada_document_version where document_id = 2) cdv;";
+	 	$result = db_query($query);
 
+  	}
+  	// Update row
 	$transaction = db_transaction();
-	try {
-		db_insert('crada_document_version')
+	try {/*
+	  	if($count == 0) {
+	  		//Insert new row
+			$query  = "insert into crada_document_element select cde.document_element_id, cdv.max_version, cde.document_id,	cde.section, ";
+			$query .= " 	cde.location, cde.alternate_text_type, cde.document_element_text, cde.confidential_annotation, ";
+			$query .= " 	cde.public_annotation, 	cde.survivable, cde.required, cde.source_question, cde.source_answer, 1, ";
+			$query .= " 		'unknown', 	now()";
+			$query .= " 	from (SELECT * FROM crada_document_element where document_id = $document_id and source_question = $question_id and document_version = $max_version) ";
+			$query .= " 	cde, ";
+			$query .= " 	(SELECT max(version) as max_version FROM crada_document_version where document_id = 2) cdv;";
+		 	$result=db_query($query);
+
+	  	}
+		db_update('crada_document_element')
 		->fields(array(
-		  'document_id' => $document_id,
-		  'version' => $max_version+1,
-		  'updated_by' => $user,
-		  'updated_date' =>  date("Y-m-d H:i:s", time())
+		  'document_element_text' => $data["document_element_text"],
+		  'confidential_annotation' => $data["public_annotation"],
+		  'public_annotation' => $data["public_annotation"],
+		  'updated_by' => $user
 		))
+		->condition('document_id', $document_id, '=')
+		->condition('source_question', $question_id, '=')
+		->condition('document_version', $max_version, '=')
 		->execute();	
+		*/      
 /*
 
 	$result = db_select('crada_document', 'cd')
@@ -123,9 +165,10 @@ function set_answer() {
 	$row = $result->fetchObject();
 	$master_document_id = $row->master_document_id;
 */
-		$output = array();
+
+/*		$output = array();
 	    $output["status"] = "Ok";
-	    $output["questions"] = $list;
+	    $output["version"] = $max_version;
 
 	    crada_log("*** Leaving set_answer");
 		return $output;
@@ -140,7 +183,7 @@ function set_answer() {
  	 	$output["error"] = $e->getMessage();
  	 	return $output;
 	}
-
+*/
 }
 
 function get_answers() {
@@ -575,9 +618,11 @@ function create_new_document () {
 	$transaction = db_transaction();
 	try {
 	  	crada_log("**About to step into db_insert_new_document");
+	  	//Add document
 		$document_id = db_insert_new_document($name, $title, $master_document_id, $_REQUEST['demographic_answers']);
+		//Add initial versions
 		db_insert_new_version($document_id, $user);
-
+		//Add elements(i.e. clauses, i.e. sections)
 		for ($i=0;$i<count($data); $i++) {
 			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
 			$output["row"][$i] = $data[$i]['text'];
@@ -680,13 +725,30 @@ function get_full_document() {
 	
 	$output['status'] = 'Ok';
 	$output['title'] = db_get_title_for_document($document_id);
-	
+	$output['editable'] = db_is_version_editable($document_id, $version);
 	$output['clauses'] = db_get_document_elements($document_id, $version);
 	return $output;
 	
 }
 
+function db_is_version_editable($document_id, $version) {
+
+	$query = "SELECT max(version) as max_version FROM drupal.crada_document_version where document_id =$document_id";
+	crada_log($query);
+	$result = db_query($query);
+
+	$row = $result->fetchObject();
+	if($row->max_version == $version) {
+		$editable = 1;
+	} else {
+		$editable = 0;
+	}
+
+	return $editable;
+}
+
 function db_get_title_for_document($document_id) {
+
 
 	$record = db_select('crada_document', 'cd')
 	->fields('cd')
@@ -747,6 +809,8 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 		$obj['section'] = $row->section;
 		$obj['confidential_annotation'] = trim($row->confidential_annotation);
 		$obj['public_annotation'] = trim($row->public_annotation);
+		$obj['document_version'] = $row->document_version;
+		$obj['answer_changed'] = $row->answer_changed;
 		array_push($list, $obj);
 	}
 	return $list;

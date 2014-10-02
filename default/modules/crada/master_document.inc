@@ -262,9 +262,9 @@ function load_line($section, $line) {
 		$answer_number_for_question++;
 	}
 	// We need to deal with the followon question later (line['D'])
-	$default_text = $line["E"];
-	$default_confidential_annotation = $line["L"];
-	$default_public_annotation = $line["M"];
+	$default_text = $line["E"]; //This can be hard coded to letter E
+	$default_confidential_annotation = $line["L"]; //This should not be hard coded.  It should be $confidential_annotation_column
+	$default_public_annotation = $line["M"]; //This should not be hard coded.  It should be $public_annotation_column
 
 	$defined_terms = $line[$defined_terms_column];
 	
