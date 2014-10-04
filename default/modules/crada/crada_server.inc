@@ -19,6 +19,7 @@ function crada_server() {
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
+		else if ($action == 'save_clause') $output = save_clause();
 
 		else if ($action == 'echo') $output = echo_data();
 		
@@ -36,6 +37,13 @@ function crada_server() {
 	}
 }
 
+function save_clause() {
+	$document_id = $_REQUEST['document_id'];
+	$document_element_id = $_REQUEST['document_element_id'];
+	crada_log("save_clause");
+	crada_log("document_element_id = $document_element_id");
+
+}
 function set_answer_retrieve_new_element() {
 
 	$output = array();
@@ -727,6 +735,7 @@ function get_full_document() {
 	$output['title'] = db_get_title_for_document($document_id);
 	$output['editable'] = db_is_version_editable($document_id, $version);
 	$output['clauses'] = db_get_document_elements($document_id, $version);
+	$output['version'] = $version;
 	return $output;
 	
 }
@@ -804,6 +813,7 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 */	
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		crada_log(json_encode($row));
 		$obj = array();
 		$obj['text'] = $row->document_element_text;
 		$obj['section'] = $row->section;
@@ -812,6 +822,7 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
 		array_push($list, $obj);
+		crada_log("count= ".$count."  document_version= ".$row->document_version);
 	}
 	return $list;
 }

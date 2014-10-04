@@ -25,7 +25,13 @@ function crada_current_document() {
 
 	//drupal_add_css("sites/all/modules/libraries/bootstrap/css/bootstrap.min.css", 'theme', 'all', FALSE);
 	//drupal_add_js("sites/all/modules/libraries/bootstrap/js/bootstrap.min.js",array('cache' => false, 'preprocess' => false));
-    drupal_add_css('sites/all/modules/libraries/fontawesome/css/font-awesome.css');
+    drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
+    //dpm("Adding js");
+    //drupal_add_js("sites/all/modules/ckeditor/editor/ckeditor.js",array('cache' => false, 'preprocess' => false));
+    /* \htdocs\drupal\sites\all\modules\ckeditor\ckeditor */
+    /* drupal_add_js('http://cdn.jquerytools.org/1.2.6/jquery.tools.min.js', 'external'); */
+    /* <script src="//cdn.ckeditor.com/4.4.5/basic/ckeditor.js"></script> */
+    drupal_add_js('http:////cdn.ckeditor.com/4.4.3/basic/ckeditor.js', 'external'); 
 
 	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
 	

@@ -1,7 +1,6 @@
 jQuery(function($) {
 var documentSections;
-var current_document_id = 2;
-var current_version = 0;
+var clause_editor = [];
 $(document).ready(function () {
 	create_dialogs();
 
@@ -14,12 +13,23 @@ $(document).ready(function () {
 	$('#document_select').click(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(user_changed_annotation_option);
- 	$("#current_document_content").on( "click", "p", function(event) {
+	/*
+ 	$("#current_document_content").on( "click", "p.clause", function(event) {
             editClause(event);
+
 	});
+	*/
+/*
+ 	$("#current_document_content").on( "blur", "p", function(event) {
+            //editClause(event);
+            saveClause(event);
+
+	});
+*/
  	$("#current_annotation_content").on( "click", "p", function(event) {
             editAnnotation(event);
 	});
+
 	
 	$("#change_answer_container").on( "change", "select", function(event) {
 		changedAnswer(event);
@@ -96,11 +106,47 @@ function set_answer_callback(data) {
 	console.dir(data);
 	alert(JSON.stringify(data));
 	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
-	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
+	location.href = "load_document?action=Load&document_id = " + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 
 }
-
 function editClause(e) {
+	console.dir(e);
+	console.log(e.editor.getData());
+	/*
+	var ref = e.target.id;
+
+	var editable = $("#"+ref).attr("contenteditable");
+	if(editable) {
+		console.log('save data');
+		console.log(e.editor.getData())
+	} else {
+		console.error("Should not be here");
+		alert('p is not editable...  return');
+	}
+	*/
+}
+
+function saveClause(e) {
+	console.dir(e);
+	console.log(e.editor.getData());
+	console.log(e.editor.name);
+	document_element_id = e.editor.name.substring(7) ;
+	console.log(document_element_id);
+	ajax_caller("save_clause", {'document_id':getCookie('Drupal.visitor.document.id'), 'document_element_id':document_element_id}, save_clause_callback);
+
+	/*
+	var ref = e.target.id;
+	var editable = $("#"+ref).attr("contenteditable");
+	if(editable) {
+		console.log('Editable blur.  Determine if there is a change');
+	}
+	*/
+}
+function save_clause_callback() {
+	console.log('Clause saved');
+}
+
+function editClauseOld(e) {
 	var ref = e.target.id;
 	$("#"+ref).attr("contenteditable", "true").addClass('edit-section');
 	var data_clause = $("#"+ref).attr("data-clause");
@@ -407,16 +453,19 @@ function get_document_elements_callback(data) {
 	console.log("Determine if this is the current. Editable document");
 	console.log("Here is the data");
 	console.dir(data);
-	$("#current_document_content").empty();
+	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));
 	if(data.editable) {
 		$("#current_document_content").removeClass("document-locked");
 	} else {
 		$("#current_document_content").addClass("document-locked");
-		$("#current_document_content").append('<i class="fa fa-lock fa-2x lock-color" title="Archived document is not editable"></i>');
+		$("#title_bar").append('<i class="fa fa-lock fa-2x fa-lock-style" title="Archived document is not editable"></i>');
 	}
 	//$("#current_document_content").append($('<span', {'class':'document-title'}).append(data.title));
-	$("#current_document_content").append(
+	$("#title_bar").append(
 			$('<span>').addClass('document-title').append(data.title)
+		);
+	$("#title_bar").append(
+			$('<span>').addClass('document-version').append('(version '+data.version+')')
 		);
 //	$("#current_document_content").append($("<h1>").append(data.title));
 	$("#current_document_content").append("<hr />");
@@ -523,10 +572,10 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 		</div>
 		<div class="both"></div>
 */
-	console.log("section_number "+section_number);
-	console.log("minor_number "+minor_number);
-	console.log("current_section "+clause.text);
-	console.log("element_id "+element_id);
+	//console.log("section_number "+section_number);
+	//console.log("minor_number "+minor_number);
+	//console.log("current_section "+clause.text);
+	//console.log("element_id "+element_id);
 
 /*
 	$("#current_document_content").append(
@@ -539,26 +588,43 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 				.append(section_number)
 			)
 */
-	$("#"+element_id).append(
-	    $('<div/>', {'class': 'clause-paragraph'}).append(
-	        $('<div/>', {'class': 'minor-version'}).append(
-	            section_number+"-"+minor_number
-	        )
-	    )
-	    .append(
-	        $('<div/>', {'class': 'clause-container'}).append(
-		        $('<p/>', {'class': 'clause'}).append(
-		            clause.text
+/*
+	if(!editable) {
+
+		$("#"+element_id).append(
+		    $('<div/>', {'class': 'clause-paragraph'}).append(
+		        $('<div/>', {'class': 'minor-version'}).append(
+		            section_number+"-"+minor_number
 		        )
-		        .attr('id', 'clause-'+index)
-	        )
-	    )
-	);
-	/*
-	$("#"+element_id).append(
-	    $('<div/>', {'class': 'clear'})
-	);
-	*/
+		    )
+		    .append(
+		        $('<div/>', {'class': 'clause-container'}).append(
+			        $('<p/>', {'class': 'clause'}).append(
+			            clause.text
+			        )
+			        .attr('id', 'clause-'+index)
+		        )
+		    )
+		);
+	} else {
+		*/
+
+		$("#"+element_id).append(
+		    $('<div/>', {'class': 'clause-paragraph'}).append(
+		        $('<div/>', {'class': 'minor-version'}).append(
+		            section_number+"-"+minor_number
+		        )
+		    )
+		    .append(
+		        $('<div/>', {'class': 'clause-container'}).append(
+		        	$('<p/>', {'class':'clause'}).append(
+		            	clause.text
+		            )
+			        .attr('id', 'clause-'+index)
+		        )
+		    )
+		);
+
 	if(!editable) {
 		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
 	}
@@ -570,8 +636,23 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	if(parseInt(clause.answer_changed) == 1) {
 		$('#clause-'+index).addClass('answer-changed');
 	}
-
-
+	if(editable) {
+		$('#clause-'+index).attr('contenteditable', 'true');
+		clause_editor["clause-"+index] = CKEDITOR.inline(document.getElementById("clause-"+index),
+				{
+					uiColor: '#d3ebf9',
+					toolbar: [ [ 'Bold', 'Italic', 'Underline'], [ 'Link'], [ 'UIColor' ] ]
+				}
+			);
+		// The "change" event is fired whenever a change is made in the editor.
+		clause_editor["clause-"+index].on( 'change', function( evt ) {
+		    // getData() returns CKEditor's HTML content.
+		    console.log( 'Total bytes: ' + evt.editor.getData().length );
+		    saveClause(evt);
+		});
+		$('#clause-'+index).attr('title', 'Click to edit clause');
+		
+	}
 }
 
 function displaySectionHeader(section_number, current_section, element_id) {
@@ -597,6 +678,7 @@ function displaySectionHeader(section_number, current_section, element_id) {
 				.append(section_number)
 			)
 */
+
 	$("#"+element_id).append(
 	    $('<div/>', {'class': 'clause-paragraph'}).append(
 	        $('<div/>', {'class': 'major-version'}).append(
