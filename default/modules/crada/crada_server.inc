@@ -40,8 +40,69 @@ function crada_server() {
 function save_clause() {
 	$document_id = $_REQUEST['document_id'];
 	$document_element_id = $_REQUEST['document_element_id'];
-	crada_log("save_clause");
+	crada_log("*** save_clause");
 	crada_log("document_element_id = $document_element_id");
+	//Get current version
+	$element_exits = db_document_element_version_exist($document_id, $document_element_id);
+	$current_version = db_document_current_version($document_id, $document_element_id);
+	crada_log("element_exists = $element_exits, current_version = $current_version");
+	if($element_exits) {
+		//Insert a new element
+		crada_log("INSERT ELEMENT");
+
+		$query = "insert into crada_document_element  ";
+		$query .= "(select ";
+		$query .= "cde2.document_element_id, $current_version, cde2.document_id, cde2.section, ";
+		$query .= "cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
+		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
+		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
+		$query .= "cde2.updated_by, cde2.updated_date ";
+		$query .= "from crada_document_element cde2, ";
+		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
+		$query .= "document_id = $document_id and document_element_id = $document_element_id) cde1 ";
+		$query .= "where cde2.document_id = $document_id and cde2.document_element_id = $document_element_id ";
+		$query .= "and cde2.document_version = cde1.latest_document_version);";
+		crada_log($query);
+		$result=db_query($query);
+		crada_log(json_encode($result));
+
+		$row = $result->fetchObject();
+		crada_log(json_encode($row));
+	}
+	//Update text and remove changed_answer
+	crada_log("UPDATE ELEMENT");
+}
+
+function db_document_current_version($document_id, $document_element_id) {
+	$query = "SELECT max(document_version) as max_document_version FROM crada_document_element ";
+	$query .= " where document_element_id =$document_element_id and document_id=$document_id;";
+	crada_log($query);
+	$result=db_query($query);
+
+	$row = $result->fetchObject();
+	crada_log(json_encode($row));
+
+
+return $row->max_document_version;
+
+}
+function db_document_element_version_exist($document_id, $document_element_id) {
+	//
+	//  Determine if an document_element exists for the latest version
+	//
+	$query = "SELECT IF(cde.max_document_version  = cdv.max_version,'true','false') as element_exists FROM ";
+	$query .= "(SELECT max(document_version) as max_document_version FROM crada_document_element ";
+	$query .= " where document_element_id =$document_element_id and document_id=$document_id) cde, ";
+	$query .= "(SELECT max(version) as max_version from  crada_document_version ";
+	$query .= " where document_id = $document_id) cdv;";
+	crada_log($query);
+	$result=db_query($query);
+
+	$row = $result->fetchObject();
+	crada_log(json_encode($row));
+
+return $row->element_exists;
+	
 
 }
 function set_answer_retrieve_new_element() {
@@ -727,14 +788,20 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 }
 
 function get_full_document() {
+	crada_log("get_full_document()");
+
 	$user = $_REQUEST['user'];
 	$document_id = $_REQUEST['document_id'];
 	$version = $_REQUEST['version'];
+	crada_log("user: $user, document_id: $document_id, version: $version");
 	
 	$output['status'] = 'Ok';
 	$output['title'] = db_get_title_for_document($document_id);
+	crada_log("get_full_document()");
 	$output['editable'] = db_is_version_editable($document_id, $version);
+	crada_log("get_full_document()");
 	$output['clauses'] = db_get_document_elements($document_id, $version);
+	crada_log("get_full_document()");
 	$output['version'] = $version;
 	return $output;
 	
@@ -742,7 +809,7 @@ function get_full_document() {
 
 function db_is_version_editable($document_id, $version) {
 
-	$query = "SELECT max(version) as max_version FROM drupal.crada_document_version where document_id =$document_id";
+	$query = "SELECT max(version) as max_version FROM crada_document_version where document_id =$document_id";
 	crada_log($query);
 	$result = db_query($query);
 
