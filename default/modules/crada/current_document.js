@@ -1,6 +1,7 @@
 jQuery(function($) {
 var documentSections;
 var clause_editor = [];
+var my_editor;
 $(document).ready(function () {
 	create_dialogs();
 
@@ -13,19 +14,27 @@ $(document).ready(function () {
 	$('#document_select').click(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(user_changed_annotation_option);
-	/*
- 	$("#current_document_content").on( "click", "p.clause", function(event) {
+	
+ 	$("#current_document_content").on( "focus", "p.clause", function(event) {
             editClause(event);
 
 	});
-	*/
-/*
- 	$("#current_document_content").on( "blur", "p", function(event) {
-            //editClause(event);
-            saveClause(event);
+	
+ 	$("#current_document_content").on( "blur", "p.clause", function(event) {
+ 			// Check if dirty
+ 			var data_changed = my_editor.checkDirty();
+ 			//If dirty then add the changed-answer class to <p>
+ 			if(data_changed) {
+ 				$('#'+my_editor.name).removeClass('answer-changed').addClass('clause-changed');
+ 			}
+
+ 			//remove editor
+			my_editor.destroy();
+
+            //saveClause(event);
 
 	});
-*/
+
  	$("#current_annotation_content").on( "click", "p", function(event) {
             editAnnotation(event);
 	});
@@ -78,7 +87,7 @@ function changedAnswer(e) {
 	var answer_id = $("#"+ref).val();
 
 	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	ajax_caller('set_answer_retrieve_new_element', {'document_id':current_document_id, 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+	ajax_caller('set_answer_retrieve_new_element', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 }
 
 function set_answer_retrieve_new_element_callback(data) {
@@ -110,8 +119,23 @@ function set_answer_callback(data) {
 
 }
 function editClause(e) {
+var	toolbar = [
+			{ 'name': 'basicstyles', 'items' : [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ]   },
+			{ 'name': 'links', 'items' : ['Link','Unlink', 'Anchor']},
+			{ 'name': 'undo', 'items' :['Undo','Redo']}
+		];
 	console.dir(e);
-	console.log(e.editor.getData());
+	var ref = e.target.id;
+
+	my_editor = CKEDITOR.inline(ref, {toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
+			);
+	my_editor.on( 'change', function( evt ) {
+	    // getData() returns CKEditor's HTML content.
+	    console.log( 'Total bytes: ' + evt.editor.getData().length );
+	    saveClause(evt);
+	});
+
+	//console.log(e.editor.getData());
 	/*
 	var ref = e.target.id;
 
@@ -339,8 +363,8 @@ function click_change_answer_button() {
 	$('#current_document_container').hide();
 	$('#change_answer_container').show();
 	//var document_id = $("#document_select").val();
-
-	ajax_caller("get_answers", {'document_id':current_document_id}, load_change_answer);
+//getCookie('Drupal.visitor.document.id')
+	ajax_caller("get_answers", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_answer);
 }
 
 function load_change_answer(data) {
@@ -445,6 +469,26 @@ function click_select_document_button() {
 	$("#load_dialog").dialog( "close" );
 	
 }
+function set_toolbar_buttons(editable) {
+
+	// Remove buttons if not editable
+	if(editable) {
+		$('#change_answer_button').show();
+		$('#save_button').show();
+	} else {
+		$('#change_answer_button').hide();
+		$('#save_button').hide();
+	}
+
+}
+function remove_editors() {
+	// Remove previously created editor instances
+	$.each( clause_editor, function( key, value ) {
+		console.log("removing editor - "+key);
+		value.destroy();
+	});
+
+}
 
 function get_document_elements_callback(data) {
 //	alert (JSON.stringify(data, null, 2));
@@ -452,6 +496,11 @@ function get_document_elements_callback(data) {
 	console.log("Lock document if uneditable");
 	console.log("Determine if this is the current. Editable document");
 	console.log("Here is the data");
+	console.log("get full document");
+	set_toolbar_buttons(data.editable);
+	remove_editors();
+
+
 	console.dir(data);
 	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));
 	if(data.editable) {
@@ -636,21 +685,25 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	if(parseInt(clause.answer_changed) == 1) {
 		$('#clause-'+index).addClass('answer-changed');
 	}
+	
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
+		/*
 		clause_editor["clause-"+index] = CKEDITOR.inline(document.getElementById("clause-"+index),
 				{
-					uiColor: '#d3ebf9',
-					toolbar: [ [ 'Bold', 'Italic', 'Underline'], [ 'Link'], [ 'UIColor' ] ]
+					uiColor: '#d3ebf9'
 				}
 			);
+//							toolbar: [ [ 'Bold', 'Italic'], [ 'Link'], [ 'UIColor' ] ],
+
 		// The "change" event is fired whenever a change is made in the editor.
 		clause_editor["clause-"+index].on( 'change', function( evt ) {
 		    // getData() returns CKEditor's HTML content.
 		    console.log( 'Total bytes: ' + evt.editor.getData().length );
 		    saveClause(evt);
 		});
-		$('#clause-'+index).attr('title', 'Click to edit clause');
+		//$('#clause-'+index).attr('title', 'Click to edit clause');
+		*/
 		
 	}
 }
