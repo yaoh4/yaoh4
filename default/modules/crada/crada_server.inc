@@ -19,7 +19,7 @@ function crada_server() {
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
-		else if ($action == 'save_clause') $output = save_clause();
+		else if ($action == 'save_element') $output = save_element();
 
 		else if ($action == 'echo') $output = echo_data();
 		
@@ -37,22 +37,25 @@ function crada_server() {
 	}
 }
 
-function save_clause() {
+function save_element() {
 	$document_id = $_REQUEST['document_id'];
 	$document_element_id = $_REQUEST['document_element_id'];
-	crada_log("*** save_clause");
+	crada_log("*** save_element");
+	crada_log("REQUEST is ...");
+	crada_log(serialize($_REQUEST));
 	crada_log("document_element_id = $document_element_id");
 	//Get current version
-	$element_exits = db_document_element_version_exist($document_id, $document_element_id);
-	$current_version = db_document_current_version($document_id, $document_element_id);
-	crada_log("element_exists = $element_exits, current_version = $current_version");
-	if($element_exits) {
+	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
+	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
+	$current_document_version = db_current_document_version($document_id, $document_element_id);
+	crada_log("element_exists = $element_exists, last_ element_version = $last_element_version, current_document_version = $current_document_version");
+	if(!$element_exists) {
 		//Insert a new element
-		crada_log("INSERT ELEMENT");
+		crada_log("INSERT ELEMENT.  Make new copy of the last element version to the current document version.");
 
 		$query = "insert into crada_document_element  ";
 		$query .= "(select ";
-		$query .= "cde2.document_element_id, $current_version, cde2.document_id, cde2.section, ";
+		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
 		$query .= "cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
 		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
 		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
@@ -64,16 +67,53 @@ function save_clause() {
 		$query .= "and cde2.document_version = cde1.latest_document_version);";
 		crada_log($query);
 		$result=db_query($query);
+		crada_log("RESULTS:");
 		crada_log(json_encode($result));
 
 		$row = $result->fetchObject();
 		crada_log(json_encode($row));
 	}
 	//Update text and remove changed_answer
+/*
+update crada_document_element 
+set 
+document_element_text= '<strong>Principal Investigator</strong>: <strong>undefined</strong>',
+answer_changed= 0,
+updated_by= 'admin',
+updated_date = '2014-10-07 11:41:48'
+where document_id = 2 and document_element_id = 0 and document_version = 2;
+*/	
 	crada_log("UPDATE ELEMENT");
+	$query = "update crada_document_element ";
+	$query .= "set ";
+	$query .= "{$_REQUEST['update_column']} = '{$_REQUEST['column_text']}',  ";
+	$query .= "answer_changed = {$_REQUEST['answer_changed']}, ";
+	$query .= "updated_by= '{$_REQUEST['updated_by']}', ";
+	$query .= "updated_date = '".date('Y-m-d H:i:s', time())."' ";
+	$query .= "where document_id = $document_id and ";
+	$query .= "document_element_id = $document_element_id and ";
+	$query .= "document_version = $current_document_version;";
+	crada_log($query);
+	$result = db_query($query);
+	crada_log("UPDATE ELEMENT RESULTS:");
+	crada_log(json_encode($result));
+
+	$row = $result->fetchObject();
+	crada_log(json_encode($row));
+
+}
+function db_current_document_version($document_id) {
+	$query = "SELECT max(version) as current_document_version FROM crada_document_version ";
+	$query .= " where document_id=$document_id;";
+	crada_log($query);
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(json_encode($row));
+
+	return $row->current_document_version;
 }
 
-function db_document_current_version($document_id, $document_element_id) {
+function db_document_last_element_version($document_id, $document_element_id) {
 	$query = "SELECT max(document_version) as max_document_version FROM crada_document_element ";
 	$query .= " where document_element_id =$document_element_id and document_id=$document_id;";
 	crada_log($query);
@@ -90,7 +130,7 @@ function db_document_element_version_exist($document_id, $document_element_id) {
 	//
 	//  Determine if an document_element exists for the latest version
 	//
-	$query = "SELECT IF(cde.max_document_version  = cdv.max_version,'true','false') as element_exists FROM ";
+	$query = "SELECT IF(cde.max_document_version  = cdv.max_version, true ,false) as element_exists FROM ";
 	$query .= "(SELECT max(document_version) as max_document_version FROM crada_document_element ";
 	$query .= " where document_element_id =$document_element_id and document_id=$document_id) cde, ";
 	$query .= "(SELECT max(version) as max_version from  crada_document_version ";
@@ -118,7 +158,7 @@ function set_answer_retrieve_new_element() {
 	crada_log("document_id = $document_id question_id = $question_id answer_id = $answer_id");
 
 	$query = "SELECT cde.document_element_text, cde.confidential_annotation, cde.public_annotation ";
-	$query .= "FROM drupal.crada_document cd, crada_valid_clause_group_by_answer cv, crada_clause_group_to_clause cc, crada_document_element cde ";
+	$query .= "FROM crada_document cd, crada_valid_clause_group_by_answer cv, crada_clause_group_to_clause cc, crada_document_element cde ";
 	$query .= "where cd.document_id = $document_id  ";
 	$query .= "and cv.question_id = $question_id ";
 	$query .= "and cv.answer_id = $answer_id ";
@@ -850,6 +890,7 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 	)
 	and document_id =2;
 */
+	/*
 
 	$query = "SELECT * FROM crada_document_element WHERE document_element_id IN (";
 	$query .= "  select cde.document_element_id from (";
@@ -861,8 +902,20 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 	$query .= "		) as cde ";
 	$query .= "	) ";
 	$query .= "	and document_id = $document_id; ";
+*/
+	$query = "SELECT cde2.* FROM crada_document_element cde2, ";
+	$query .= "(SELECT document_element_id, MAX(document_version) AS ver ";
+	$query .= "		FROM crada_document_element ";
+	$query .= "		WHERE document_id = $document_id and document_version <= $version ";
+	$query .= "		GROUP BY document_element_id ) cde1 ";
+	$query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
+	$query .= " and cde2.document_version = cde1.ver ";
+	$query .= " and cde2.document_id = $document_id;";
 
+	crada_log($query);
 	$result=db_query($query);
+	crada_log("GET DOCUMENT ELEMENT RESULTS:");
+	crada_log(json_encode($result));
 
 	//$list["document_element_text"] = $row->document_element_text;
 	//$list["confidential_annotation"] = $row->confidential_annotation;

@@ -16,25 +16,11 @@ $(document).ready(function () {
 	$("#annotation_options").change(user_changed_annotation_option);
 	
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
-            editClause(event);
-
+    	editClause(event);
 	});
-	
  	$("#current_document_content").on( "blur", "p.clause", function(event) {
- 			// Check if dirty
- 			var data_changed = my_editor.checkDirty();
- 			//If dirty then add the changed-answer class to <p>
- 			if(data_changed) {
- 				$('#'+my_editor.name).removeClass('answer-changed').addClass('clause-changed');
- 			}
-
- 			//remove editor
-			my_editor.destroy();
-
-            //saveClause(event);
-
+ 		updateClauseParagraph();
 	});
-
  	$("#current_annotation_content").on( "click", "p", function(event) {
             editAnnotation(event);
 	});
@@ -53,6 +39,17 @@ $(document).ready(function () {
 
 	set_footer();
 });
+
+function updateClauseParagraph() {
+	// Check if dirty
+	var data_changed = my_editor.checkDirty();
+	//If dirty then add the changed-answer class to <p>
+	if(data_changed) {
+		$('#'+my_editor.name).removeClass('answer-changed').addClass('clause-changed');
+	}
+	//remove editor
+	my_editor.destroy();
+}
 
 function change_annotation_selection() {
 
@@ -97,6 +94,7 @@ function set_answer_retrieve_new_element_callback(data) {
 //	alert("about to call addMadLib");
 	console.log('data.demographic_answers');
 	console.log(data.demographic_answers);
+
 	console.log('JSON.parse(data.demographic_answers)');
 	console.dir(JSON.parse(data.demographic_answers));
 //	alert("about to call addMadLib");
@@ -121,9 +119,11 @@ function set_answer_callback(data) {
 function editClause(e) {
 var	toolbar = [
 			{ 'name': 'basicstyles', 'items' : [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ]   },
-			{ 'name': 'links', 'items' : ['Link','Unlink', 'Anchor']},
 			{ 'name': 'undo', 'items' :['Undo','Redo']}
 		];
+	// Taking out links for now.
+	// toolbar links (not working)...	{ 'name': 'links', 'items' : ['Link','Unlink']},
+
 	console.dir(e);
 	var ref = e.target.id;
 
@@ -131,7 +131,7 @@ var	toolbar = [
 			);
 	my_editor.on( 'change', function( evt ) {
 	    // getData() returns CKEditor's HTML content.
-	    console.log( 'Total bytes: ' + evt.editor.getData().length );
+	    //console.log( 'Total bytes: ' + evt.editor.getData().length );
 	    saveClause(evt);
 	});
 
@@ -151,12 +151,22 @@ var	toolbar = [
 }
 
 function saveClause(e) {
+	var data = [];
 	console.dir(e);
 	console.log(e.editor.getData());
 	console.log(e.editor.name);
-	document_element_id = e.editor.name.substring(7) ;
+	var document_element_id = e.editor.name.substring(7) ;
 	console.log(document_element_id);
-	ajax_caller("save_clause", {'document_id':getCookie('Drupal.visitor.document.id'), 'document_element_id':document_element_id}, save_clause_callback);
+	var data = {document_id: getCookie('Drupal.visitor.document.id'),
+				document_element_id: e.editor.name.substring(7),
+				column_text: e.editor.getData(),
+				update_column: "document_element_text",
+				answer_changed: 0,
+				updated_by: getCookie('Drupal.visitor.user.name')
+			};
+	//alert(JSON.stringify(data));
+	//var data['document_id'] =
+	ajax_caller("save_element", data, save_clause_callback);
 
 	/*
 	var ref = e.target.id;
