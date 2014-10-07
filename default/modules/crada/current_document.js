@@ -7,6 +7,7 @@ $(document).ready(function () {
 
 	$("#current_annotation_content").tooltip({show: {delay: 350}}); /*Adding jQuery tooltip for annotations*/
 	$("#load_button").click(click_load_button);
+	$("#archive_version_button").click(click_archive_version_button);
 	$("#save_button").click(click_save_button);
 	$("#change_answer_button").click(click_change_answer_button);
 	$("#back_button_answer").click(click_back_button_answer);
@@ -22,15 +23,18 @@ $(document).ready(function () {
  		updateClauseParagraph();
 	});
  	$("#current_annotation_content").on( "click", "p", function(event) {
-            editAnnotation(event);
+        editAnnotation(event);
 	});
-
-	
 	$("#change_answer_container").on( "change", "select", function(event) {
 		changedAnswer(event);
 	});	
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
+		alert("action is load");
+		alert("querystring");
+		console.log(querystring);
+		alert(querystring);
+
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
@@ -127,8 +131,10 @@ var	toolbar = [
 	console.dir(e);
 	var ref = e.target.id;
 
-	my_editor = CKEDITOR.inline(ref, {toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
-			);
+	my_editor = CKEDITOR.inline(
+					ref, 
+					{toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
+					);
 	my_editor.on( 'change', function( evt ) {
 	    // getData() returns CKEditor's HTML content.
 	    //console.log( 'Total bytes: ' + evt.editor.getData().length );
@@ -461,6 +467,45 @@ function load_change_answer(data) {
 
 }
 
+
+function click_archive_version_button () {
+	//alert("Clicked freeze version Button");
+	var content;
+	content = '<p>Archive and lock version '+getCookie('Drupal.visitor.document.version')+"?</p>";
+	$(content).dialog({
+		resizable: false,
+		height: 175,
+		width: 300,
+		modal: true,
+		title: "Archive Current Version",
+		buttons: {
+			"Yes": function() {
+				$( this ).dialog( "close" );
+				alert("FREEZE IT");
+				ajax_caller("archive_version", {
+						document_id:getCookie('Drupal.visitor.document.id'), 
+						version:getCookie('Drupal.visitor.document.version'),
+						updated_by:getCookie('Drupal.visitor.user.name')
+					}, lock_version_callback);
+			},
+			No: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	});		
+
+}
+function lock_version_callback(data) {
+	alert("Just got back from lock_version.  How did that go?");
+	console.log("DATA from archive_version");
+	console.dir(data);
+	alert("go look at data in your browser console");
+	alert(JSON.stringify(data));
+
+	setCookie("Drupal.visitor.document.version", data.version, 365);
+	location.href = "load_document?action=Load&document_id = " + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
+}
+
 function click_save_button () {
 	alert("Clicked Save Button");
 }
@@ -485,9 +530,11 @@ function set_toolbar_buttons(editable) {
 	if(editable) {
 		$('#change_answer_button').show();
 		$('#save_button').show();
+		$('#archive_version_button').show();
 	} else {
 		$('#change_answer_button').hide();
 		$('#save_button').hide();
+		$('#archive_version_button').hide();
 	}
 
 }

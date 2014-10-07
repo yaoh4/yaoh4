@@ -20,6 +20,8 @@ function crada_server() {
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
+		else if ($action == 'archive_version') $output = archive_version();
+
 
 		else if ($action == 'echo') $output = echo_data();
 		
@@ -35,6 +37,35 @@ function crada_server() {
 		$output["message"] = 'Unknown Function Called. action = '.$action;
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
+}
+
+function archive_version() {
+	$output = array();
+
+	$document_id = $_REQUEST['document_id'];
+	$version = $_REQUEST['version'];
+	$updated_by = $_REQUEST['updated_by'];
+	$next_version = $version + 1;
+
+	$query = "insert into crada_document_version  VALUES (";
+	$query .= "$document_id, $next_version, '$update_by', ";
+	$query .=  "'".date('Y-m-d H:i:s', time())."');";
+
+	crada_log($query);
+	$result=db_query($query);
+	crada_log("RESULTS:");
+	crada_log(json_encode($result));
+
+	//$row = $result->fetchObject();
+	//crada_log(json_encode($row));
+
+	$output["status"] = "Ok";
+	$output["version"] = trim($next_version);
+	crada_log("OUTPUT IS");
+	crada_log(json_encode($output));
+
+
+	return $output;
 }
 
 function save_element() {
