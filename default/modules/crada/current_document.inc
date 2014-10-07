@@ -4,12 +4,12 @@ function crada_current_document() {
 	$module_path = drupal_get_path('module', 'crada');
 	drupal_add_library('system','ui.dialog');
 	drupal_add_css($module_path . '/crada.css');
-	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
-	drupal_add_js($module_path . '/current_document.js',array('cache' => false, 'preprocess' => false));
+	drupal_add_js($module_path . '/crada_helper_functions.js', array('cache' => false, 'preprocess' => false));
+	drupal_add_js($module_path . '/current_document.js', array('cache' => false, 'preprocess' => false));
 
 	global $user;
 	if (!isset($user->uid)) {
-	  //user is not logged in
+		//user is not logged in
 		crada_log("User is not logged in");
 		$user_info = array("uid"=>0, "name"=>"unknown");
 	} else {
@@ -121,6 +121,7 @@ function add_command_bar() {
 	$data .= "</div>";
 	$data .= add_button("load_button", "Load New Document");
 	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
+	$data .= add_button("archive_version_button", "Archive Version");
 	$data .= add_button("save_button", "Save Document");
 	$data .= "</DIV>";
 	

@@ -117,6 +117,9 @@
 #save_button {
 	float:right;
 }
+#version_version_button {
+	float:right;
+}
 
 .pull-right {
 	float:right;
