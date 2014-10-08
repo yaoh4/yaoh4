@@ -117,7 +117,7 @@ function set_answer_callback(data) {
 	console.dir(data);
 	alert(JSON.stringify(data));
 	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
-	location.href = "load_document?action=Load&document_id = " + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
+	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 
 }
 function editClause(e) {
@@ -503,7 +503,7 @@ function lock_version_callback(data) {
 	alert(JSON.stringify(data));
 
 	setCookie("Drupal.visitor.document.version", data.version, 365);
-	location.href = "load_document?action=Load&document_id = " + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
+	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 }
 
 function click_save_button () {

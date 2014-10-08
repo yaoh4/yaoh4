@@ -33,7 +33,9 @@ function crada_current_document() {
     /* <script src="//cdn.ckeditor.com/4.4.5/basic/ckeditor.js"></script> */
     //drupal_add_js('http:////cdn.ckeditor.com/4.4.3/basic/ckeditor.js', 'external'); 
 	//drupal_add_js('http:////cdn.ckeditor.com/4.4.3/full/ckeditor.js', 'external'); 
-	drupal_add_js('http:////cdn.ckeditor.com/4.4.3/full/ckeditor.js', 'external'); 
+	//drupal_add_js('http:////cdn.ckeditor.com/4.4.3/full/ckeditor.js', 'external'); 
+	drupal_add_js('sites/all/modules/ckeditor/ckeditor.js', array('cache' => false, 'preprocess' => false));
+	//<script src="//cdn.ckeditor.com/4.4.5/full/ckeditor.js"></script>
 	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
 	
 //	 Set default cookie if it does not exists.
