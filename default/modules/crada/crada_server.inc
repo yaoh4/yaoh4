@@ -60,7 +60,7 @@ function archive_version() {
 	//crada_log(json_encode($row));
 
 	$output["status"] = "Ok";
-	$output["version"] = trim($next_version);
+	$output["version"] = $next_version;
 	crada_log("OUTPUT IS");
 	crada_log(json_encode($output));
 
