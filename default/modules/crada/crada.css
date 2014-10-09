@@ -233,8 +233,8 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
 }
 .minor-version {
   float: left;
-  width: 30px;
-  margin-left:30px;
+  width: 35px;
+  margin-left:25px;
 }
 .section-name {
   width: auto;
@@ -265,9 +265,14 @@ p.clause:hover{
 	box-shadow: 0 0 10px #9ecaed;
   	border-color: #9ecaed;
     box-shadow: 0 0 10px #9ecaed;		
+    #d3ebf9
 }
 */
 
+p.clause:hover{
+	outline: 1px solid #B8D6FB;
+  	border-color: #9ecaed;
+}
 p.clause:focus{
 	background-color: #F0F0F0;
 	outline: 1px solid DeepSkyBlue;
@@ -316,4 +321,39 @@ textarea {
 	height: auto;
 	border: none;
 	/*resize: none;	*/
+}
+
+/* Removing styles for Accordion*/
+
+.ui-accordion .ui-accordion-content {
+	padding: 0;
+} 
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
+    color: #212121;
+    font-weight: 400;
+}
+
+.ui-icon {
+	float:right;
+}
+.ui-widget-content {
+	border: 0px;
+	background-color:inherit;
+}
+.ui-state-default {
+	border: 0px;
+
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+	background-color:inherit;
+}
+.ui-widget-header {
+	background-color:inherit;
+}
+.ui-helper-reset {
+    font-size: 100%;
+    list-style: none outside none;
+    outline: 0 none;
+    padding: 0;
+    text-decoration: none;
 }

@@ -1,4 +1,6 @@
 <?php
+require_once 'sites/default/libraries/phpword/PHPWord.php';
+require_once 'sites/default/libraries/phpword/PHPWord/Autoloader.php';
 
 function crada_server() {
 	$action = $_REQUEST['action'];
@@ -21,8 +23,7 @@ function crada_server() {
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
 		else if ($action == 'archive_version') $output = archive_version();
-
-
+		else if ($action == 'create_word_file') $output = create_word_file();
 		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
@@ -38,6 +39,85 @@ function crada_server() {
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
 }
+
+function create_word_file() {
+	//$library = libraries_load('PHPWord');
+	//$library = libraries_load('PHPExcel');
+	//crada_log('LIBRARY ...');
+	//crada_log(serialize($library));
+
+	//require_once 'src/PhpWord/Autoloader.php';
+	// \PhpOffice\PhpWord\Autoloader::register();
+//	Autoloader::register();
+	//$autoloader = new PHPWord_Autoloader();
+
+//	$phpWord = new PhpWord();
+	$filename = 'CRADA.docx';
+
+
+// Create a new PHPWord Object
+	$PHPWord = new PHPWord();
+
+// Every element you want to append to the word document is placed in a section. So you need a section:
+	$section = $PHPWord->createSection();
+
+// After creating a section, you can append elements:
+	$section->addText('Making a word document.  What');
+	//$phpword = new SplClassLoader('PHPWord','sites/default/libraries');
+	//$phpword->register();	
+// At least write the document to webspace:
+
+	$objWriter = PHPWord_IOFactory::createWriter($PHPWord, 'Word2007');
+	$objWriter->save('word/'.$filename);
+
+	crada_log("Making the WORD Document");
+	$output = array();
+	$output['status'] = "OK";
+	$output['filename'] = $filename;
+
+	return $output;
+
+
+	global $filename, $xls_reader, $document_id;
+
+	$filename = "chris.xls";
+
+	$library = libraries_load('PHPExcel');
+	if (empty($library['loaded'])) {
+		drupal_set_message( "Failed to Load PHPExcel Library" );
+		return;
+	}
+		
+	drupal_set_message(t("Filename is: $filename"));
+
+	$filetype = PHPExcel_IOFactory::identify($filename);
+	$xls_reader = PHPExcel_IOFactory::createReader($filetype);
+	$xls_reader->setReadDataOnly(FALSE);
+
+	crada_log("Making the WORD Document");
+	$output = array();
+	$output['status'] = "OK";
+	$output['filename'] = $filename;
+
+	return $output;
+
+	/*
+	$transaction = db_transaction();
+	try {
+		$document_id = db_insert_crada_document();
+		load_coversheet();
+		load_definitions();
+		load_demographics();
+		load_sections();
+	} catch (Exception $e) {
+		$transaction->rollback();
+		watchdog_exception('crada', $e, $e->getMessage());
+		drupal_set_message("Failed on insert crada_document: ". $e->getMessage(), "error");
+	}
+	*/
+		
+}
+
 
 function archive_version() {
 	$output = array();
@@ -859,7 +939,6 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 }
 
 function get_full_document() {
-	crada_log("get_full_document()");
 
 	$user = $_REQUEST['user'];
 	$document_id = $_REQUEST['document_id'];
@@ -868,11 +947,8 @@ function get_full_document() {
 	
 	$output['status'] = 'Ok';
 	$output['title'] = db_get_title_for_document($document_id);
-	crada_log("get_full_document()");
 	$output['editable'] = db_is_version_editable($document_id, $version);
-	crada_log("get_full_document()");
 	$output['clauses'] = db_get_document_elements($document_id, $version);
-	crada_log("get_full_document()");
 	$output['version'] = $version;
 	return $output;
 	
@@ -881,7 +957,6 @@ function get_full_document() {
 function db_is_version_editable($document_id, $version) {
 
 	$query = "SELECT max(version) as max_version FROM crada_document_version where document_id =$document_id";
-	crada_log($query);
 	$result = db_query($query);
 
 	$row = $result->fetchObject();
@@ -908,32 +983,6 @@ function db_get_title_for_document($document_id) {
 }
 
 function db_get_document_elements ($document_id, $version) {
-	// if version == null, We will need to get the clause that is maximum version
-	/* Example query 
-SELECT * FROM crada_document_element WHERE document_element_id IN (
-	select cde.document_element_id from (
-		SELECT document_element_id, MAX(document_version) AS ver
-			FROM crada_document_element
-			WHERE document_id = 2 
-				and document_version <= 2 			
-			GROUP BY document_element_id
-		) as cde
-	)
-	and document_id =2;
-*/
-	/*
-
-	$query = "SELECT * FROM crada_document_element WHERE document_element_id IN (";
-	$query .= "  select cde.document_element_id from (";
-	$query .= "    SELECT document_element_id, MAX(document_version) AS ver";
-	$query .= "			FROM crada_document_element ";
-	$query .= "			WHERE document_id = $document_id ";
-	$query .= "				and document_version <= $version ";
-	$query .= "			GROUP BY document_element_id ";
-	$query .= "		) as cde ";
-	$query .= "	) ";
-	$query .= "	and document_id = $document_id; ";
-*/
 	$query = "SELECT cde2.* FROM crada_document_element cde2, ";
 	$query .= "(SELECT document_element_id, MAX(document_version) AS ver ";
 	$query .= "		FROM crada_document_element ";
@@ -943,28 +992,9 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 	$query .= " and cde2.document_version = cde1.ver ";
 	$query .= " and cde2.document_id = $document_id;";
 
-	crada_log($query);
 	$result=db_query($query);
-	crada_log("GET DOCUMENT ELEMENT RESULTS:");
-	crada_log(json_encode($result));
-
-	//$list["document_element_text"] = $row->document_element_text;
-	//$list["confidential_annotation"] = $row->confidential_annotation;
-	//$list["public_annotation"] = $row->public_annotation;
-
-	//$output["status"] = "Ok";
-    //$output["element"] = $list;
-/*    
-
-	$result = db_select('crada_document_element', 'cd')
-	->fields('cd')
-	->condition('document_id', $document_id, '=')
-	->condition('document_version', $version, '=')
-	->execute();
-*/	
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
-		crada_log(json_encode($row));
 		$obj = array();
 		$obj['text'] = $row->document_element_text;
 		$obj['section'] = $row->section;
@@ -973,7 +1003,6 @@ SELECT * FROM crada_document_element WHERE document_element_id IN (
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
 		array_push($list, $obj);
-		crada_log("count= ".$count."  document_version= ".$row->document_version);
 	}
 	return $list;
 }
