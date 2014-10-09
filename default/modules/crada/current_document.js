@@ -30,16 +30,15 @@ $(document).ready(function () {
 	});	
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
-		alert("action is load");
-		alert("querystring");
-		console.log(querystring);
-		alert(querystring);
-
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
-
-	ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
+	if(getCookie('Drupal.visitor.document.id') != "") {
+		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
+	} else {
+		// Open up the Load document Dialog
+		click_load_button();
+	}
 
 	set_footer();
 });
@@ -481,7 +480,6 @@ function click_archive_version_button () {
 		buttons: {
 			"Yes": function() {
 				$( this ).dialog( "close" );
-				alert("FREEZE IT");
 				ajax_caller("archive_version", {
 						document_id:getCookie('Drupal.visitor.document.id'), 
 						version:getCookie('Drupal.visitor.document.version'),
@@ -496,18 +494,24 @@ function click_archive_version_button () {
 
 }
 function lock_version_callback(data) {
-	alert("Just got back from lock_version.  How did that go?");
-	console.log("DATA from archive_version");
-	console.dir(data);
-	alert("go look at data in your browser console");
-	alert(JSON.stringify(data));
-
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 }
 
 function click_save_button () {
 	alert("Clicked Save Button");
+	ajax_caller("create_word_file", {'document_id':getCookie('Drupal.visitor.document.id'), 'version':getCookie('Drupal.visitor.document.version')}, create_word_file_callback);
+
+}
+function create_word_file_callback(data) {
+	if(data.status == "Error") {
+		alert("Error: "+data.message);
+	}
+
+	alert("how did it go? Opening file now....");
+	drupal_goto("word/"+data.filename);
+	console.log("Look for chris.xls on ther server some where.");
+	console.dir(data);
 }
 
 function click_select_document_button() {
@@ -529,21 +533,13 @@ function set_toolbar_buttons(editable) {
 	// Remove buttons if not editable
 	if(editable) {
 		$('#change_answer_button').show();
-		$('#save_button').show();
+		//$('#save_button').show();
 		$('#archive_version_button').show();
 	} else {
 		$('#change_answer_button').hide();
-		$('#save_button').hide();
+		//$('#save_button').hide();
 		$('#archive_version_button').hide();
 	}
-
-}
-function remove_editors() {
-	// Remove previously created editor instances
-	$.each( clause_editor, function( key, value ) {
-		console.log("removing editor - "+key);
-		value.destroy();
-	});
 
 }
 
@@ -555,7 +551,6 @@ function get_document_elements_callback(data) {
 	console.log("Here is the data");
 	console.log("get full document");
 	set_toolbar_buttons(data.editable);
-	remove_editors();
 
 
 	console.dir(data);
@@ -576,7 +571,7 @@ function get_document_elements_callback(data) {
 //	$("#current_document_content").append($("<h1>").append(data.title));
 	$("#current_document_content").append("<hr />");
 	//$("#current_document_content").append('<i class="fa fa-camera-retro fa-3x"></i> fa-3x');
-	displayCurrentDocument(data);
+	//displayCurrentDocument(data);
 	
 	var current_section = "";
 	var confidential_annotation;
@@ -596,6 +591,7 @@ function get_document_elements_callback(data) {
 				current_section = data.clauses[i].section;
 				section_number++;
 				clause_number = 0;  //Reset clause number for each new section
+				//alert(section_number);
 				displaySectionHeader(section_number, current_section, element_id);
 			}
 			clause_number++;
@@ -603,7 +599,7 @@ function get_document_elements_callback(data) {
 			//data_clause = ​typeof data.clauses[i].text;
 			//alert(data_clause);
 			
-			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, element_id, data.editable);
+			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
 
 			/*
 			$("#current_document_content")
@@ -653,7 +649,6 @@ function get_document_elements_callback(data) {
 							.attr("data-annotate", annotate)
 							.attr("title", data.clauses[i].public_annotation)
 							.attr("dialog-title", annotation_footnote)
-
 						);
 			}
 		} 
@@ -664,76 +659,40 @@ function get_document_elements_callback(data) {
 	$( ".annotation" ).tooltip({ track: true });
 
 	change_annotation_selection();
+	//$( ".clause-paragraph" ).accordion( "option", "active", 2 );
+
+	$(".accordion").accordion({collapsible: true, 
+							heightStyle: "content",
+							icons: { "header": "ui-icon-triangle-1-w", "activeHeader": "ui-icon-triangle-1-s" } 
+					});
+
+	var options = $( ".accordion" ).accordion( "option" );
+	console.dir(options);
+
+	//var widget = $( ".accordion" ).accordion( "widget" );
+
+	//$( ".accordion" ).accordion("option", "icons", null);
+
 }
 
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
-/* EXAMPLE
-		<div class="clause-paragraph">
-			<div class='minor-version'>7-11</div>
-			<div class='clause-container'>
-				<p class='clause changed-answer'>
-	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
-				</p>
-			</div>
-		</div>
-		<div class="both"></div>
-*/
-	//console.log("section_number "+section_number);
-	//console.log("minor_number "+minor_number);
-	//console.log("current_section "+clause.text);
-	//console.log("element_id "+element_id);
 
-/*
-	$("#current_document_content").append(
-		$('<div>')
-			.addClass('clause-paragraph')
-			.append($('<div').append("hello"))
+	$("#"+element_id).append(
+		$('<div/>', {'class': 'clause-paragraph'}).append(
+		    $('<div/>', {'class': 'minor-version'}).append(
+		        section_number+"-"+minor_number
+		    )
+		)
+		.append(
+		    $('<div/>', {'class': 'clause-container'}).append(
+		    	$('<p/>', {'class':'clause'}).append(
+		        	clause.text
+		        )
+		        .attr('id', 'clause-'+index)
+		    )
+		)
 	);
-	$('<div')
-				.addClass('major-version')
-				.append(section_number)
-			)
-*/
-/*
-	if(!editable) {
 
-		$("#"+element_id).append(
-		    $('<div/>', {'class': 'clause-paragraph'}).append(
-		        $('<div/>', {'class': 'minor-version'}).append(
-		            section_number+"-"+minor_number
-		        )
-		    )
-		    .append(
-		        $('<div/>', {'class': 'clause-container'}).append(
-			        $('<p/>', {'class': 'clause'}).append(
-			            clause.text
-			        )
-			        .attr('id', 'clause-'+index)
-		        )
-		    )
-		);
-	} else {
-		*/
-
-		$("#"+element_id).append(
-		    $('<div/>', {'class': 'clause-paragraph'}).append(
-		        $('<div/>', {'class': 'minor-version'}).append(
-		            section_number+"-"+minor_number
-		        )
-		    )
-		    .append(
-		        $('<div/>', {'class': 'clause-container'}).append(
-		        	$('<p/>', {'class':'clause'}).append(
-		            	clause.text
-		            )
-			        .attr('id', 'clause-'+index)
-		        )
-		    )
-		);
-
-	if(!editable) {
-		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
-	}
 	console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed');
@@ -745,109 +704,37 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
-		/*
-		clause_editor["clause-"+index] = CKEDITOR.inline(document.getElementById("clause-"+index),
-				{
-					uiColor: '#d3ebf9'
-				}
-			);
-//							toolbar: [ [ 'Bold', 'Italic'], [ 'Link'], [ 'UIColor' ] ],
-
-		// The "change" event is fired whenever a change is made in the editor.
-		clause_editor["clause-"+index].on( 'change', function( evt ) {
-		    // getData() returns CKEditor's HTML content.
-		    console.log( 'Total bytes: ' + evt.editor.getData().length );
-		    saveClause(evt);
-		});
-		//$('#clause-'+index).attr('title', 'Click to edit clause');
-		*/
-		
+	} else {
+		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
 	}
 }
 
 function displaySectionHeader(section_number, current_section, element_id) {
-/* EXAMPLE
-	<div class="clause-paragraph">
-		<div class='major-version'>7.</div>
-		<div class='section-name'>Patent Filing, Prosecution, and Mantenance</div>
-	</div>
-	<div class="both"></div>
-*/
-	console.log("section_nubmer "+section_number);
-	console.log("current_section "+current_section);
-	console.log("element_id "+element_id);
+	console.log("section_number = " + section_number);
+	console.log("current_section = " + current_section);
+	console.log("element_id = " + element_id);
 
+	$("#"+element_id).append(
+		$('<h3/>', {'class': 'accordion'}).append(
+		    $('<div/>', {'class': 'clause-paragraph'}).append(
+		        $('<span/>', {'class': 'major-version'}).append(
+		            section_number
+		        )
+		    )
+		    .append(
+		        $('<span/>', {'class': 'section-name'}).append(
+		            current_section
+		        )
+		    )
+		).attr('id','accordion-'+section_number)
+	);
 /*
-	$("#current_document_content").append(
-		$('<div>')
-			.addClass('clause-paragraph')
-			.append($('<div').append("hello"))
-	);
-	$('<div')
-				.addClass('major-version')
-				.append(section_number)
-			)
-*/
-
-	$("#"+element_id).append(
-	    $('<div/>', {'class': 'clause-paragraph'}).append(
-	        $('<div/>', {'class': 'major-version'}).append(
-	            section_number
-	        )
-	    )
-	    .append(
-	        $('<div/>', {'class': 'section-name'}).append(
-	            current_section
-	        )
-	    )
-	);
-
-	$("#"+element_id).append(
+	$("#accordion-"+section_number).append(
 	    $('<div/>', {'class': 'clear'})
 	);
+*/
+	$("#accordion-"+section_number).append($('<div/>', {'id':'accordion-content-'+section_number}));
 
-}
-
-function displayCurrentDocument(data) {
-	/*
-<body>
-	<div class="section">
-		<div class="clause-paragraph">
-			<div class='major-version'>7.</div>
-			<div class='section-name'>Patent Filing, Prosecution, and Mantenance</div>
-		</div>
-		<div class="both"></div>
-		<div class="clause-paragraph">
-			<div class='minor-version'>7.11</div>
-			<div class='clause-container'>
-				<p class='clause changed-answer'>
-	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
-				</p>
-			</div>
-		</div>
-		<div class="both"></div>
-		<div class="clause-paragraph">
-			<div class='minor-version'>7.12</div>
-			<div class='clause-container'>
-				<p class="clause changed-clause">
-	The <b>NIH</b> agrees to take responsibility for the preparation, filing, prosecution, and maintenance of any and all patent applications or patents included in the Licensed Patent Rights.
-				</p>
-			</div>
-		</div>
-		<div class="both"></div>
-
-	</div>
-	<div class="clear"></div>
-
-	<div class="section">
-		<div class="major-version">8.</div>
-		<div class="section-name">		Hello
-		</div>
-	</div>
-	<div class="clear"></div>
-</body>
-
-	*/
 }
 
 function addAnnotationDiv(annotation_data, section_reference, annotation_type) {
@@ -867,7 +754,6 @@ function trimAnnoation(annotation) {
 	        if (annotation[i] == " ") {break;}
 	    }
 	    annotation =  annotation.substr(0, i) + " ...";
-
 	}
 
 	return annotation;
