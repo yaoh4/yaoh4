@@ -329,8 +329,7 @@ textarea {
 	padding: 0;
 } 
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
-    color: #212121;
-    font-weight: 400;
+	background-color:none;
 }
 
 .ui-icon {

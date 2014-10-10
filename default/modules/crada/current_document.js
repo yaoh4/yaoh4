@@ -665,6 +665,8 @@ function get_document_elements_callback(data) {
 							heightStyle: "content",
 							icons: { "header": "ui-icon-triangle-1-w", "activeHeader": "ui-icon-triangle-1-s" } 
 					});
+	$(".accordion").removeClass("ui-state-active");
+	$(".ui-accordion-content").removeClass("ui-cornner-bottom");
 
 	var options = $( ".accordion" ).accordion( "option" );
 	console.dir(options);
