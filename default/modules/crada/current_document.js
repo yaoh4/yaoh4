@@ -508,9 +508,9 @@ function create_word_file_callback(data) {
 		alert("Error: "+data.message);
 	}
 
-	alert("how did it go? Opening file now....");
+//	alert("how did it go? Opening file now....");
 	drupal_goto("word/"+data.filename);
-	console.log("Look for chris.xls on ther server some where.");
+	console.log("Look for word document on ther server under the word directory.");
 	console.dir(data);
 }
 
