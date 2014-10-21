@@ -48,7 +48,16 @@ function updateClauseParagraph() {
 	var data_changed = my_editor.checkDirty();
 	//If dirty then add the changed-answer class to <p>
 	if(data_changed) {
-		$('#'+my_editor.name).removeClass('answer-changed').addClass('clause-changed');
+		$('#'+my_editor.name).removeClass('answer-changed');
+		$('#'+my_editor.name).animate({
+				backgroundColor: "#FAFAD2",
+				borderColor: "#A0981D"
+			}, 1000, function() {
+    			// Animation complete.
+				$('#'+my_editor.name).addClass('clause-changed')
+ 			}
+  		);
+
 	}
 	//remove editor
 	my_editor.destroy();
@@ -111,6 +120,7 @@ function set_answer_retrieve_new_element_callback(data) {
 	ajax_caller('set_answer', {'user':getCookie('Drupal.visitor.user.name'), 'data':JSON.stringify(data)}, set_answer_callback, "POST");
 
 }
+
 function set_answer_callback(data) {
 	console.log("set answer callback");
 	console.dir(data);
@@ -119,6 +129,7 @@ function set_answer_callback(data) {
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 
 }
+
 function editClause(e) {
 var	toolbar = [
 			{ 'name': 'basicstyles', 'items' : [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ]   },
