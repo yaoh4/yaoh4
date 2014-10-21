@@ -124,7 +124,7 @@ function add_command_bar() {
 	$data .= add_button("load_button", "Load New Document");
 	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
 	$data .= add_button("archive_version_button", "Archive Version");
-	$data .= add_button("save_button", "Save Document");
+	$data .= add_button("save_button", "Download Word Document");
 	$data .= "</DIV>";
 	
 	return $data;
