@@ -72,6 +72,15 @@ function crada_menu() {
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'crada_server.inc',
     );
+
+    $items['crada/download_document'] = array(
+    'path' => 'crada/download_document', 
+    'title' => '', 
+    'page callback' => 'download_document',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'download_document.inc',
+    );
     
   return $items;
 }
