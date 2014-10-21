@@ -509,11 +509,12 @@ function lock_version_callback(data) {
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 }
 
-function click_save_button () {
-	alert("Clicked Save Button");
-	ajax_caller("create_word_file", {'document_id':getCookie('Drupal.visitor.document.id'), 'version':getCookie('Drupal.visitor.document.version')}, create_word_file_callback);
-
+function click_save_button (e) {
+	console.dir(e);
+	e.preventDefault();  //stop the browser from following
+    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 }
+
 function create_word_file_callback(data) {
 	if(data.status == "Error") {
 		alert("Error: "+data.message);
