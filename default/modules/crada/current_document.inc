@@ -125,6 +125,12 @@ function add_command_bar() {
 	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
 	$data .= add_button("archive_version_button", "Archive Version");
 	$data .= add_button("save_button", "Download Word Document");
+	/*
+	$data .= '<i class="fa fa-file-word-o fa-2x"></i>';
+	$data .= '<i class="fa fa-file-pdf-o fa-2x"></i>';
+	$data .= '<i class="fa fa-cloud-download fa-2x"></i>';
+	$data .= '<i class="fa fa-file fa-2x"></i>';
+	*/
 	$data .= "</DIV>";
 	
 	return $data;
