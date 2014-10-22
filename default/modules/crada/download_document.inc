@@ -59,10 +59,10 @@ function create_rtf_file() {
 			$section->writeText($doc['clauses'][$i]['text'], $fontP, $formatP);	
 		}
 		//while()
-		$section->writeText('Here is your new document.....', $fontH2, $formatH2);
+		//$section->writeText('Here is your new document.....', $fontH2, $formatH2);
 		//$section->setNoBreak();
 
-		$section->writeText('<i>Add <u>your <strong>clause</strong> <b>here</b></u></i>', $fontP, $formatP);
+		//$section->writeText('<i>Add <u>your <strong>clause</strong> <b>here</b></u></i>', $fontP, $formatP);
 		//end while()
 
 		$rtf->sendRtf($filename);

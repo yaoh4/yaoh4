@@ -512,7 +512,7 @@ function lock_version_callback(data) {
 function click_save_button (e) {
 	console.dir(e);
 	e.preventDefault();  //stop the browser from following
-    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
+    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version')+"&user="+getCookie('Drupal.visitor.user.name');
 }
 
 function create_word_file_callback(data) {
