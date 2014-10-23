@@ -8,7 +8,12 @@ $(document).ready(function () {
 	$("#current_annotation_content").tooltip({show: {delay: 350}}); /*Adding jQuery tooltip for annotations*/
 	$("#load_button").click(click_load_button);
 	$("#archive_version_button").click(click_archive_version_button);
-	$("#save_button").click(click_save_button);
+	$("#download-pdf").click(function() {
+		downloadDocument("PDF");
+	});
+	$("#download-word").click(function() {
+		downloadDocument("Word");
+	});
 	$("#change_answer_button").click(click_change_answer_button);
 	$("#back_button_answer").click(click_back_button_answer);
 
@@ -42,6 +47,11 @@ $(document).ready(function () {
 
 	set_footer();
 });
+function downloadDocument(type) {
+//	console.dir(e);
+//	e.preventDefault();  //stop the browser from following
+    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version')+"&user="+getCookie('Drupal.visitor.user.name');
+}
 
 function updateClauseParagraph() {
 	// Check if dirty
@@ -507,12 +517,6 @@ function click_archive_version_button () {
 function lock_version_callback(data) {
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
-}
-
-function click_save_button (e) {
-	console.dir(e);
-	e.preventDefault();  //stop the browser from following
-    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version')+"&user="+getCookie('Drupal.visitor.user.name');
 }
 
 function create_word_file_callback(data) {

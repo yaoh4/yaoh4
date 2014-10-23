@@ -107,16 +107,18 @@
 	border:"1px dotted black";
 }
 
-/*
-#current_document_content p:hover {
-	background: #CCCCCC;
-	text-decoration:none;
-}
-*/
-
-#save_button {
+.download-button-container {
 	float:right;
+	color:rgba(255,255,150,0.2);
 }
+#download-pdf {
+	color:red;
+}
+#download-word {
+	color:blue;
+}
+
+
 #version_version_button {
 	float:right;
 }

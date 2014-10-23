@@ -121,16 +121,18 @@ function add_command_bar() {
   				<option value="off">off</option>
 			</select>';
 	$data .= "</div>";
-	$data .= add_button("load_button", "Load New Document");
-	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "pull-right");
-	$data .= add_button("archive_version_button", "Archive Version");
-	$data .= add_button("save_button", "Download Word Document");
-	/*
-	$data .= '<i class="fa fa-file-word-o fa-2x"></i>';
-	$data .= '<i class="fa fa-file-pdf-o fa-2x"></i>';
-	$data .= '<i class="fa fa-cloud-download fa-2x"></i>';
-	$data .= '<i class="fa fa-file fa-2x"></i>';
-	*/
+	$data .= add_button("load_button", "Load", "Load a new document", "fa fa-file");
+	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "fa fa-edit");
+	$data .= add_button("archive_version_button", "Archive", "Archive Version", "fa fa-archive");
+//	$data .= '<i class="fa fa-cloud-download fa-2x"></i>';
+//	$data .= '<i class="fa fa-file fa-2x"></i>';
+	$data .= '<span class="download-button-container">';
+	$data .= ' <button id="download-word" title="Download Word"><i class="fa fa-file-word-o"></i></button>';
+//	$data .= add_button("download-word", "", "Download Word", "fa fa-file-o");
+	$data .= '</span>';
+	$data .= '<span class="download-button-container">';
+	$data .= '<button id="download-pdf"  title="Download PDF"><i class="fa fa-file-pdf-o"></i></button>';
+	$data .= '</span>';
 	$data .= "</DIV>";
 	
 	return $data;
@@ -153,7 +155,7 @@ function add_button($id, $name, $title="", $class="") {
 		$button = "<BUTTON class='button' id='$id' title='$title'>$name</BUTTON>";
 	}
 	if($class != ""){
-		$button = "<BUTTON class='button' id='$id' title='$title' class='$class'>$name</BUTTON>";
+		$button = "<BUTTON class='button' id='$id' title='$title'><i class='$class'></i>&nbsp;$name</BUTTON>";
 	}
 	return $button;
 }
