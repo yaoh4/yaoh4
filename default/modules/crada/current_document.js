@@ -47,10 +47,13 @@ $(document).ready(function () {
 
 	set_footer();
 });
-function downloadDocument(type) {
+function downloadDocument(document_type) {
 //	console.dir(e);
 //	e.preventDefault();  //stop the browser from following
-    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version')+"&user="+getCookie('Drupal.visitor.user.name');
+    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id')
+    	+"&version="+getCookie('Drupal.visitor.document.version')
+    	+"&user="+getCookie('Drupal.visitor.user.name')
+    	+"&document_type="+document_type;
 }
 
 function updateClauseParagraph() {
@@ -72,7 +75,7 @@ function updateClauseParagraph() {
 	//remove editor
 	my_editor.destroy();
 }
-
+/*
 function change_annotation_selection() {
 
 	annotation_option = getCookie("Drupal.visitor.annotation.option");
@@ -88,6 +91,7 @@ function change_annotation_selection() {
 	}
 
 }
+*/
 
 function set_footer(){
 	$("#document_footer").empty().append(
