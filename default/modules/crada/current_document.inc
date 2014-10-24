@@ -18,38 +18,11 @@ function crada_current_document() {
 		crada_log("user->name = ". $user->name);
 	}
 	crada_cookie_save('user', $user_info);
-	//unset($user);
 
 	//dpm($module_path, "Module Path");
-//	crada_log("Now this is cool.");
-
-	//drupal_add_css("sites/all/modules/libraries/bootstrap/css/bootstrap.min.css", 'theme', 'all', FALSE);
-	//drupal_add_js("sites/all/modules/libraries/bootstrap/js/bootstrap.min.js",array('cache' => false, 'preprocess' => false));
+	//crada_log("Now this is cool.");
     drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
-    //dpm("Adding js");
-    //drupal_add_js("sites/all/modules/ckeditor/editor/ckeditor.js",array('cache' => false, 'preprocess' => false));
-    /* \htdocs\drupal\sites\all\modules\ckeditor\ckeditor */
-    /* drupal_add_js('http://cdn.jquerytools.org/1.2.6/jquery.tools.min.js', 'external'); */
-    /* <script src="//cdn.ckeditor.com/4.4.5/basic/ckeditor.js"></script> */
-    //drupal_add_js('http:////cdn.ckeditor.com/4.4.3/basic/ckeditor.js', 'external'); 
-	//drupal_add_js('http:////cdn.ckeditor.com/4.4.3/full/ckeditor.js', 'external'); 
-	//drupal_add_js('http:////cdn.ckeditor.com/4.4.3/full/ckeditor.js', 'external'); 
 	drupal_add_js('sites/all/modules/ckeditor/ckeditor.js', array('cache' => false, 'preprocess' => false));
-	//<script src="//cdn.ckeditor.com/4.4.5/full/ckeditor.js"></script>
-	//drupal_set_message("Fontawesome: ".json_encode($font_awesome));
-	
-//	 Set default cookie if it does not exists.
-	/*
-	crada_log("**** Loading current document");
-	crada_log("_COOKIE");
-	crada_log(http_build_query($_COOKIE));
-	//crada_log($_COOKIE['Drupal_visitor_document_id']);
-	//crada_log(isset($_COOKIE['Drupal_visitor_document_id']));
-	if(!isset($_COOKIE['Drupal_visitor_document_id'])) {
-		$document = array("id"=>3,"version"=>0);
-		crada_cookie_save('document', $document);
-	}
-	*/
 	
 	$data = "";
 	$data .= "<div id='current_document_container'>";
@@ -122,13 +95,13 @@ function add_command_bar() {
 			</select>';
 	$data .= "</div>";
 	$data .= add_button("load_button", "Load", "Load a new document", "fa fa-file");
-	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "fa fa-edit");
 	$data .= add_button("archive_version_button", "Archive", "Archive Version", "fa fa-archive");
+	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "fa fa-edit");
 //	$data .= '<i class="fa fa-cloud-download fa-2x"></i>';
 //	$data .= '<i class="fa fa-file fa-2x"></i>';
 	$data .= '<span class="download-button-container">';
-	$data .= ' <button id="download-word" title="Download Word"><i class="fa fa-file-word-o"></i></button>';
-//	$data .= add_button("download-word", "", "Download Word", "fa fa-file-o");
+//	$data .= ' <button id="download-word" title="Download Word"><i class="fa fa-file-word-o"></i></button>';
+	$data .= add_button("download-word", "", "Download Word", "fa fa-file-word-o");
 	$data .= '</span>';
 	$data .= '<span class="download-button-container">';
 	$data .= '<button id="download-pdf"  title="Download PDF"><i class="fa fa-file-pdf-o"></i></button>';

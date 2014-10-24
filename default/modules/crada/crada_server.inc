@@ -1,6 +1,5 @@
 <?php
-require_once 'sites/default/libraries/phpword/PHPWord.php';
-require_once 'sites/default/libraries/phpword/PHPWord/Autoloader.php';
+require_once 'crada_utilities.inc';
 
 function crada_server() {
 	$action = $_REQUEST['action'];
@@ -946,9 +945,11 @@ function get_full_document() {
 	crada_log("user: $user, document_id: $document_id, version: $version");
 	
 	$output['status'] = 'Ok';
-	$output['title'] = db_get_title_for_document($document_id);
+	$output['document'] = db_get_document_info($document_id);
+	$output['filename'] = db_get_filename_for_document($document_id);	
 	$output['editable'] = db_is_version_editable($document_id, $version);
 	$output['clauses'] = db_get_document_elements($document_id, $version);
+
 	$output['version'] = $version;
 	return $output;
 	
@@ -969,8 +970,22 @@ function db_is_version_editable($document_id, $version) {
 	return $editable;
 }
 
-function db_get_title_for_document($document_id) {
+function db_get_document_info($document_id) {
+	$output = array();
 
+	$record = db_select('crada_document', 'cd')
+	->fields('cd')
+	->condition('document_id', $document_id, '=')
+	->execute()
+	->fetchObject();
+	file_put_contents ( "crada_debug.txt" , "You just got db_get_title_for_document", FILE_APPEND);
+	$output['title'] = $record->title;
+	$output['filename'] = $record->document_name;
+
+	return $output;
+}
+
+function db_get_filename_for_document($document_id) {
 
 	$record = db_select('crada_document', 'cd')
 	->fields('cd')
@@ -1018,25 +1033,4 @@ function echo_stream() {
 }
 
 function echo_data() {
-}
-
-function crada_log($data, $debug_level=0) {
-
-	$filename = "/tmp/crada.log";
-	$timestamp = date("Y-m-d H:i:s", time());
-	$output = $timestamp . " " . $data ;
-
-	if($debug_level > 0 ) {
-		file_put_contents($filename,  "*******************************************" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
-	}
-
-	file_put_contents($filename,  $output . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
-
-	if($debug_level > 0 ) {
-		foreach (debug_backtrace() as $key => $value) {
-			//alert( index + ": " + value );
-			file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
-		}
-	}
-
 }
