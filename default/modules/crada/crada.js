@@ -236,41 +236,10 @@ function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
 	var answers_encoded = JSON.stringify(answers);
 	var alternate_text_type = $("#alternate_text_type").val();
-	alert ("Alternate Text Type" + alternate_text_type);
+	alert ("Alternate Text Type: " + alternate_text_type);
 	ajax_caller('get_clauses_from_answers', 
 		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type}, 
 		setup_document_callback, 'POST');
-}
-
-function old_setup_document_callback(data) {
-//	alert (JSON.stringify(data, null, 2));
-	
-	var title = $("#document_title").val();
-	$("#crada_document").empty().append($("<H1>").append(title)).append("<hr />");
-
-	$("#crada_document").append("<br /><br />").append($("<H2>").append("Coversheet")).append("<hr />");
-	$("#crada_document").append("<br />Coming Soon<br />");
-
-	$("#crada_document").append("<br /><br />").append($("<H2>").append("Definitions")).append("<hr />");
-	var used_terms = get_used_terms(data.clauses);
-//	alert (JSON.stringify(definitions, null, 2));
-//	alert (used_terms[0] + ":" + definitions[used_terms[0]] + "\n" + JSON.stringify(definitions, null, 2))
-	for (i=0;i<used_terms.length; i++) {
-		var definition = definitions[used_terms[i]];
-		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");	
-	}
-
-	current_section = "";
-	for (var i=0; i<data.clauses.length; i++) {
-		if (!(data.clauses[i].text == 'silent') ) {
-			if (data.clauses[i].section != current_section) {
-				$("#crada_document").append("<br /><br />").append($("<H2>").append(data.clauses[i].section)).append("<hr />");
-				current_section = data.clauses[i].section;
-			}
-
-			$("#crada_document").append($("<P>").append(add_demographics(data.clauses[i].text)));	
-		} 
-	}
 }
 
 function setup_document_callback(data) {
@@ -344,7 +313,6 @@ function setup_document_callback(data) {
 
 function create_new_document_callback(data) {
 	//alert (JSON.stringify(data, null, 2));
-	alert("Before redirection");
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=1";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 
