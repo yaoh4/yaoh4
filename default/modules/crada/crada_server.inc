@@ -24,6 +24,7 @@ function crada_server() {
 		else if ($action == 'archive_version') $output = archive_version();
 		else if ($action == 'create_word_file') $output = create_word_file();
 		else if ($action == 'get_alternate_text_types') $output = get_alternate_text_types();
+		else if ($action == 'get_clause_information') $output = get_clause_information();
 		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
@@ -488,6 +489,8 @@ function get_clauses_from_answers() {
 	else $alternate_text = 'default';
 	if (isset($_REQUEST['version'])) $version = intval($_REQUEST['version']);
 	else $version = 0;
+
+	$message = "";
 	
 	$clause_output = array();
 	$count=0;
@@ -500,12 +503,20 @@ function get_clauses_from_answers() {
 		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
 		foreach ($clauses as $clause) {
 			$full_clause = db_get_clause_information($document_id, $version, $clause, $alternate_text);
+			if ($full_clause == NULL) $full_clause = db_get_clause_information($document_id, $version, $clause, "default");
 			// put q&a
 			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
-			array_push($clause_output, $full_clause);
+			if ($full_clause['alternate_text'] == $alternate_text) {
+				array_push($clause_output, $full_clause);
+			} else if ($full_clause['alternate_text'] == "default") {
+				// Check to see if the clause is already there.
+				array_push($clause_output, $full_clause);
+			}
+//			array_push($clause_output, $full_clause);
 		}
 	}
 	$output['status'] = 'Ok';
+	if ($message != "") $output['message'] = $message;
 	$output['count'] = $count;
 	$output['clauses'] = $clause_output;
 	return $output;
@@ -688,6 +699,15 @@ function db_get_clause_ids_from_clause_group($document_id, $cg, $version) {
 	return $list;
 }
 
+// Temp access function
+function get_clause_information () {
+	$out = db_get_clause_information(1,0,5,'Multiple Collaborators');
+	if ($out == NULL) return "NO";
+	
+	return $out;
+}
+
+
 function db_get_clause_information($document_id, $version, $clause, $alternate_text_type) {
 	$record = db_select('crada_document_element', 'cd')
 	->fields('cd')
@@ -698,7 +718,12 @@ function db_get_clause_information($document_id, $version, $clause, $alternate_t
 	->execute()
 	->fetchObject();
 	
+	if ($record == NULL) return NULL;
+	
 	$clause_info = array();
+	$clause_info['document_id'] = $record->document_id;
+	$clause_info['version'] = $record->document_version;
+	$clause_info['clause_id'] = $record->document_element_id;
 	$clause_info['section'] = $record->section;
 	$clause_info['alternate_text'] = $record->alternate_text_type;
 	$clause_info['text'] = $record->document_element_text;
