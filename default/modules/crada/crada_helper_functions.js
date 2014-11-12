@@ -1,7 +1,7 @@
 function ajax_caller (action, arguments, callback, type) {
 	if (type == null) type='GET';
 	data = jQuery.extend({'action':action}, arguments)
- 
+
 	jQuery.ajax({
         type: type,
         url: "./server",
@@ -22,12 +22,12 @@ function addMadLib(madlib, demographics) {
     var search_term;
     var replace_term;
     //Check to make sure a madlib is defined
-    if (typeof madlib == 'undefined') 
+    if (typeof madlib == 'undefined')
         return;
 
     jQuery.each(demographics, function(key, val) {
         search_term = "{"+key+"}";
-        replace_term = "<span class='demographic-changed'>"+val+"</span>";
+        replace_term = val;
         madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
     });
 

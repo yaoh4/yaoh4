@@ -43,7 +43,7 @@ function create_pdf_file($doc) {
 
 	require_once 'sites/default/libraries/tcpdf/tcpdf.php';
 
-	$doc = get_full_document();
+	//$doc = get_full_document();
 
 	// create new PDF document
 	$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
@@ -129,21 +129,102 @@ function create_rtf_file($doc) {
 	$filename = 'CRADA-'.$random.'.rtf';
 
 	PHPRtfLite::registerAutoloader();
+	PHPRtfLite_Unit::setGlobalUnit(PHPRtfLite_Unit::UNIT_INCH);  // inputs used as inches
 
 	try {
 
 		crada_log("Creating ".$filename);
+		$font = 'Times New Roman';
+		$fontColor = '#000000';
+
 		// Set page properties
 		$rtf = new PHPRtfLite();
 
-		$rtf->setMargins(2.54, 2.54, 2.54, 2.54);
+		$rtf->setMargins(1, 1, 1, 1);
 		$rtf->setPaperFormat(PHPRtfLite::PAPER_LETTER);
+		// FONTS Defined
+	  $fontHeader = new PHPRtfLite_Font(14, $font, $fontColor);
+	  $fontHeaderBold = new PHPRtfLite_Font(14, $font, $fontColor);
+	  $fontHeaderBold->setBold();
+	  $fontBody = new PHPRtfLite_Font(12, $font, $fontColor);
+	  $fontBodyBold = new PHPRtfLite_Font(12, $font, $fontColor);
+	  $fontBodyBold->setBold();
+	  $fontFooter = new PHPRtfLite_Font(10, $font, $fontColor);
+
+	  // FORMAT Defined
+	  $formatPara = new PHPRtfLite_ParFormat();
+		//$formatPara->setSpaceAfter(1);
+		//$formatPara->setSpaceBetweenLines(1);
+
+	  $formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
+		//$formatParaCenter->setSpaceAfter(1);
+		//$formatParaCenter->setSpaceBetweenLines(1);
+
+
+/*
+// section
+$section = $rtf->addSection();
+// add left header
+$header = $section->addHeader(PHPRtfLite_Container_Header::TYPE_LEFT);
+$header->writeText('left header');
+// add right header
+$header = $section->addHeader(PHPRtfLite_Container_Header::TYPE_RIGHT);
+$header->writeText('right header');
+*/
+
 
 		// Add footer
 		$footer = $rtf->addFooter();
-		$fontFooter = new PHPRtfLite_Font(8, 'Arial', '#000000');
-		$alignFooter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
-		$footer->writeText('CRADA - <pagenum>',$fontFooter, $alignFooter);
+		$alignFooter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_JUSTIFY);
+		//$footer->writeText('CRADA - <pagenum>',$fontFooter, $alignFooter);
+		$footer->writeText('PHS ICT-CRADA                 Ref. No.<u>  ADA2014  </u>             MODEL ADOPTED June 18, 2009',$fontFooter, $alignFooter);
+		$footer->writeText('Page <pagenum> of  <pagetotal>                         <i>Confidential</i>                          Revised August 14, 2013',$fontFooter, $alignFooter);
+/*
+PHS ICT-CRADA	Agreement Ref. No. _______	MODEL ADOPTED June 18, 2009
+Page   of 26	Confidential	Revised August 14, 2013
+*/
+	/* Add Cover Page */
+		$section = $rtf->addSection();
+		$content = 'PUBLIC HEALTH SERVICE<br>';
+		$section->writeText($content, $fontHeaderBold, $formatParaCenter);
+		$section->writeText('<br>');
+		$content = 'COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-PHS CLINICAL RESEARCH';
+		$section->writeText($content, $fontHeaderBold, $formatParaCenter);
+		$section->writeText('<br>');
+		$section->writeText('<br>');
+		$section->writeText('<br>');
+
+$content = 'This Agreement is based on the model Cooperative Research and Development Agreement ("CRADA”) adopted by the U.S. Public Health Service (“PHS”) Technology Transfer Policy Board for use by components of the National Institutes of Health (“NIH”), the Centers for Disease Control and Prevention (“CDC”), and the Food and Drug Administration (“FDA”), which are agencies of the PHS within the Department of Health and Human Services (“HHS”).';
+	$section->writeText($content, $fontBody, $formatPara);
+	$section->writeText('<br>');
+	$content = 'This Cover Page identifies the Parties to this CRADA:';
+	$section->writeText($content, $fontBody, $formatPara);
+	$section->writeText('<br>');
+	$content = 'The U.S. Department of Health and Human Services, as represented by';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$content = 'National Institute of Health';
+	$section->writeText($content, $fontBodyBold, $formatParaCenter);
+	$content = 'an Institute, Center, or Division (hereinafter referred to as the “IC”) of the';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$content = 'NIH';
+	$section->writeText($content, $fontBodyBold, $formatParaCenter);
+	$section->writeText('<br>');
+	$content = 'and';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$section->writeText('<br>');
+	$content = '<b>LEIDOS</b>,';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$content = 'hereinafter referred to as the “Collaborator”,';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$content = 'having offices at 110 Main St., Rockville, MD 20850,';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$content = 'created and operating under the laws of <b>United States of America</b>.';
+	$section->writeText($content, $fontBody, $formatParaCenter);
+	$section->insertPageBreak();
+
+
+//		$section->insertPageBreak();
+
 
 		//Define fonts
 		$fontH1 = new PHPRtfLite_Font(16, 'Arial', '#000000');
@@ -159,15 +240,18 @@ function create_rtf_file($doc) {
 		$formatP->setSpaceAfter(3);
 
 		// Page content
+		/*
 		$section = $rtf->addSection();
-		$section->writeText($doc['title'], $fontH1, $formatH1);
+		$section->writeText($doc['title'], $fontBody, $formatH1);
+		*/
 		/*
 		foreach ($doc['clauses'] as $key => $value) {
 			$section->writeText($key." ".$doc['clauses'][$value]['text'], $fontP, $formatP);
 		}
 		*/
 		for($i=0;$i<count($doc['clauses']);$i++) {
-			$section->writeText($doc['clauses'][$i]['text'], $fontP, $formatP);	
+			$section->insertHangingIndent();
+			$section->writeText($doc['clauses'][$i]['text'], $fontBody, $formatPara);
 		}
 		//while()
 		//$section->writeText('Here is your new document.....', $fontH2, $formatH2);

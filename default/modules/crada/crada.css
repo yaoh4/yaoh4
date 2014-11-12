@@ -2,7 +2,7 @@
  	font: 76%/170% Verdana, sans-serif;
  }
  #progress_bar {
-	border-collapse:collapse;	
+	border-collapse:collapse;
 	table-layout:fixed;
 }
 #progress_bar td {
@@ -76,8 +76,8 @@
 }
 .annotation {
 	width:200px;
-    padding: 3px 5px; 
- 	line-height: 80%;    
+    padding: 3px 5px;
+ 	line-height: 80%;
     border-radius: 12px;
     font-size: 0.9em;
     margin-top:5px;
@@ -100,7 +100,7 @@
     width:400px;
 	resize: none;
 	border:1px solid red;
-    box-shadow: 0 0 10px #719ECE;	
+    box-shadow: 0 0 10px #719ECE;
 }
 .edit-section {
     background:'#E0E0E0';
@@ -162,9 +162,7 @@
 .demographic-input {
 	width:200px;
 }
-.demographic-changed {
-	font-weight:bold;
-}
+
 div.ui-tooltip {
     max-width: 400px;
     padding:5px;
@@ -254,11 +252,11 @@ div.clause-paragraph {
 }
 p.clause {
 	margin:0px;
-	padding: 0px 15px;	
+	padding: 0px 15px;
 }
 p.clause-locked {
 	margin:0px;
-	padding: 0px 15px;	
+	padding: 0px 15px;
 }
 /*
 p.clause:hover{
@@ -266,7 +264,7 @@ p.clause:hover{
 	outline: 1px solid DeepSkyBlue;
 	box-shadow: 0 0 10px #9ecaed;
   	border-color: #9ecaed;
-    box-shadow: 0 0 10px #9ecaed;		
+    box-shadow: 0 0 10px #9ecaed;
     #d3ebf9
 }
 */
@@ -318,7 +316,7 @@ p.clause:focus{
 	font-size:.9em;
 	margin-left:5px;
 }
-textarea { 
+textarea {
 	width:98%;
 	height: auto;
 	border: none;
@@ -329,7 +327,7 @@ textarea {
 
 .ui-accordion .ui-accordion-content {
 	padding: 0;
-} 
+}
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active {
 	background-color:none;
 }

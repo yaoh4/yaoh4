@@ -610,6 +610,10 @@ class PHPRtfLite_Container_Section extends PHPRtfLite_Container
     {
         $this->writeRtfCode('\page');
     }
+    public function insertHangingIndent()
+    {
+        $this->writeRtfCode('\par \pard\plain \s2\fi-720\li720\fs20\ri2880');
+    }
 
 
     /**

@@ -178,6 +178,9 @@ class PHPRtfLite_Element
             '|<SECTNUM\s*(/)?\s*>|smi',
             '|<SUP\s*>(.*?)</SUP\s*>|smi',
             '|<SUB\s*>(.*?)</SUB\s*>|smi',
+            // strike
+            '|<S\s*>(.*?)</S\s*>|smi',
+
 //            '|<PAGE\s*(/)?\s*>|smi',
 //            '|<SECT\s*(/)?\s*>|smi'
         );
@@ -210,6 +213,8 @@ class PHPRtfLite_Element
             '\sectnum ',
             '{\super \1\super0}',
             '{\sub \1\sub0}',
+            //strike
+            '{\strike \1\strike0}',
 //            '\page ',
 //            '\sect '
         );
