@@ -200,6 +200,7 @@ function load_specific_section($i, $section_name) {
 	$first_row = true;
 	foreach ($array_data as $line) {
 		if ($first_row) {
+			drupal_set_message("-------------------------------------------------------------------");
 			determine_columns($line);
 			$first_row = false;
 		} else {
@@ -210,21 +211,29 @@ function load_specific_section($i, $section_name) {
 	}
 }
 function determine_columns($line) {
-	global $defined_terms_column, $confidential_annotation_column, $public_annotation_column;
+	global $defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
 	
 	// This limits the number of alternate texts to about 30
  
 	$column_names = preg_split("/,/", 
 		"A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO");
 	
+	$i = 0;
 	foreach ($column_names as $c) {
 		if (isset($line[$c])) {
 			if ($line[$c] == "Defined Terms") $defined_terms_column = $c;
-			if ($line[$c] == "Confidential Annotation") $confidential_annotation_column = $c;
-			if ($line[$c] == "Public Annotation") $public_annotation_column = $c;
-		}
+			else if ($line[$c] == "Confidential Annotation") $confidential_annotation_column = $c;
+			else if ($line[$c] == "Public Annotation") $public_annotation_column = $c;
+			else if ($c != "A" && $c != "B" && $c != "C" && $c != "D" && $c != "E" && $line[$c] != "Survivablity") {
+				// All these columns make up the alternate text
+				$alternate_text_columns[$i]['name'] = $line[$c];
+				$alternate_text_columns[$i]['column_id'] = $c;
+				$i++;
+			}
+		} 
 	}
 	
+	drupal_set_message("Alternate Text:" . json_encode($alternate_text_columns));
 	drupal_set_message("Defined Terms Column: $defined_terms_column");
 	drupal_set_message("Confidential Annotation Column: $confidential_annotation_column");
 	drupal_set_message("Public Annotation Column: $public_annotation_column");
@@ -236,7 +245,7 @@ function load_line($section, $line) {
 	global $document_id, $current_subsection, $current_question, $current_answer,
 		$question_number_for_subsection, $answer_number_for_question, $user_name, $question_id,
         $clause_id, $row_in_section,
-		$defined_terms_column, $confidential_annotation_column, $public_annotation_column;
+		$defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
 	
 //	drupal_set_message("LINE: " . json_encode($line));
 	
@@ -263,8 +272,26 @@ function load_line($section, $line) {
 	}
 	// We need to deal with the followon question later (line['D'])
 	$default_text = $line["E"]; //This can be hard coded to letter E
-	$default_confidential_annotation = $line["L"]; //This should not be hard coded.  It should be $confidential_annotation_column
-	$default_public_annotation = $line["M"]; //This should not be hard coded.  It should be $public_annotation_column
+
+	
+	$alternate_text_array = array();
+	for ($i=0; $i<count($alternate_text_columns);$i++) {
+		drupal_set_message("### Alternate Text[".$i."]:" . json_encode($alternate_text_columns[$i]));
+		$column_id = $alternate_text_columns[$i]['column_id'];
+		if ($column_id && $column_id != "") {
+			$alternate_text['text'] = $line[$column_id];
+			if ($alternate_text['text'] != "") {
+				$alternate_text['column_id'] = $column_id;
+				$alternate_text['name'] = $alternate_text_columns[$i]['name'];
+				
+				array_push($alternate_text_array, $alternate_text);
+				drupal_set_message("* Alternate Text[" . $clause_id . "]:[" . json_encode($alternate_text) ."]". json_encode($alternate_text_columns[$i]) ."|");
+			}
+		}
+	}
+	
+	$default_confidential_annotation = $line[$confidential_annotation_column]; 
+	$default_public_annotation = $line[$public_annotation_column];
 
 	$defined_terms = $line[$defined_terms_column];
 	
@@ -281,6 +308,12 @@ function load_line($section, $line) {
 		$clause_group_id = db_insert_crada_clause_group($section, $current_question, $current_answer);
 		db_insert_crada_valid_clause_group_by_answer($question_id, $answer_number_for_question, $clause_group_id);
 		db_insert_crada_document_element($clause_id, $section, "default", $default_text, $default_confidential_annotation, $default_public_annotation);
+		foreach ($alternate_text_array as $a) {
+			if($a['text'] && $a['text'] != "") {
+				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . $a['text'] ."]");
+				db_insert_crada_document_element($clause_id, $section, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation);
+			}
+		}
 		db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id);
 	}
 	if ($defined_terms) {

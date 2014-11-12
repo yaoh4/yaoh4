@@ -89,6 +89,19 @@ function display_demographic_questions(data) {
 		row = '<div class="form-group">'+row+'</div>';
 		$("#demographic-form").append(row);
 	});
+	
+	// Add final questions: Alternate text and Subsections
+	ajax_caller('get_alternate_text_types', {'document_id': document_id}, get_alternate_text_types_callback);
+	
+}
+
+function get_alternate_text_types_callback(data) {
+	var alternate_text_select = $("<SELECT id='alternate_text_type'>");
+	for (i=0;i<data.types.length;i++) {
+		alternate_text_select.append("<OPTION>" + data.types[i] + "</OPTION>");
+	}
+
+	$("#demographic-form").append("<BR />Please enter an Alternate Text Type:").append(alternate_text_select);
 }
 
 function create_demographic_pulldown(demographic) {
@@ -221,8 +234,12 @@ function setup_template_chooser_callback(data) {
 
 function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
-	var answers_encoded = JSON.stringify(answers)
-	ajax_caller('get_clauses_from_answers', {'document_id':document_id, 'answers':answers_encoded}, setup_document_callback, 'POST');
+	var answers_encoded = JSON.stringify(answers);
+	var alternate_text_type = $("#alternate_text_type").val();
+	alert ("Alternate Text Type" + alternate_text_type);
+	ajax_caller('get_clauses_from_answers', 
+		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type}, 
+		setup_document_callback, 'POST');
 }
 
 function old_setup_document_callback(data) {
@@ -345,7 +362,7 @@ function add_demographics(madlib) {
     $.each(demographics, function(key, val) {
         search_term = "{"+key+"}";
         replace_term = "<span class='demographic-changed'>"+val+"</span>";
-        madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+        if (madlib) madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
     });
 
 	return madlib;

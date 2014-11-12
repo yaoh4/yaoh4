@@ -23,6 +23,7 @@ function crada_server() {
 		else if ($action == 'save_element') $output = save_element();
 		else if ($action == 'archive_version') $output = archive_version();
 		else if ($action == 'create_word_file') $output = create_word_file();
+		else if ($action == 'get_alternate_text_types') $output = get_alternate_text_types();
 		else if ($action == 'echo') $output = echo_data();
 		
 	} catch (Exception $e) {
@@ -37,6 +38,26 @@ function crada_server() {
 		$output["message"] = 'Unknown Function Called. action = '.$action;
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
+}
+function get_alternate_text_types() {
+	$document_id = $_REQUEST['document_id'];
+
+  $result = db_select('crada_document_element', 'cd')
+		->fields('cd', array('alternate_text_type'))
+		->condition('document_id', $document_id, '=')
+		->distinct()
+		->execute();
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$type = $row->alternate_text_type;
+		array_push($list, $type);
+	}
+	$output = array();
+    $output["status"] = "Ok";
+    $output["types"] = $list;
+	return $output;
+
 }
 
 function create_word_file() {
@@ -478,7 +499,7 @@ function get_clauses_from_answers() {
 		$cg = db_get_clause_group($document_id, $q, $a);
 		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
 		foreach ($clauses as $clause) {
-			$full_clause = db_get_clause_information($document_id, $version, $clause);
+			$full_clause = db_get_clause_information($document_id, $version, $clause, $alternate_text);
 			// put q&a
 			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
 			array_push($clause_output, $full_clause);
@@ -667,12 +688,13 @@ function db_get_clause_ids_from_clause_group($document_id, $cg, $version) {
 	return $list;
 }
 
-function db_get_clause_information($document_id, $version, $clause) {
+function db_get_clause_information($document_id, $version, $clause, $alternate_text_type) {
 	$record = db_select('crada_document_element', 'cd')
 	->fields('cd')
 	->condition('document_id', $document_id, '=')
 	->condition('document_version', $version, '=')
 	->condition('document_element_id', $clause, '=')
+	->condition('alternate_text_type', $alternate_text_type, '=')
 	->execute()
 	->fetchObject();
 	
