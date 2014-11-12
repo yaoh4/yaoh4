@@ -1,5 +1,5 @@
 jQuery(function($) {
-	
+
 // Global Variables go here
 var document_id;
 var sections = [];
@@ -30,7 +30,7 @@ $(document).ready(function ($) {
 		get_all_definitions(document_id);
 		advance_progress_bar("questions");
 		setup_sections();
-	});	
+	});
 	$("#questions_button").click(function() {
 		store_current_answers(current_section_number);
 		if ((current_section_number+1) >= sections.length) {
@@ -43,7 +43,7 @@ $(document).ready(function ($) {
 			advance_progress_bar(current_section_number);
 			setup_questions_for_section(current_section_number);
 		}
-	});	
+	});
 });
 
 function advance_progress_bar(step) {
@@ -89,10 +89,10 @@ function display_demographic_questions(data) {
 		row = '<div class="form-group">'+row+'</div>';
 		$("#demographic-form").append(row);
 	});
-	
+
 	// Add final questions: Alternate text and Subsections
 	ajax_caller('get_alternate_text_types', {'document_id': document_id}, get_alternate_text_types_callback);
-	
+
 }
 
 function get_alternate_text_types_callback(data) {
@@ -122,7 +122,7 @@ function create_demographic_pulldown(demographic) {
 function create_demographic_input(demographic) {
 	var row;
 	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
-	row += "<input type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>"; 
+	row += "<input type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>";
 	row += '<div style="clear:both;"></div>'
 	return row;
 }
@@ -144,24 +144,24 @@ function get_all_definitions_callback(data) {
 function setup_sections() {
 	// first update the progress bar to include each subsection
 	ajax_caller('get_section_list', {'document_id': document_id}, setup_sections_callback);
-	
+
 }
 
 function rebuild_progress_bar() {
 	var width = 70 / sections.length;
-	
+
 	// We need to completely rebuild the progress bar
-	
+
 	$("#progress_bar").empty().append($("<TR>")
 			.append($("<td class='done' id='initial_step'>Pick an Initial Template</td>"))
 			.append($("<td class='done' id='demographic_step'>Demographic Information</td>")));
-	
+
 	for (i=0;i<sections.length;i++){
 		$("#progress_bar").find("tr").append(
 				$("<TD class='not_done' id='question_step_"+i+"' style='width:"+width+"%'>Questions:<br/>"+sections[i]+"</TD>"))
 	}
 	$("#progress_bar").find("tr").append($("<td class='not_done' id='conclusion_step'>Edit the Document</td>"));
-	
+
 }
 
 function setup_sections_callback(data) {
@@ -174,16 +174,16 @@ function setup_sections_callback(data) {
 
 function setup_questions_for_section(i) {
 	ajax_caller('get_questions_for_section', {'document_id':document_id, 'section':sections[i]}, setup_questions_for_section_callback);
-	
+
 }
 
 function setup_questions_for_section_callback(data) {
 
 	var display = $("#question_section");
 	display.empty().append("<br />"); //Empty div and add room at top of page
-	
+
 	var q = data.questions; //Set q to array of questions sent in
-	
+
 	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
 		if (q[i].text == 'REQUIRED') {
@@ -228,8 +228,8 @@ function setup_template_chooser_callback(data) {
 		var name = data.templates[i].name;
 		template_select.append($("<OPTION>").attr('value', data.templates[i].id).append(name));
 	}
-	
-//	alert (JSON.stringify(data, null, 2));	
+
+//	alert (JSON.stringify(data, null, 2));
 }
 
 function setup_document() {
@@ -237,8 +237,8 @@ function setup_document() {
 	var answers_encoded = JSON.stringify(answers);
 	var alternate_text_type = $("#alternate_text_type").val();
 	alert ("Alternate Text Type: " + alternate_text_type);
-	ajax_caller('get_clauses_from_answers', 
-		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type}, 
+	ajax_caller('get_clauses_from_answers',
+		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type},
 		setup_document_callback, 'POST');
 }
 
@@ -251,7 +251,7 @@ function setup_document_callback(data) {
 // What to do with definitions?
 //	for (i=0;i<used_terms.length; i++) {
 //		var definition = definitions[used_terms[i]];
-//		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");	
+//		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");
 //	}
 
 
@@ -265,7 +265,7 @@ function setup_document_callback(data) {
 	for (i=0;i<used_terms.length; i++) {
 		var definition = definitions[used_terms[i]];
 		new_clauses[i] = new Object();
-		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);	
+		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
 	}
 	console.log("new_clauses");
@@ -280,7 +280,7 @@ function setup_document_callback(data) {
 			answers[i+1] = 0;
 		}
 		new_clauses[used_terms.length+i] = new Object();
-		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);	
+		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
 		new_clauses[used_terms.length+i].confidential_annotation = data.clauses[i].confidential_annotation;
 		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
@@ -307,7 +307,7 @@ function setup_document_callback(data) {
 	console.log(JSON.stringify(demographics));
 //	alert("About to send demographics");
 
-	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':getCookie('Drupal.visitor.user.name'), 'name':name, 'title':title, 'master_document_id':master_document_id}, 
+	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':getCookie('Drupal.visitor.user.name'), 'name':name, 'title':title, 'master_document_id':master_document_id},
 		create_new_document_callback, 'POST');
 }
 
@@ -324,12 +324,12 @@ function add_demographics(madlib) {
     var search_term;
     var replace_term;
     //Check to make sure a madlib is defined
-	if (typeof madlib == 'undefined') 
+	if (typeof madlib == 'undefined')
 		return;
 
     $.each(demographics, function(key, val) {
         search_term = "{"+key+"}";
-        replace_term = "<span class='demographic-changed'>"+val+"</span>";
+        replace_term = val;
         if (madlib) madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
     });
 
@@ -344,7 +344,7 @@ function get_used_terms(clauses) {
 			used_terms[terms[j]] = true;
 		}
 	}
-	
+
 	var terms = Object.keys(used_terms);
 	return Object.keys(used_terms);
 }
