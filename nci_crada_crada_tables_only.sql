@@ -164,6 +164,7 @@ CREATE TABLE IF NOT EXISTS `crada_document` (
 --
 
 DROP TABLE IF EXISTS `crada_document_element`;
+
 CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `document_element_id` int(12) NOT NULL,
   `document_version` int(12) NOT NULL,
@@ -181,7 +182,7 @@ CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `answer_changed` tinyint(1) NOT NULL DEFAULT '0',
   `updated_by` varchar(50) NOT NULL,
   `updated_date` datetime NOT NULL,
-  PRIMARY KEY (`document_element_id`,`document_version`,`document_id`),
+  PRIMARY KEY (`document_element_id`,`document_version`,`document_id`,`alternate_text_type`),
   KEY `idx_document_element_id` (`document_element_id`),
   KEY `idx_document_version` (`document_version`),
   KEY `idx_document_id` (`document_id`)
