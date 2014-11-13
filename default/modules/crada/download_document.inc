@@ -298,7 +298,7 @@ class CradaRtf extends PHPRtfLite
 					//Add Section
 					$section_number++;
 					$current_section = $doc['clauses'][$i]['section'];
-					$this->bodySection->writeText("<b>Article ".$section_number.".<tab>".strtoupper($current_section)."</b>\n", $this->fontBody, $this->formatPara);
+					$this->bodySection->writeText("<b>Article ".$section_number.".  ".strtoupper($current_section)."</b>\n", $this->fontBody, $this->formatPara);
 					$current_subsection = 1;
 				}
 				$this->bodySection->writeText($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."\n", $this->fontBody, $formatClause);
@@ -328,6 +328,8 @@ class CradaRtf extends PHPRtfLite
 
 
 FOR IC:
+
+
 
 _______________________________________________      ________________________
 Signature                                              Date
@@ -360,7 +362,7 @@ Title:
 		$this->bodySection->writeText('<br>');
 	}
 	private function setSection($section_number, $title, $content) {
-		$this->bodySection->writeText("<b>Article ".$section_number.".<tab>".strtoupper($title)."</b>", $this->fontBody, $this->formatPara);
+		$this->bodySection->writeText("<b>Article ".$section_number.".  ".strtoupper($title)."</b>", $this->fontBody, $this->formatPara);
 		$this->bodySection->writeText('<br>');
 		$this->bodySection->writeText($content, $this->fontBody, $this->formatPara);
 		$this->bodySection->writeText('<br>');
