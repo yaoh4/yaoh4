@@ -298,16 +298,58 @@ class CradaRtf extends PHPRtfLite
 					//Add Section
 					$section_number++;
 					$current_section = $doc['clauses'][$i]['section'];
-					$this->bodySection->writeText("<b>".$section_number.".   ".strtoupper($current_section)."</b>\n", $this->fontBody, $this->formatPara);
+					$this->bodySection->writeText("<b>Article ".$section_number.".<tab>".strtoupper($current_section)."</b>\n", $this->fontBody, $this->formatPara);
 					$current_subsection = 1;
 				}
 				$this->bodySection->writeText($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."\n", $this->fontBody, $formatClause);
 				$current_subsection++;
 			}
 		}
+		$this->bodySection->writeText("\n\n\nSIGNATURES BEGIN ON THE NEXT PAGE", $this->fontBody, new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER));
+		$this->bodySection->insertPageBreak();
 
-		//$code = '\par}';
-		//$this->bodySection->writeRtfCode($code, $this->fontBody, $this->formatPara);
+		$this->setSignature();
+
+
+	}
+	private function setSignature() {
+		// FONTS Defined
+		$fontHeader = new PHPRtfLite_Font(14, $this->_font, $this->fontColor);
+		$fontHeaderBold = new PHPRtfLite_Font(14, $this->_font, $this->fontColor);
+		// FORMAT Defined
+		$formatPara = new PHPRtfLite_ParFormat();
+		$formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
+		$content= 'SIGNATURE PAGE';
+		$this->bodySection->writeText("\n".$content."\n\n", $fontHeader, $formatParaCenter);
+		$content= '<b>ACCEPTED AND AGREED</b>';
+		$this->bodySection->writeText($content."\n", $this->fontBody, $formatParaCenter);
+
+		$content ='BY EXECUTING THIS AGREEMENT, EACH PARTY REPRESENTS THAT ALL STATEMENTS MADE HEREIN ARE TRUE, COMPLETE, AND ACCURATE TO THE BEST OF ITS KNOWLEDGE. COLLABORATOR ACKNOWLEDGES THAT IT MAY BE SUBJECT TO CRIMINAL, CIVIL, OR ADMINISTRATIVE PENALTIES FOR KNOWINGLY MAKING A FALSE, FICTITIOUS, OR FRAUDULENT STATEMENT OR CLAIM.
+
+
+FOR IC:
+
+_______________________________________________      ________________________
+Signature                                              Date
+
+Typed Name:
+Title:
+
+
+
+
+FOR COLLABORATOR:
+
+
+
+_______________________________________________      ________________________
+Signature                                              Date
+
+
+Typed Name:
+Title:
+';
+		$this->bodySection->writeText($content, $this->fontBody, $this->formatPara);
 
 	}
 
@@ -318,7 +360,7 @@ class CradaRtf extends PHPRtfLite
 		$this->bodySection->writeText('<br>');
 	}
 	private function setSection($section_number, $title, $content) {
-		$this->bodySection->writeText("<b>".$section_number.".   ".strtoupper($title)."</b>", $this->fontBody, $this->formatPara);
+		$this->bodySection->writeText("<b>Article ".$section_number.".<tab>".strtoupper($title)."</b>", $this->fontBody, $this->formatPara);
 		$this->bodySection->writeText('<br>');
 		$this->bodySection->writeText($content, $this->fontBody, $this->formatPara);
 		$this->bodySection->writeText('<br>');
