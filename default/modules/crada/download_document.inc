@@ -56,7 +56,7 @@ class CradaPdf extends TCPDF {
     function setDocumentInfo() {
     	$this->SetCreator('CRADA Builder');
 			$this->SetAuthor($_REQUEST['user']);
-			$this->SetTitle('Title');
+			$this->SetTitle('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-NIH CLINICAL RESEARCH');
 			$this->SetSubject('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT');
 			$this->SetKeywords('CRADA, contract, agreement');
     }
@@ -159,8 +159,8 @@ FOR IC:<br>
 <br>
 <br>
 <br>
-_______________________________________________      ________________________<br>
-Signature                                              Date<br>
+____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
+Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
 <br>
 Typed Name:<br>
 Title:<br>
@@ -172,8 +172,8 @@ FOR COLLABORATOR:<br>
 <br>
 <br>
 <br>
-_______________________________________________      ________________________<br>
-Signature                                              Date<br>
+____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
+Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
 <br>
 <br>
 Typed Name:<br>
