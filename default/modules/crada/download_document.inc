@@ -22,13 +22,15 @@ class CradaPdf extends TCPDF {
 	function __construct() {
 		parent::__construct();
 		crada_log("In CradaRtf SubClass constructor");
+		$this->SetFont('times', '', 12);
+
 		$this->SetMargins(25.4, 25.4, 25.4); //PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT
 		$this->SetHeaderMargin(25.4); //PDF_MARGIN_HEADER
 		$this->SetFooterMargin(25.4); //PDF_MARGIN_FOOTER
 
 		// set auto page breaks
 		$this->SetAutoPageBreak(TRUE, 25.4);
-		$this->SetFont('times', '', 12);
+		$this->AddPage();  //Create document
 	}
 
 
@@ -78,7 +80,7 @@ $html = <<<EOD
 <span style="text-align:center;"><b>Nation Institute of Health</b></span>
 <br>
 <span style="text-align:center;">an Institute, Center, or Division (hereinafter referred to as the “IC”) of the</span><br>
-<span style="text-align:center;text-align:center">NIH</span>
+<span style="text-align:center;text-align:center"><b>NIH</b></span>
 <br><br>
 <span style="text-align:center;">and</span>
 <br><br>
@@ -88,7 +90,9 @@ $html = <<<EOD
 <span style="text-align:center;">having offices at <b>210 Market St, Frederick, MD 20840; 1000 Elm Ave, Sterling, VA 30320; and 10234 SW Manhattan Ave, New York, NY 76540</b>,</span><br>
 <span style="text-align:center;">created and operating under the laws of <b>Maryland, Virginia, and New York</span></b>
 EOD;
-			$this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+			$this->_writeHTML( $html);
+			$this->AddPage();
+
     }
 
     function setBody($doc) {
@@ -102,13 +106,7 @@ This CRADA between IC and Collaborator will be effective when signed by the Part
 The terms listed in this Article will carry the meanings indicated throughout the CRADA.  To the extent a definition of a term as provided in this Article is inconsistent with a corresponding definition in the applicable sections of either the United States Code (U.S.C.) or the Code of Federal Regulations (C.F.R.), the definition in the U.S.C. or C.F.R. will control.<br>
 <br>
 EOD;
-			$this->_writeHTML($html);
-
-/*
-			$this->Annotation(83, 27, 10, 10, "Text annotation example\naccented letters test: àèéìòù", array('Subtype'=>'Text', 'Name' => 'Comment', 'T' => 'title example', 'Subj' => 'example', 'C' => array(255, 255, 0)));
-*/
-
-
+		$this->_writeHTML($html);
 		/* Print Definitions */
 		for($i=0;$i<count($doc['clauses']);$i++) {
 			if($doc['clauses'][$i]['section'] == "Definitions") {
@@ -119,6 +117,7 @@ EOD;
 		$section_number = 2;
 		$current_section = "Definitions";
 		for($i=0;$i<count($doc['clauses']);$i++) {
+
 			if($doc['clauses'][$i]['section'] != "Definitions") {
 				if($doc['clauses'][$i]['section'] != $current_section) {
 					//Add Section
@@ -127,8 +126,22 @@ EOD;
 					$this->_writeHTML("<b>Article ".$section_number.".  ".strtoupper($current_section)."</b><br>");
 					$current_subsection = 1;
 				}
-				$this->_writeHTML($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."<br>");
 
+				//Add annotation if exists
+				$public_annotation = $doc['clauses'][$i]['public_annotation'];
+				if(strlen($public_annotation) > 0) {
+					$x = $this->x;
+					$y = $this->y;
+					$this->Annotation(190, $y, 5, 5, $public_annotation,
+							array('Subtype'=>'Text',
+								'Name' => 'Comment',
+								'T' =>  "Public Comment[".$section_number."-".$current_subsection."]",
+								'Subj' => 'example',
+								'C' => array(255, 255, 0)));
+					//$this->_writeHTML("<b>***</b>".$public_annotation);
+				}
+
+				$this->_writeHTML($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."<br>");
 				$current_subsection++;
 			}
 		}
@@ -217,47 +230,10 @@ function create_pdf_file($doc) {
 
 	// create new PDF document
 	$pdf = new CradaPdf(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-	$pdf->AddPage();  //Create document
-	$pdf->SetFont('times', '', 12, '', true);
-
 	// set document information
 	$pdf->setDocumentInfo();
-	$pdf->SetFont('times', '', 12, '', true);
-
-	// set default header data
-//	$pdf->setFooterData(array(0,64,0), array(0,64,128));
-
-	// set header and footer fonts
-//	$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-
-	// set default monospaced font
-//	$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-
-	// ---------------------------------------------------------
-
-	// set default font subsetting mode
-//	$pdf->setFontSubsetting(true);
-
-	// Set font
-//	$pdf->SetFont('times', '', 12, '', true);
-
-	// Add a page
-	// This method has several options, check the source code documentation for more information.
-/*
-	<h1>Welcome CRADA to <a href="http://www.tcpdf.org" style="text-decoration:none;background-color:#CC0000;color:black;">&nbsp;<span style="color:black;">TC</span><span style="color:white;">PDF</span>&nbsp;</a>!</h1>
-	<i>This is the first example of TCPDF library.</i>
-	<p>This text is printed using the <i>writeHTMLCell()</i> method but you can also use: <i>Multicell(), writeHTML(), Write(), Cell() and Text()</i>.</p>
-	<p>Please check the source code documentation and other examples for further information.</p>
-	<p style="color:#CC0000;">TO IMPROVE AND EXPAND TCPDF I NEED YOUR SUPPORT, PLEASE <a href="http://sourceforge.net/donate/index.php?group_id=128076">MAKE A DONATION!</a></p>
-
-*/
-
 	$pdf->setCoversheet();
-	$pdf->AddPage();
 	$pdf->setBody($doc);
-
-	// ---------------------------------------------------------
-
 	// Close and output PDF document
 	// This method has several options, check the source code documentation for more information.
 	$pdf->Output('example_001.pdf', 'I');
