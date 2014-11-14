@@ -3,9 +3,10 @@
 require_once 'crada_utilities.inc';
 require_once 'crada_server.inc';
 require_once 'sites/default/libraries/PHPRtfLite/PHPRtfLite.php';
+require_once 'sites/default/libraries/tcpdf/tcpdf.php';
 
 function download_document() {
-	//echo "Hello";
+
 	crada_log("Awesome sauce.  PDF or Word, You choose...");
 
 	if($_REQUEST['document_type'] == "PDF") {
@@ -15,6 +16,175 @@ function download_document() {
 	}
 }
 
+// Extend the TCPDF class to create custom Header and Footer
+class CradaPdf extends TCPDF {
+
+	function __construct() {
+		parent::__construct();
+		crada_log("In CradaRtf SubClass constructor");
+		$this->SetMargins(25.4, 25.4, 25.4); //PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT
+		$this->SetHeaderMargin(25.4); //PDF_MARGIN_HEADER
+		$this->SetFooterMargin(25.4); //PDF_MARGIN_FOOTER
+
+		// set auto page breaks
+		$this->SetAutoPageBreak(TRUE, 25.4);
+		$this->SetFont('times', '', 12);
+	}
+
+
+    //Page header
+    public function Header() {
+
+    }
+
+    // Page footer
+    public function Footer() {
+        $this->SetFont('times', '', 10);
+        // Position at 20 mm from bottom
+        $this->SetY(-18);
+        $content = 'NIH ICT-CRADA'.str_repeat(" ", 37);
+        $content .= 'Ref. No.  ADA2014'.str_repeat(" ", 30);
+        $content .= 'MODEL ADOPTED June 18, 2009';
+        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
+        // 2nd line
+        $this->SetY(-15);
+        $content = 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages().str_repeat(" ", 55);
+        $content .= 'Confidential'.str_repeat(" ", 50);
+        $content .= 'Revised August 14, 2013';
+        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
+    }
+    function setDocumentInfo() {
+    	$this->SetCreator('CRADA Builder');
+			$this->SetAuthor($_REQUEST['user']);
+			$this->SetTitle('Title');
+			$this->SetSubject('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT');
+			$this->SetKeywords('CRADA, contract, agreement');
+    }
+
+    function setCoversheet() {
+$html = <<<EOD
+<div style="text-align:center;">PUBLIC HEALTH SERVICE</div>
+<br>
+<div style="text-align:center;">COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-NIH CLINICAL RESEARCH</div>
+<br>
+<br>
+<div>This Agreement is based on the model Cooperative Research and Development Agreement ("CRADA”) adopted by the U.S. Public Health Service (“PHS”) Technology Transfer Policy Board for use by components of the National Institutes of Health (“NIH”), the Centers for Disease Control and Prevention (“CDC”), and the Food and Drug Administration (“FDA”), which are agencies of the PHS within the Department of Health and Human Services (“HHS”).</div>
+<br>
+
+<div>This Cover Page identifies the Parties to this CRADA:</div>
+<br>
+<span align="center">The U.S. Department of Health and Human Services, as represented by</span>
+<br>
+<span style="text-align:center;"><b>Nation Institute of Health</b></span>
+<br>
+<span style="text-align:center;">an Institute, Center, or Division (hereinafter referred to as the “IC”) of the</span><br>
+<span style="text-align:center;text-align:center">NIH</span>
+<br><br>
+<span style="text-align:center;">and</span>
+<br><br>
+<span style="text-align:center;font-weight:bold;">Leidos, Sprint, and Genesis Genetics</span>,
+<br>
+<span style="text-align:center;">hereinafter referred to as the “Collaborators”,</span><br>
+<span style="text-align:center;">having offices at <b>210 Market St, Frederick, MD 20840; 1000 Elm Ave, Sterling, VA 30320; and 10234 SW Manhattan Ave, New York, NY 76540</b>,</span><br>
+<span style="text-align:center;">created and operating under the laws of <b>Maryland, Virginia, and New York</span></b>
+EOD;
+			$this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+    }
+
+    function setBody($doc) {
+$html = <<<EOD
+<b>Article 1.  INTRODUCTION</b><br>
+<br>
+This CRADA between IC and Collaborator will be effective when signed by the Parties, which are identified on both the Cover Page and the Signature Page.  The official contacts for the Parties are identified on the Contacts Information Page.  Publicly available information regarding this CRADA appears on the Summary Page.  The research and development activities that will be undertaken by IC and Collaborator in the course of this CRADA are detailed in the Research Plan, attached as Appendix A.  The staffing, funding, and materials contributions of the Parties are set forth in Appendix B.  Any changes to the model CRADA are set forth in Appendix C<br>
+<br>
+<b>Article 2.  DEFINITIONS</b><br>
+<br>
+The terms listed in this Article will carry the meanings indicated throughout the CRADA.  To the extent a definition of a term as provided in this Article is inconsistent with a corresponding definition in the applicable sections of either the United States Code (U.S.C.) or the Code of Federal Regulations (C.F.R.), the definition in the U.S.C. or C.F.R. will control.<br>
+<br>
+EOD;
+			$this->_writeHTML($html);
+
+/*
+			$this->Annotation(83, 27, 10, 10, "Text annotation example\naccented letters test: àèéìòù", array('Subtype'=>'Text', 'Name' => 'Comment', 'T' => 'title example', 'Subj' => 'example', 'C' => array(255, 255, 0)));
+*/
+
+
+		/* Print Definitions */
+		for($i=0;$i<count($doc['clauses']);$i++) {
+			if($doc['clauses'][$i]['section'] == "Definitions") {
+				$this->_writeHTML($doc['clauses'][$i]['text']."<br>");
+			}
+		}
+		/* Print Clauses */
+		$section_number = 2;
+		$current_section = "Definitions";
+		for($i=0;$i<count($doc['clauses']);$i++) {
+			if($doc['clauses'][$i]['section'] != "Definitions") {
+				if($doc['clauses'][$i]['section'] != $current_section) {
+					//Add Section
+					$section_number++;
+					$current_section = $doc['clauses'][$i]['section'];
+					$this->_writeHTML("<b>Article ".$section_number.".  ".strtoupper($current_section)."</b><br>");
+					$current_subsection = 1;
+				}
+				$this->_writeHTML($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."<br>");
+
+				$current_subsection++;
+			}
+		}
+
+		$this->_writeHTML('<br><br><br><span style="text-align:center;">SIGNATURES BEGIN ON THE NEXT PAGE</span>');
+		$this->AddPage();
+
+		$this->_setSignature();
+
+	}
+
+	private function _writeHTML($html) {
+		$this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+	}
+
+	private function _setSignature() {
+		$content ='
+<br>
+<span style="text-align:center;">SIGNATURE PAGE</span><br>
+<br>
+<br>
+<span style="text-align:center;"><b>ACCEPTED AND AGREED</b></span><br>
+<br>
+BY EXECUTING THIS AGREEMENT, EACH PARTY REPRESENTS THAT ALL STATEMENTS MADE HEREIN ARE TRUE, COMPLETE, AND ACCURATE TO THE BEST OF ITS KNOWLEDGE. COLLABORATOR ACKNOWLEDGES THAT IT MAY BE SUBJECT TO CRIMINAL, CIVIL, OR ADMINISTRATIVE PENALTIES FOR KNOWINGLY MAKING A FALSE, FICTITIOUS, OR FRAUDULENT STATEMENT OR CLAIM.<br>
+<br>
+<br>
+FOR IC:<br>
+<br>
+<br>
+<br>
+_______________________________________________      ________________________<br>
+Signature                                              Date<br>
+<br>
+Typed Name:<br>
+Title:<br>
+<br>
+<br>
+<br>
+<br>
+FOR COLLABORATOR:<br>
+<br>
+<br>
+<br>
+_______________________________________________      ________________________<br>
+Signature                                              Date<br>
+<br>
+<br>
+Typed Name:<br>
+Title:<br>
+';
+		$this->_writeHTML($content);
+
+	}
+
+
+}
 
 function create_pdf_file($doc) {
 	//============================================================+
@@ -42,77 +212,49 @@ function create_pdf_file($doc) {
 	 * @since 2008-03-04
 	 */
 
-	require_once 'sites/default/libraries/tcpdf/tcpdf.php';
 
 	//$doc = get_full_document();
 
 	// create new PDF document
-	$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+	$pdf = new CradaPdf(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+	$pdf->AddPage();  //Create document
+	$pdf->SetFont('times', '', 12, '', true);
 
 	// set document information
-	$pdf->SetCreator(PDF_CREATOR);
-	$pdf->SetAuthor('Crada Builder');
-	$pdf->SetTitle('TCPDF Example 001');
-	$pdf->SetSubject('TCPDF Tutorial');
-	$pdf->SetKeywords('TCPDF, PDF, example, test, guide');
+	$pdf->setDocumentInfo();
+	$pdf->SetFont('times', '', 12, '', true);
 
 	// set default header data
-	$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 001', PDF_HEADER_STRING, array(0,64,255), array(0,64,128));
-	$pdf->setFooterData(array(0,64,0), array(0,64,128));
+//	$pdf->setFooterData(array(0,64,0), array(0,64,128));
 
 	// set header and footer fonts
-	$pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-	$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+//	$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
 
 	// set default monospaced font
-	$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-
-	// set margins
-	$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-	$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-	$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
-	// set auto page breaks
-	$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-
-	// set image scale factor
-	$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
-
-	// set some language-dependent strings (optional)
-	if (@file_exists(dirname(__FILE__).'/lang/eng.php')) {
-		require_once(dirname(__FILE__).'/lang/eng.php');
-		$pdf->setLanguageArray($l);
-	}
+//	$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
 	// ---------------------------------------------------------
 
 	// set default font subsetting mode
-	$pdf->setFontSubsetting(true);
+//	$pdf->setFontSubsetting(true);
 
 	// Set font
-	// dejavusans is a UTF-8 Unicode font, if you only need to
-	// print standard ASCII chars, you can use core fonts like
-	// helvetica or times to reduce file size.
-	$pdf->SetFont('dejavusans', '', 14, '', true);
+//	$pdf->SetFont('times', '', 12, '', true);
 
 	// Add a page
 	// This method has several options, check the source code documentation for more information.
-	$pdf->AddPage();
-
-	// set text shadow effect
-	$pdf->setTextShadow(array('enabled'=>true, 'depth_w'=>0.2, 'depth_h'=>0.2, 'color'=>array(196,196,196), 'opacity'=>1, 'blend_mode'=>'Normal'));
-
-	// Set some content to print
-$html = <<<EOD
-	<h1>Welcome to <a href="http://www.tcpdf.org" style="text-decoration:none;background-color:#CC0000;color:black;">&nbsp;<span style="color:black;">TC</span><span style="color:white;">PDF</span>&nbsp;</a>!</h1>
+/*
+	<h1>Welcome CRADA to <a href="http://www.tcpdf.org" style="text-decoration:none;background-color:#CC0000;color:black;">&nbsp;<span style="color:black;">TC</span><span style="color:white;">PDF</span>&nbsp;</a>!</h1>
 	<i>This is the first example of TCPDF library.</i>
 	<p>This text is printed using the <i>writeHTMLCell()</i> method but you can also use: <i>Multicell(), writeHTML(), Write(), Cell() and Text()</i>.</p>
 	<p>Please check the source code documentation and other examples for further information.</p>
 	<p style="color:#CC0000;">TO IMPROVE AND EXPAND TCPDF I NEED YOUR SUPPORT, PLEASE <a href="http://sourceforge.net/donate/index.php?group_id=128076">MAKE A DONATION!</a></p>
-EOD;
 
-	// Print text using writeHTMLCell()
-	$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+*/
+
+	$pdf->setCoversheet();
+	$pdf->AddPage();
+	$pdf->setBody($doc);
 
 	// ---------------------------------------------------------
 
@@ -188,7 +330,7 @@ class CradaRtf extends PHPRtfLite
 		// Add footer
 		$footer = $this->addFooter();
 		/* Line 1 */
-		$content = $template_name.str_repeat(" ", 16);
+		$content = $template_name.str_repeat(" ", 17);
 		$content .= 'Ref. No.<u>  '.$ref_number.'  </u>'.str_repeat(" ", 13);
 		$content .= 'MODEL ADOPTED '.$adopted_date;
 		$footer->writeText($content, $fontFooter, $formatFooter);
@@ -465,7 +607,7 @@ $header->writeText('right header');
 
 		// Add footer
 		$footer = $rtf->addFooter();
-		$content = 'PHS ICT-CRADA                 Ref. No.<u>  ADA2014  </u>             MODEL ADOPTED June 18, 2009';
+		$content = 'PHS ICT-CRADA                  Ref. No.<u>  ADA2014  </u>             MODEL ADOPTED June 18, 2009';
 		$footer->writeText($content, $fontFooter, $formatFooter);
 		$content = 'Page <pagenum> of <pagetotal>                          <i>Confidential</i>                         Revised August 14, 2013';
 		$footer->writeText($content, $fontFooter, $formatFooter);
