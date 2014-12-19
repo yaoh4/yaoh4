@@ -2,6 +2,10 @@ jQuery(function($) {
 var documentSections;
 var clause_editor = [];
 var my_editor;
+
+var conf_total = 0;
+var pub_total = 0;
+
 $(document).ready(function () {
 	create_dialogs();
 
@@ -20,7 +24,7 @@ $(document).ready(function () {
 	$('#document_select').click(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(user_changed_annotation_option);
-	
+
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
     	editClause(event);
 	});
@@ -32,7 +36,7 @@ $(document).ready(function () {
 	});
 	$("#change_answer_container").on( "change", "select", function(event) {
 		changedAnswer(event);
-	});	
+	});
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
@@ -83,7 +87,7 @@ function change_annotation_selection() {
 		console.log('annotation_option is set');
 		console.log(annotation_option);
 		$( "#annotation_options" ).val(annotation_option);
-		change_annotation_options('fast');		
+		change_annotation_options('fast');
 
 	} else {
 		console.log('annotation_option is NOT set');
@@ -125,7 +129,7 @@ function set_answer_retrieve_new_element_callback(data) {
 	console.dir(JSON.parse(data.demographic_answers));
 //	alert("about to call addMadLib");
 	//
-	//  Perform addMadLib and send back to server 
+	//  Perform addMadLib and send back to server
 	//
 
 	var new_mad_lib = addMadLib(data.element.document_element_text, JSON.parse(data.demographic_answers));
@@ -156,7 +160,7 @@ var	toolbar = [
 	var ref = e.target.id;
 
 	my_editor = CKEDITOR.inline(
-					ref, 
+					ref,
 					{toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
 					);
 	my_editor.on( 'change', function( evt ) {
@@ -232,7 +236,7 @@ function editClauseOld(e) {
 				$( this ).dialog( "close" );
 			}
 		}
-	});		
+	});
 }
 
 function editAnnotation(e) {
@@ -247,7 +251,7 @@ function editAnnotation(e) {
 	$(content).dialog({
 		resizable: false,
 		height:430,
-		width:700,
+		width:550,
 		modal: true,
 		title: $("#"+ref).attr("dialog-title"),
 		buttons: {
@@ -258,11 +262,11 @@ function editAnnotation(e) {
 				$( this ).dialog( "close" );
 			}
 		}
-	});		
+	});
 }
 
 function user_changed_annotation_option() {
-	change_annotation_options('slow');	
+	change_annotation_options('slow');
 }
 
 function change_annotation_options(speed) {
@@ -278,18 +282,18 @@ function change_annotation_options(speed) {
 		else
 			$('#current_document_content').css('width','960px');
 
-		$('.annotation_footnote').hide();		
+		$('.annotation_footnote').hide();
 
 	} else {
 		if(speed == 'slow') {
 			$('#current_document_content').animate({width: '700px'}, "normal", function(){
 				$('#current_annotation_content').show();
-				$('.annotation_footnote').show();		
+				$('.annotation_footnote').show();
 			});
 		} else {
 			$('#current_document_content').css('width', '700px');
 			$('#current_annotation_content').show();
-			$('.annotation_footnote').show();		
+			$('.annotation_footnote').show();
 		}
 		console.log('Selected '+annotationOption);
 		switch(annotationOption) {
@@ -308,7 +312,7 @@ function change_annotation_options(speed) {
 		        $('.public_annotation').show();
 		        console.log('public should be showing');
 		        break;
-		}		
+		}
 	}
 	setCookie("Drupal.visitor.annotation.option", annotationOption, 365);
 
@@ -322,14 +326,14 @@ function create_dialogs() {
 		height:'auto',
 		width:[300],
 		modal: true
-	});	
+	});
 }
 
 function click_load_button () {
-	$("#load_dialog").dialog("open");	
+	$("#load_dialog").dialog("open");
 	// Need to call into database to pull back the documents, then versions
 	ajax_caller("get_all_documents_info", null, load_document_info_into_select);
-	
+
 }
 
 function changed_document_id() {
@@ -481,7 +485,7 @@ function load_change_answer(data) {
 			//Select correct answer
 			$("#question-"+value.question_id).val(value.answer).prop('selected', true);
 
-		}	
+		}
 		$('#'+key).append(
 			$("<div>")
 				.addClass('both')
@@ -506,7 +510,7 @@ function click_archive_version_button () {
 			"Yes": function() {
 				$( this ).dialog( "close" );
 				ajax_caller("archive_version", {
-						document_id:getCookie('Drupal.visitor.document.id'), 
+						document_id:getCookie('Drupal.visitor.document.id'),
 						version:getCookie('Drupal.visitor.document.version'),
 						updated_by:getCookie('Drupal.visitor.user.name')
 					}, lock_version_callback);
@@ -515,7 +519,7 @@ function click_archive_version_button () {
 				$( this ).dialog( "close" );
 			}
 		}
-	});		
+	});
 
 }
 function lock_version_callback(data) {
@@ -543,37 +547,29 @@ function click_select_document_button() {
 	setCookie("Drupal.visitor.document.version", version_id, 365);
 
 	set_footer();
-	
+
 	ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
 	$("#load_dialog").dialog( "close" );
-	
-}
-function set_toolbar_buttons(editable) {
 
+}
+
+function set_toolbar_buttons(editable) {
 	// Remove buttons if not editable
 	if(editable) {
 		$('#change_answer_button').show();
-		//$('#save_button').show();
 		$('#archive_version_button').show();
 	} else {
 		$('#change_answer_button').hide();
-		//$('#save_button').hide();
 		$('#archive_version_button').hide();
 	}
-
 }
 
 function get_document_elements_callback(data) {
 //	alert (JSON.stringify(data, null, 2));
-	console.log("Get the highlighting right");
-	console.log("Lock document if uneditable");
-	console.log("Determine if this is the current. Editable document");
-	console.log("Here is the data");
-	console.log("get full document");
+	console.log("get_document_elements_callback");
 	set_toolbar_buttons(data.editable);
-
-
-	console.dir(data);
+//	console.dir(data);
+	//Clear document content
 	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));
 	if(data.editable) {
 		$("#current_document_content").removeClass("document-locked");
@@ -581,18 +577,16 @@ function get_document_elements_callback(data) {
 		$("#current_document_content").addClass("document-locked");
 		$("#title_bar").append('<i class="fa fa-lock fa-2x fa-lock-style" title="Archived document is not editable"></i>');
 	}
-	//$("#current_document_content").append($('<span', {'class':'document-title'}).append(data.title));
+	//Append to title_bar
 	$("#title_bar").append(
 			$('<span>').addClass('document-title').append(data.title)
 		);
 	$("#title_bar").append(
 			$('<span>').addClass('document-version').append('(version '+data.version+')')
 		);
-//	$("#current_document_content").append($("<h1>").append(data.title));
+	//Add <hr>
 	$("#current_document_content").append("<hr />");
-	//$("#current_document_content").append('<i class="fa fa-camera-retro fa-3x"></i> fa-3x');
-	//displayCurrentDocument(data);
-	
+	// Add document sections
 	var current_section = "";
 	var confidential_annotation;
 	var public_annotation;
@@ -602,99 +596,135 @@ function get_document_elements_callback(data) {
 	var clause_number = 0;
 	var data_clause;
 	var element_id = 'current_document_content';
+	conf_total = 0;
+	pub_total = 0;
+	//Walk through each clause
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent') ) {
 			if (data.clauses[i].section != current_section) {
 				// Add new section
-				//$("#current_document_content").append("<br /><br />");
-				//$("#current_document_content").append($("<h2>").append(data.clauses[i].section));
 				current_section = data.clauses[i].section;
 				section_number++;
 				clause_number = 0;  //Reset clause number for each new section
-				//alert(section_number);
 				displaySectionHeader(section_number, current_section, element_id);
 			}
 			clause_number++;
-			section_reference = section_number+"."+(i+1);
-			//data_clause = ​typeof data.clauses[i].text;
-			//alert(data_clause);
-			
-			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+			section_reference = section_number+"-"+clause_number;
 
-			/*
-			$("#current_document_content")
-				.append(
-					$("<p>")
-						.append("<sup class='annotation_footnote'>["+section_reference+"]</sup> "+data.clauses[i].text)
-						.addClass('contract_clause')
-						.attr("id", "clause-" + i)
-						.attr("dialog-title", "Section ["+section_reference+"]")
-						.attr("title", "Click to edit section")
-						.attr("data-clause", data.clauses[i].text)
-					);
-			*/
-			//addAnnotationDiv(data.clauses[i].confidential_annotation, section_reference, 'Confid');
-			addAnnotationDiv("test", section_reference, "Confid");
-			//addAnnotationDiv(data.clauses[i].public_annotation, section_reference, 'Pub');
-			if( JSON.stringify(data.clauses[i].confidential_annotation).length > 2) {
-				var annotate = data.clauses[i].confidential_annotation;
-				annotate = $("<div/>").html(annotate).text();
-				data.clauses[i].confidential_annotation_short = trimAnnoation(JSON.stringify(data.clauses[i].confidential_annotation));
-				annotation_footnote = "Comment [Conf"+section_reference+"]: ";
+			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+			addAnnotationDiv(data.clauses[i], section_reference, position);
+		}
+	}
+//	documentSections = data;
+//	console.info("documentSections")
+//	console.dir(documentSections);
+//	current_document_content
+	var element = document.getElementById("current_document_content");
+	var rect = element.getBoundingClientRect();
+	console.log("document size");
+	console.dir(rect);
+	/*
+ 	<canvas id="myCanvas" width="200" height="100"
+		style="border:1px solid #000000;">
+	</canvas>
+	*/
+	// Make a canvas like that...
+
+	//console.log(rect.top, rect.right, rect.bottom, rect.left);
+
+	//$( ".annotation" ).tooltip({ track: true });
+	$( ".annotation" ).tooltip({
+		show: {
+			effect: "slideDown",
+			delay: 250
+		}
+	});
+
+	//change_annotation_selection();
+	//$( ".clause-paragraph" ).accordion( "option", "active", 2 );
+/*
+	$(".accordion").accordion({collapsible: true,
+			heightStyle: "content",
+			icons: { "header": "ui-icon-triangle-1-w", "activeHeader": "ui-icon-triangle-1-s" }
+	});
+*/
+//	$(".accordion").removeClass("ui-state-active");
+//	$(".ui-accordion-content").removeClass("ui-cornner-bottom");
+/*
+	var options = $( ".accordion" ).accordion( "option" );
+	console.dir(options);
+	*/
+}
+
+function addAnnotationDiv(clause, section_reference, position) {
+	//console.log('clause');
+	//console.dir(clause);
+	//console.log('section_reference');
+	//console.info(section_reference);
+	//console.log('position');
+	//console.info(position);
+
+	var annotation_index = 0;
+	var annotation_types = ["confidential_annotation", "public_annotation"];
+
+	$.each(annotation_types, function(key, annotation_type) {
+	console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
+		if(annotation_type == "confidential_annotation") {
+			raw_annotations = clause.confidential_annotation;
+			annotation_id = "Conf";
+			//console.log(JSON.stringify(clause.confidential_annotation));
+		} else{
+			//alert('Pub');
+			raw_annotations = clause.public_annotation;
+			annotation_id = "Pub";
+			//console.log(JSON.stringify(clause.public_annotation));
+		}
+	//split the annotation data on excel double return ie \n\n
+		annotations = raw_annotations.split('\n\n');
+		//console.info(annotations.length);
+		$.each(annotations, function(key, annotation) {
+
+			if( JSON.stringify(annotation).length > 2) {
+				annotate_div = $("<div/>").html(annotation).text();
+				annotation_short = trimAnnoation(JSON.stringify(annotation));
+				if(annotation_type == "confidential_annotation") {
+					conf_total++;
+					annotation_index = conf_total;
+				} else {
+					pub_total++;
+					annotation_index = pub_total;
+				}
+				annotation_footnote = "Section "+section_reference+" ["+annotation_id+"-"+annotation_index+"]";
 				//addAnnotationDiv(data.clauses[i].confidential_annotation, 'Confid', "current_annotation_content");
 				$("#current_annotation_content")
 					.append(
 						$("<p class='conatract_clause'>")
-							.append( "<b>" + annotation_footnote + "</b> " + data.clauses[i].confidential_annotation_short)
+							.append( "<b>" + annotation_footnote + "</b> " + annotation_short)
 							.addClass('annotation')
-							.addClass('confidential_annotation')
-							.attr("id", "annotate-"+i+"annotateNeedsIndex")
-							.attr("data-annotate", annotate)
-							.attr("title", data.clauses[i].confidential_annotation)
+							.addClass(annotation_type)
+							.attr("id", annotation_id+"-"+annotation_index)
+							.attr("data-annotate", annotate_div)
+							.attr("title", annotation)
 							.attr("dialog-title", annotation_footnote)
-					);	
+							.css("position", "relative")
+							.css("left", "10px")
+							.css("top", position.clause.top)
+					);
 			}
-			if( JSON.stringify(data.clauses[i].public_annotation).length > 2) {
-				var annotate = data.clauses[i].public_annotation;
-				annotate = $("<div/>").html(annotate).text();
-				data.clauses[i].public_annotation_short = trimAnnoation(JSON.stringify(data.clauses[i].public_annotation));
-				annotation_footnote = "Comment [Pub"+(i+1)+"]:";
-				$("#current_annotation_content")
-					.append(
-						$("<p>")
-							.append("<b>" + annotation_footnote + "</b> " + data.clauses[i].public_annotation_short)
-							.addClass('annotation')
-							.addClass('public_annotation')
-							.attr("id", "annotate-"+i+"annotateNeedsIndex")
-							.attr("data-annotate", annotate)
-							.attr("title", data.clauses[i].public_annotation)
-							.attr("dialog-title", annotation_footnote)
-						);
-			}
-		} 
-	}
-	documentSections = data;
-	console.info("documentSections")
-	console.dir(documentSections);
-	$( ".annotation" ).tooltip({ track: true });
+		});
+/*
+		if(annotations.length > 1) {
+			console.log('annotations with \n\n');
+			console.dir(annotations);
+		}
+*/
 
-	change_annotation_selection();
-	//$( ".clause-paragraph" ).accordion( "option", "active", 2 );
 
-	$(".accordion").accordion({collapsible: true, 
-							heightStyle: "content",
-							icons: { "header": "ui-icon-triangle-1-w", "activeHeader": "ui-icon-triangle-1-s" } 
-					});
-	$(".accordion").removeClass("ui-state-active");
-	$(".ui-accordion-content").removeClass("ui-cornner-bottom");
+	});
 
-	var options = $( ".accordion" ).accordion( "option" );
-	console.dir(options);
-
-	//var widget = $( ".accordion" ).accordion( "widget" );
-
-	//$( ".accordion" ).accordion("option", "icons", null);
-
+	//annotations = JSON.stringify(annotation_data);
+	//console.log("section_reference: ");
+	//console.dir(annotation_data);
 }
 
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
@@ -715,20 +745,57 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 		)
 	);
 
-	console.log("document_version = "+parseInt(clause.document_verison));
+	//console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed');
 	}
-	console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
+	//console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
 	if(parseInt(clause.answer_changed) == 1) {
 		$('#clause-'+index).addClass('answer-changed');
 	}
-	
+
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
 	} else {
 		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
 	}
+
+	var section_position = $('#'+element_id).position();
+	var section_offset = $('#'+element_id).offset();
+	var section_height = $('#'+element_id).height();
+
+	var clause_position = $('#clause-'+index).position();
+	var clause_offset = $('#clause-'+index).offset();
+	var clause_height = $('#clause-'+index).height();
+
+	var element = document.getElementById("clause-"+index);
+
+	var clause_xPosition = (element.offsetLeft - element.scrollLeft + element.clientLeft);
+	var clause_yPosition = (element.offsetTop - element.scrollTop + element.clientTop);
+
+	/*
+	console.log('position');
+	console.dir(position);
+	console.log('offset');
+	console.dir(offset);
+	console.log('height');
+	console.log(height);
+*/
+	section_position['height'] = section_height;
+	section_position['offset'] = section_height;
+
+	clause_position['height'] = clause_height;
+	clause_position['offset'] = clause_height;
+	clause_position['xPosition'] = clause_xPosition;
+	clause_position['yPosition'] = clause_yPosition;
+
+	var position = {
+		section: section_position,
+		clause: clause_position
+	};
+
+	console.dir(position);
+	return position;
 }
 
 function displaySectionHeader(section_number, current_section, element_id) {
@@ -759,13 +826,6 @@ function displaySectionHeader(section_number, current_section, element_id) {
 
 }
 
-function addAnnotationDiv(annotation_data, section_reference, annotation_type) {
-	var annotations;
-	//split the annotation data on excel return
-	//annotations = JSON.stringify(annotation_data);
-	//console.log("section_reference: ");
-	//console.dir(annotation_data);
-}
 
 function trimAnnoation(annotation) {
 	//If length is greater than 60 then find next previous space and trim

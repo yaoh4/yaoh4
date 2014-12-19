@@ -59,6 +59,7 @@
 	left:733px;
 	top:94px;
 	*/
+  position:relative;
 	float:right;
 	width:225px;
 	border:1px solid grey;
@@ -96,11 +97,11 @@
     margin-left:15px;
 }
 .data_clause_textarea {
-    background:'#E0E0E0';
-    width:400px;
+  background:'#E0E0E0';
 	resize: none;
 	border:1px solid red;
-    box-shadow: 0 0 10px #719ECE;
+  box-shadow: 0 0 10px #719ECE;
+  max-width: 510px;
 }
 .edit-section {
     background:'#E0E0E0';
@@ -163,9 +164,12 @@
 	width:200px;
 }
 
-div.ui-tooltip {
-    max-width: 400px;
-    padding:5px;
+.ui-tooltip {
+  max-width: 400px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font: bold 14px "Helvetica Neue", Sans-Serif;
+  box-shadow: 0 0 7px black;
 }
 
 label {
@@ -337,7 +341,6 @@ textarea {
 }
 .ui-widget-content {
 	border: 0px;
-	background-color:inherit;
 }
 .ui-state-default {
 	border: 0px;
