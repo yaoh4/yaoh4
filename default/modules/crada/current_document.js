@@ -621,7 +621,7 @@ function get_document_elements_callback(data) {
 //	current_document_content
 	var element = document.getElementById("current_document_content");
 	var rect = element.getBoundingClientRect();
-	console.log("document size");
+	console.log("BIG RECTANGLE");
 	console.dir(rect);
 	/*
  	<canvas id="myCanvas" width="200" height="100"
@@ -696,6 +696,9 @@ function addAnnotationDiv(clause, section_reference, position) {
 				}
 				annotation_footnote = "Section "+section_reference+" ["+annotation_id+"-"+annotation_index+"]";
 				//addAnnotationDiv(data.clauses[i].confidential_annotation, 'Confid', "current_annotation_content");
+				console.log("ADDING ANNOTATION");
+				var x = position.clause.top - position.clause.offset;
+				console.log(x);
 				$("#current_annotation_content")
 					.append(
 						$("<p class='conatract_clause'>")
@@ -706,9 +709,9 @@ function addAnnotationDiv(clause, section_reference, position) {
 							.attr("data-annotate", annotate_div)
 							.attr("title", annotation)
 							.attr("dialog-title", annotation_footnote)
-							.css("position", "relative")
-							.css("left", "10px")
-							.css("top", position.clause.top)
+							.css("position", "absolute")
+							.css("left", "0px")
+							.css("top", x)
 					);
 			}
 		});
