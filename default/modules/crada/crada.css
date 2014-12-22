@@ -96,15 +96,16 @@
     background: #CCFFFF; /*light blue*/
     margin-left:15px;
 }
-.data_clause_textarea {
+.edit_annotation_textarea {
   background:'#E0E0E0';
 	resize: none;
 	border:1px solid red;
   box-shadow: 0 0 10px #719ECE;
   max-width: 510px;
+  margin: 5px;
 }
 .edit-section {
-    background:'#E0E0E0';
+  background:'#E0E0E0';
 	border:"1px dotted black";
 }
 

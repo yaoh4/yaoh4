@@ -2,7 +2,6 @@ jQuery(function($) {
 var documentSections;
 var clause_editor = [];
 var my_editor;
-
 var conf_total = 0;
 var pub_total = 0;
 
@@ -26,17 +25,27 @@ $(document).ready(function () {
 	$("#annotation_options").change(user_changed_annotation_option);
 
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
-    	editClause(event);
+  	editClause(event);
 	});
- 	$("#current_document_content").on( "blur", "p.clause", function(event) {
- 		updateClauseParagraph();
+
+	$("#current_document_content").on( "blur", "p.clause", function(event) {
+		updateClauseParagraph();
 	});
- 	$("#current_annotation_content").on( "click", "p", function(event) {
-        editAnnotation(event);
+
+	$("#current_annotation_content").on( "click", "p", function(event) {
+		//alert(event.target.id);
+		//alert('hasClass: '+$('#'+event.target.id).hasClass("annotate-editable"));
+		//annotate-editable
+		if($('#'+event.target.id).hasClass("annotate-editable") == true) {
+				editAnnotation(event);
+		}
+
 	});
+
 	$("#change_answer_container").on( "change", "select", function(event) {
 		changedAnswer(event);
 	});
+
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
@@ -70,11 +79,10 @@ function updateClauseParagraph() {
 				backgroundColor: "#FAFAD2",
 				borderColor: "#A0981D"
 			}, 1000, function() {
-    			// Animation complete.
+				// Animation complete.
 				$('#'+my_editor.name).addClass('clause-changed')
- 			}
-  		);
-
+			}
+		);
 	}
 	//remove editor
 	my_editor.destroy();
@@ -241,11 +249,10 @@ function editClauseOld(e) {
 
 function editAnnotation(e) {
 	var ref = e.target.id;
-
 	var data_annotate = $("#"+ref).attr("data-annotate");
 	var content;
 
-	content = '<textarea rows="5" cols="70" class="data_clause_textarea">';
+	content = '<textarea rows="5" cols="70" class="edit_annotation_textarea">';
 	content += data_annotate;
 	content += '</textarea>';
 	$(content).dialog({
@@ -255,7 +262,7 @@ function editAnnotation(e) {
 		modal: true,
 		title: $("#"+ref).attr("dialog-title"),
 		buttons: {
-			"Cancel": function() {
+			Cancel: function() {
 				$( this ).dialog( "close" );
 			},
 			Save: function() {
@@ -522,6 +529,7 @@ function click_archive_version_button () {
 	});
 
 }
+
 function lock_version_callback(data) {
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
@@ -598,6 +606,10 @@ function get_document_elements_callback(data) {
 	var element_id = 'current_document_content';
 	conf_total = 0;
 	pub_total = 0;
+	var annotation_positions = [];
+	var annotation_detail = [];
+	var annotate = [];
+
 	//Walk through each clause
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent') ) {
@@ -612,7 +624,11 @@ function get_document_elements_callback(data) {
 			section_reference = section_number+"-"+clause_number;
 
 			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
-			addAnnotationDiv(data.clauses[i], section_reference, position);
+			var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
+			if(annotate_detail.length > 0) {
+				annotate.push(annotate_detail);
+			}
+			annotation_positions.push(position);
 		}
 	}
 //	documentSections = data;
@@ -623,6 +639,11 @@ function get_document_elements_callback(data) {
 	var rect = element.getBoundingClientRect();
 	console.log("BIG RECTANGLE");
 	console.dir(rect);
+	console.log("MY ANNOTATE");
+	console.dir(annotate);
+
+	drawAnnotate(annotate, rect);
+
 	/*
  	<canvas id="myCanvas" width="200" height="100"
 		style="border:1px solid #000000;">
@@ -656,7 +677,74 @@ function get_document_elements_callback(data) {
 	*/
 }
 
-function addAnnotationDiv(clause, section_reference, position) {
+function drawAnnotate(annotate, rect) {
+
+	var canvas_height = rect.height;
+	var canvas_width = 60;
+	//Create two canvases.  One for confidential and one for public
+	var annotate_canvas = '<canvas id="conf_canvas" width="'+canvas_width+'" height="'+canvas_height+'" style="margin-left:-50px;">Canvas</canvas>';
+	$("#current_annotation_content").append(annotate_canvas);
+	annotate_canvas = '<canvas id="pub_canvas" width="'+canvas_width+'" height="'+canvas_height+'" style="margin-left:-600px;">Canvas</canvas>';
+	$("#current_annotation_content").append(annotate_canvas);
+
+	var conf_canvas = document.getElementById("conf_canvas");
+	var pub_canvas = document.getElementById("pub_canvas");
+	var conf_context = conf_canvas.getContext("2d");
+	var pub_context = pub_canvas.getContext("2d");
+
+
+/*
+	for (var x = 0.5; x < canvas_width; x += 10) {
+  	conf_context.moveTo(x, 0);
+  	conf_context.lineTo(x, canvas_height);
+  	pub_context.moveTo(x, 0);
+  	pub_context.lineTo(x, canvas_height);
+	}
+*/
+
+//Draw vertical lines
+/*
+	for (var y = 0.5; y < canvas_height; y += 10) {
+	  conf_context.moveTo(0, y);
+	  conf_context.lineTo(canvas_width, y);
+	  pub_context.moveTo(0, y);
+	  pub_context.lineTo(canvas_width, y);
+	}
+	conf_context.strokeStyle = "#eee";
+	conf_context.stroke();
+	pub_context.strokeStyle = "#eee";
+	pub_context.stroke();
+*/
+	//Draw arrows
+	conf_context.moveTo(15, 0);
+	conf_context.lineTo(10, 50);
+	conf_context.moveTo(10, 173);
+	conf_context.lineTo(10, 375);
+	conf_context.moveTo(5, 370);
+	conf_context.lineTo(10, 375);
+	conf_context.lineTo(15, 370);
+
+	conf_context.strokeStyle = "red";
+	conf_context.stroke();
+	//console.log("ANNOTATION POSITION");
+	//console.dir(annotation_positions);
+	console.log("ANNOTATE");
+	console.dir(annotate);
+	$.each(annotate, function(key, value) {
+			$.each(value, function(key2, value2) {
+					conf_context.moveTo(canvas_width-1, value2.top - 30 + value2.offset);
+					conf_context.lineTo(0, value2.top);
+
+			});
+	});
+
+	//conf_context.strokeStyle = "red";
+	//conf_context.stroke();
+
+}
+
+
+function addAnnotationDiv(clause, section_reference, position, editable, clause_id) {
 	//console.log('clause');
 	//console.dir(clause);
 	//console.log('section_reference');
@@ -666,24 +754,29 @@ function addAnnotationDiv(clause, section_reference, position) {
 
 	var annotation_index = 0;
 	var annotation_types = ["confidential_annotation", "public_annotation"];
+	var ref = "";
+	var annotate = [];
+	var annotate_offset = 0;
+	var offset = 45; //ie. Height of annotate.
 
 	$.each(annotation_types, function(key, annotation_type) {
-	console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
+		console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
 		if(annotation_type == "confidential_annotation") {
 			raw_annotations = clause.confidential_annotation;
-			annotation_id = "Conf";
+			annotation_id = "CONF";
 			//console.log(JSON.stringify(clause.confidential_annotation));
 		} else{
 			//alert('Pub');
 			raw_annotations = clause.public_annotation;
-			annotation_id = "Pub";
+			annotation_id = "PUB";
 			//console.log(JSON.stringify(clause.public_annotation));
 		}
 	//split the annotation data on excel double return ie \n\n
 		annotations = raw_annotations.split('\n\n');
 		//console.info(annotations.length);
+		var r = 0; //annotation revision number for paragraph
 		$.each(annotations, function(key, annotation) {
-
+			r++;
 			if( JSON.stringify(annotation).length > 2) {
 				annotate_div = $("<div/>").html(annotation).text();
 				annotation_short = trimAnnoation(JSON.stringify(annotation));
@@ -694,7 +787,13 @@ function addAnnotationDiv(clause, section_reference, position) {
 					pub_total++;
 					annotation_index = pub_total;
 				}
-				annotation_footnote = "Section "+section_reference+" ["+annotation_id+"-"+annotation_index+"]";
+				ref = annotation_id+""+annotation_index;
+				if(r>1) {
+					//append Revsion
+					ref += "R"+r;
+				}
+
+				annotation_footnote = "Section "+section_reference+" ["+ref+"]";
 				//addAnnotationDiv(data.clauses[i].confidential_annotation, 'Confid', "current_annotation_content");
 				console.log("ADDING ANNOTATION");
 				var x = position.clause.top - position.clause.offset;
@@ -705,16 +804,35 @@ function addAnnotationDiv(clause, section_reference, position) {
 							.append( "<b>" + annotation_footnote + "</b> " + annotation_short)
 							.addClass('annotation')
 							.addClass(annotation_type)
-							.attr("id", annotation_id+"-"+annotation_index)
+							.attr("id", ref)
 							.attr("data-annotate", annotate_div)
 							.attr("title", annotation)
 							.attr("dialog-title", annotation_footnote)
 							.css("position", "absolute")
 							.css("left", "0px")
 							.css("top", x)
-					);
+				);
+
+				if(editable == 1) {
+					$("#"+ref).addClass('annotate-editable');
+				}
+				// add
+				var annotate_position = {
+					ref : ref,
+					height: 30,
+					section_reference: section_reference,
+					top : position.clause.top,
+					annotate_offset: annotate_offset,
+					clause_id: clause_id,
+					editable: editable
+				};
+				annotate.push(annotate_position);
+				annotate_offset += offset;
+
 			}
 		});
+console.log("ANNOTATE");
+console.dir(annotate);
 /*
 		if(annotations.length > 1) {
 			console.log('annotations with \n\n');
@@ -724,7 +842,7 @@ function addAnnotationDiv(clause, section_reference, position) {
 
 
 	});
-
+	return annotate;
 	//annotations = JSON.stringify(annotation_data);
 	//console.log("section_reference: ");
 	//console.dir(annotation_data);
@@ -732,6 +850,11 @@ function addAnnotationDiv(clause, section_reference, position) {
 
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
 
+	console.info('section_number '+section_number);
+	console.info('minor_number '+minor_number);
+	console.info('clause '+clause);
+	console.info('index '+index);
+	console.info('element_id '+element_id);
 	$("#"+element_id).append(
 		$('<div/>', {'class': 'clause-paragraph'}).append(
 		    $('<div/>', {'class': 'minor-version'}).append(
@@ -770,6 +893,7 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	var clause_position = $('#clause-'+index).position();
 	var clause_offset = $('#clause-'+index).offset();
 	var clause_height = $('#clause-'+index).height();
+	console.log('cluase-'+index +"  Should exist now...  Go check");
 
 	var element = document.getElementById("clause-"+index);
 
