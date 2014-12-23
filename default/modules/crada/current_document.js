@@ -33,13 +33,9 @@ $(document).ready(function () {
 	});
 
 	$("#current_annotation_content").on( "click", "p", function(event) {
-		//alert(event.target.id);
-		//alert('hasClass: '+$('#'+event.target.id).hasClass("annotate-editable"));
-		//annotate-editable
 		if($('#'+event.target.id).hasClass("annotate-editable") == true) {
 				editAnnotation(event);
 		}
-
 	});
 
 	$("#change_answer_container").on( "change", "select", function(event) {
@@ -218,43 +214,27 @@ function saveClause(e) {
 	}
 	*/
 }
+
 function save_clause_callback() {
 	console.log('Clause saved');
 }
 
-function editClauseOld(e) {
-	var ref = e.target.id;
-	$("#"+ref).attr("contenteditable", "true").addClass('edit-section');
-	var data_clause = $("#"+ref).attr("data-clause");
-	var content;
-	content = '<textarea rows="5" cols="70" class="data_clause_textarea">';
-	content += data_clause;
-	content += '</textarea>';
-	$(content).dialog({
-		resizable: false,
-		height: 430,
-		width: 700,
-		modal: true,
-		title: $("#"+ref).attr("dialog-title"),
-		buttons: {
-			"Cancel": function() {
-				$( this ).dialog( "close" );
-			},
-			Save: function() {
-				$( this ).dialog( "close" );
-			}
-		}
-	});
-}
-
 function editAnnotation(e) {
 	var ref = e.target.id;
-	var data_annotate = $("#"+ref).attr("data-annotate");
 	var content;
 
-	content = '<textarea rows="5" cols="70" class="edit_annotation_textarea">';
+	var data_annotate = $("#"+ref).attr("data-annotate");
+	console.log("data_annotate");
+	console.log(data_annotate);
+
+	//
+	//Make a unique number for TEXTAREA.  The second save is causing problems because id is not unique.
+	//
+	var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
+	content = '<textarea id="annotate-textarea-'+unique+'" rows="5" cols="70" class="edit_annotation_textarea">';
 	content += data_annotate;
 	content += '</textarea>';
+
 	$(content).dialog({
 		resizable: false,
 		height:430,
@@ -267,9 +247,27 @@ function editAnnotation(e) {
 			},
 			Save: function() {
 				$( this ).dialog( "close" );
+				var textarea = $('#annotate-textarea-'+unique).val();
+				//textarea = $(textarea).text();
+				console.log("TEXTAREA");
+				console.log(textarea);
+				var header = $("#"+ref).text();
+				header = header.substr(0, header.search(']') + 1);
+				var newText = '<b>'+header+'</b> '+ trimAnnotation(textarea);
+				$("#"+ref).html(newText);
+				$("#"+ref).attr("data-annotate", textarea);
+				$("#"+ref).attr("title", textarea);
+				updateAnnotateData(ref, textarea);
 			}
 		}
 	});
+}
+
+function updateAnnotateData(ref, data) {
+	console.log("updateAnnotateData Record in database ....");
+	console.log("REF --- DATA");
+	console.log(ref);
+	console.log(data);
 }
 
 function user_changed_annotation_option() {
@@ -724,8 +722,8 @@ function drawAnnotate(annotate, rect) {
 	conf_context.lineTo(10, 375);
 	conf_context.lineTo(15, 370);
 
-	conf_context.strokeStyle = "red";
-	conf_context.stroke();
+	//conf_context.strokeStyle = "red";
+	//conf_context.stroke();
 	//console.log("ANNOTATION POSITION");
 	//console.dir(annotation_positions);
 	console.log("ANNOTATE");
@@ -779,7 +777,7 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 			r++;
 			if( JSON.stringify(annotation).length > 2) {
 				annotate_div = $("<div/>").html(annotation).text();
-				annotation_short = trimAnnoation(JSON.stringify(annotation));
+				annotation_short = trimAnnotation(JSON.stringify(annotation));
 				if(annotation_type == "confidential_annotation") {
 					conf_total++;
 					annotation_index = conf_total;
@@ -954,7 +952,7 @@ function displaySectionHeader(section_number, current_section, element_id) {
 }
 
 
-function trimAnnoation(annotation) {
+function trimAnnotation(annotation) {
 	//If length is greater than 60 then find next previous space and trim
 	var max_size = 60;
 	if(annotation.length > max_size) {
