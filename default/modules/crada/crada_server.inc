@@ -27,7 +27,7 @@ function crada_server() {
 		else if ($action == 'get_subsections') $output = get_subsections();
 		else if ($action == 'get_clause_information') $output = get_clause_information();
 		else if ($action == 'echo') $output = echo_data();
-		
+
 	} catch (Exception $e) {
 		$output['status'] = 'Error';
 		$output['message'] = $e->getMessage();
@@ -106,7 +106,7 @@ function create_word_file() {
 // After creating a section, you can append elements:
 	$section->addText('Making a word document.  What');
 	//$phpword = new SplClassLoader('PHPWord','sites/default/libraries');
-	//$phpword->register();	
+	//$phpword->register();
 // At least write the document to webspace:
 
 	$objWriter = PHPWord_IOFactory::createWriter($PHPWord, 'Word2007');
@@ -129,7 +129,7 @@ function create_word_file() {
 		drupal_set_message( "Failed to Load PHPExcel Library" );
 		return;
 	}
-		
+
 	drupal_set_message(t("Filename is: $filename"));
 
 	$filetype = PHPExcel_IOFactory::identify($filename);
@@ -157,7 +157,7 @@ function create_word_file() {
 		drupal_set_message("Failed on insert crada_document: ". $e->getMessage(), "error");
 	}
 	*/
-		
+
 }
 
 
@@ -228,14 +228,14 @@ function save_element() {
 	}
 	//Update text and remove changed_answer
 /*
-update crada_document_element 
-set 
+update crada_document_element
+set
 document_element_text= '<strong>Principal Investigator</strong>: <strong>undefined</strong>',
 answer_changed= 0,
 updated_by= 'admin',
 updated_date = '2014-10-07 11:41:48'
 where document_id = 2 and document_element_id = 0 and document_version = 2;
-*/	
+*/
 	crada_log("UPDATE ELEMENT");
 	$query = "update crada_document_element ";
 	$query .= "set ";
@@ -295,7 +295,7 @@ function db_document_element_version_exist($document_id, $document_element_id) {
 	crada_log(json_encode($row));
 
 return $row->element_exists;
-	
+
 
 }
 function set_answer_retrieve_new_element() {
@@ -361,7 +361,7 @@ function set_answer() {
 //	get last version and copy to an new record.  add
 	$query = "SELECT max(version) as max_version FROM crada_document_version where document_id = $document_id";
  	$result=db_query($query);
-  	$row = $result->fetchObject();	
+  	$row = $result->fetchObject();
   	crada_log("max_version = ".$row->max_version);
   	$max_version = $row->max_version;
   	crad_log("Max Version = "+$max_version);
@@ -374,7 +374,7 @@ function set_answer() {
   	$query .= "    and source_question = $question_id ";
   	$query .= "    and document_version = $max_version;";
  	$result = db_query($query);
-  	$row = $result->fetchObject();	
+  	$row = $result->fetchObject();
   	$count = $row->count;
   	crada_log("Row Count = "+$count)
   	return;
@@ -415,8 +415,8 @@ function set_answer() {
 		->condition('document_id', $document_id, '=')
 		->condition('source_question', $question_id, '=')
 		->condition('document_version', $max_version, '=')
-		->execute();	
-		*/      
+		->execute();
+		*/
 /*
 
 	$result = db_select('crada_document', 'cd')
@@ -468,7 +468,7 @@ function get_answers() {
 		->condition('document_id', $master_document_id, '=')
 		->condition('question_text', 'REQUIRED', '<>')
 		->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 
@@ -512,14 +512,14 @@ function get_clauses_from_answers() {
 	else $version = 0;
 
 	$message = "";
-	
+
 	$clause_output = array();
 	$count=0;
 	foreach ($answers as $question => $answer) {
 		$count++;
 		$q = intval($question);
 		$a = intval($answer);
-		
+
 		$cg = db_get_clause_group($document_id, $q, $a);
 		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
 		foreach ($clauses as $clause) {
@@ -552,17 +552,17 @@ function db_get_title() {
 			->fetchObject();
 		$output['status'] = 'Ok';
 		$output['title'] = $record->title;
-	
-	return $output;	
+
+	return $output;
 }
 
 function db_get_document_templates() {
-	
+
 	$result = db_select('crada_document', 'c')
 		->fields('c')
 		->condition('is_master', 1, '=')
 		->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$element = array();
@@ -580,13 +580,13 @@ function db_get_document_templates() {
 function db_get_questions_for_section() {
 	$document_id = intval($_REQUEST['document_id']);
 	$section = $_REQUEST['section'];
-	
+
 	$result = db_select('crada_question', 'c')
 		->fields('c')
 		->condition('document_id', $document_id, '=')
 		->condition('section', $section, '=')
 		->execute();
-	
+
 	//	echo $query;
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -618,7 +618,7 @@ function db_get_questions_for_section() {
 
 function db_get_section_list() {
 	$document_id = intval($_REQUEST['document_id']);
-	
+
 	$query = db_select('crada_document_element', 'c')
 		->fields('c', array('section'))
 		->distinct()
@@ -626,7 +626,7 @@ function db_get_section_list() {
 
 //	die($query);
 	$result = $query->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		array_push($list, $row->section);
@@ -652,7 +652,7 @@ function db_get_section() {
 		->groupBy('document_element_id');
 	$query->addExpression('MAX(document_version)', 'max_ver');
 	$result = $query->execute();
-	
+
 //	$result = db_query(
 //			"SELECT document_element_id, MAX(document_version) AS ver FROM crada_document_element
 //			WHERE document_id = :doc_id AND   section = :section GROUP BY document_element_id",
@@ -663,7 +663,7 @@ function db_get_section() {
 	foreach ($result as $r) {
 		$id = $r->document_element_id;
 		$ver = $r->max_ver;
-		
+
 		$record = db_select('crada_document_element', 'cd')
 			->fields('cd')
 			->condition('document_id', $document_id, '=')
@@ -671,7 +671,7 @@ function db_get_section() {
 			->condition('document_version', $ver, '=')
 			->execute()
 			->fetchObject();
-		
+
 		$element = array();
 
 		$element["id"] = $id;
@@ -702,7 +702,7 @@ function db_get_clause_group($document_id, $q, $a) {
 	->condition('answer_id', $a, '=')
 	->execute()
 	->fetchObject();
-	
+
 	return $record->clause_group_id;
 }
 
@@ -713,7 +713,7 @@ function db_get_clause_ids_from_clause_group($document_id, $cg, $version) {
 	->condition('clause_group_id', $cg, '=')
 	->condition('version', $version, '=')
 	->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		array_push($list, $row->clause_id);
@@ -725,7 +725,7 @@ function db_get_clause_ids_from_clause_group($document_id, $cg, $version) {
 function get_clause_information () {
 	$out = db_get_clause_information(1,0,5,'Multiple Collaborators');
 	if ($out == NULL) return "NO";
-	
+
 	return $out;
 }
 
@@ -739,9 +739,9 @@ function db_get_clause_information($document_id, $version, $clause, $alternate_t
 	->condition('alternate_text_type', $alternate_text_type, '=')
 	->execute()
 	->fetchObject();
-	
+
 	if ($record == NULL) return NULL;
-	
+
 	$clause_info = array();
 	$clause_info['document_id'] = $record->document_id;
 	$clause_info['version'] = $record->document_version;
@@ -759,18 +759,18 @@ function db_get_clause_information($document_id, $version, $clause, $alternate_t
 }
 
 function db_get_definitions_for_clause($document_id, $clause_id) {
-	
+
 	$result = db_select('crada_definition_element_crosslink', 'cd')
 	->fields('cd')
 	->condition('document_id', $document_id, '=')
 	->condition('clause_id', $clause_id, '=')
 	->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		array_push($list, trim($row->term));
 	}
-	return $list;	
+	return $list;
 }
 
 function db_get_demographics() {
@@ -792,7 +792,7 @@ function db_get_demographics() {
 			$r2 = db_select('crada_demographics_pulldown_options', 'cdpo')
 				->fields('cdpo')
 				->condition('document_id', $document_id, '=')
-				->condition('variable', $obj['variable'], '=')			
+				->condition('variable', $obj['variable'], '=')
 				->execute();
 			$obj['pulldown_options'] = array();  //resetting this on each iteration
 			for ($c2 = 0; $row2 = $r2->fetchObject(); $c2++) {
@@ -816,7 +816,7 @@ function db_get_all_definitions() {
 	->fields('cd')
 	->condition('document_id', $document_id, '=')
 	->execute();
-	
+
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$obj = array();
@@ -871,7 +871,7 @@ function db_get_all_documents_info() {
 
 	$query = "SELECT * from crada_document";
 	$result = $conn->query($query);
-	
+
 	$document_list = array();
 	for ($count = 0; $row = $result->fetch_object(); $count++) {
 		$document['id'] = $row->document_id;
@@ -916,12 +916,12 @@ function create_new_document () {
 			if ($subsection == NULL) $subsection = "";
 			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection, $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
 			$output["row"][$i] = $data[$i]['text'];
-			
+
 		}
 
 	  $output["document_id"] = $document_id;
 	  $output["count"] = count($data);
-  
+
   	return $output;
 
 
@@ -954,9 +954,9 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 	  'master_document_id' => $master_document_id,
 	  'demographic_answers' => $demographic_answers
 	))
-	->execute();	
+	->execute();
 	  //'master_document_id' => $master_document_id
-	
+
 	return $nid;
 }
 
@@ -968,7 +968,7 @@ function db_insert_new_version ($document_id, $user) {
 	  'document_id' => $document_id,
 	  'version' => 0,
 	  'updated_by' => $user,
-	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
 	->execute();
 
@@ -977,10 +977,10 @@ function db_insert_new_version ($document_id, $user) {
 	  'document_id' => $document_id,
 	  'version' => 1,
 	  'updated_by' => $user,
-	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
-	->execute();	
-	
+	->execute();
+
 	return $nid;
 }
 
@@ -1002,10 +1002,10 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'survivable' => 0,
 	  'required' => 0,
 	  'updated_by' => $user,
-	  'updated_date' => date("Y-m-d H:i:s", time()), 
+	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
-	->execute();	
-	
+	->execute();
+
 	return $nid;
 }
 
@@ -1015,16 +1015,16 @@ function get_full_document() {
 	$document_id = $_REQUEST['document_id'];
 	$version = $_REQUEST['version'];
 	crada_log("user: $user, document_id: $document_id, version: $version");
-	
+
 	$output['status'] = 'Ok';
 	$output['document'] = db_get_document_info($document_id);
-	$output['filename'] = db_get_filename_for_document($document_id);	
+	$output['filename'] = db_get_filename_for_document($document_id);
 	$output['editable'] = db_is_version_editable($document_id, $version);
 	$output['clauses'] = db_get_document_elements($document_id, $version);
 
 	$output['version'] = $version;
 	return $output;
-	
+
 }
 
 function db_is_version_editable($document_id, $version) {

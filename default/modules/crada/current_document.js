@@ -610,7 +610,7 @@ function get_document_elements_callback(data) {
 
 	//Walk through each clause
 	for (var i=0; i<data.clauses.length; i++) {
-		if (!(data.clauses[i].text == 'silent') ) {
+		if (!(data.clauses[i].text == 'silent')) {
 			if (data.clauses[i].section != current_section) {
 				// Add new section
 				current_section = data.clauses[i].section;
@@ -620,13 +620,14 @@ function get_document_elements_callback(data) {
 			}
 			clause_number++;
 			section_reference = section_number+"-"+clause_number;
-
-			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
-			var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
-			if(annotate_detail.length > 0) {
-				annotate.push(annotate_detail);
-			}
-			annotation_positions.push(position);
+//			if(section_number == 3) { // For testing only
+				var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+				var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
+				if(annotate_detail.length > 0) {
+					annotate.push(annotate_detail);
+				}
+				annotation_positions.push(position);
+//			} //Testing section only
 		}
 	}
 //	documentSections = data;
@@ -714,6 +715,7 @@ function drawAnnotate(annotate, rect) {
 	pub_context.stroke();
 */
 	//Draw arrows
+	/*
 	conf_context.moveTo(15, 0);
 	conf_context.lineTo(10, 50);
 	conf_context.moveTo(10, 173);
@@ -721,16 +723,20 @@ function drawAnnotate(annotate, rect) {
 	conf_context.moveTo(5, 370);
 	conf_context.lineTo(10, 375);
 	conf_context.lineTo(15, 370);
-
+	*/
 	//conf_context.strokeStyle = "red";
 	//conf_context.stroke();
 	//console.log("ANNOTATION POSITION");
 	//console.dir(annotation_positions);
+
 	console.log("ANNOTATE");
 	console.dir(annotate);
 	$.each(annotate, function(key, value) {
 			$.each(value, function(key2, value2) {
-					conf_context.moveTo(canvas_width-1, value2.top - 30 + value2.offset);
+					console.dir(value2);
+					console.log(value2.top);
+					console.log('From ('+(canvas_width-1)+','+(value2.top+ value2.annotate_offset)+') To:(0,'+value2.top+')');
+					conf_context.moveTo(canvas_width-1, value2.top + value2.annotate_offset);
 					conf_context.lineTo(0, value2.top);
 
 			});
@@ -756,6 +762,8 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 	var annotate = [];
 	var annotate_offset = 0;
 	var offset = 45; //ie. Height of annotate.
+	console.log("POSITION");
+	console.dir(position);
 
 	$.each(annotation_types, function(key, annotation_type) {
 		console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
