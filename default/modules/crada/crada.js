@@ -8,6 +8,8 @@ var answers = {};
 var definitions;
 var demographics;
 
+var chosen_subsections;
+
 $(document).ready(function ($) {
 	$("#begin_question_button").click(function() {
 		$("#instructions").hide ();
@@ -29,6 +31,7 @@ $(document).ready(function ($) {
 		$("#questions").fadeIn();
 		get_all_definitions(document_id);
 		advance_progress_bar("questions");
+		identify_subsections();
 		setup_sections();
 	});
 	$("#questions_button").click(function() {
@@ -92,7 +95,7 @@ function display_demographic_questions(data) {
 
 	// Add final questions: Alternate text and Subsections
 	ajax_caller('get_alternate_text_types', {'document_id': document_id}, get_alternate_text_types_callback);
-
+	ajax_caller('get_subsections', {'document_id': document_id}, get_subsections_callback);
 }
 
 function get_alternate_text_types_callback(data) {
@@ -102,6 +105,27 @@ function get_alternate_text_types_callback(data) {
 	}
 
 	$("#demographic-form").append("<BR />Please enter an Alternate Text Type:").append(alternate_text_select);
+}
+
+function get_subsections_callback(data) {
+	var subsection_table = $("<TABLE id='subsection_table' style='width:auto;border-collapse:separate;'>");
+	for (i=0;i<data.subsections.length;i++) {
+		if (data.subsections[i] != "") {
+			subsection_table.append($("<TR name='"+data.subsections[i]+"'>")
+				.append("<TD><LABEL for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL></TD>")
+				.append("<TD><SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT></TD>"));
+		}
+	}
+	$("#demographic-form").append("<P>Which Subsections are applicable to this document:</P>")
+		.append(subsection_table);
+}
+
+// Called when the demograhics advanced button is clicked
+function identify_subsections() {
+	chosen_subsections = new Object();
+	$("#subsection_table").find("TR").each( function () {
+		chosen_subsections[$(this).attr("name")] = $(this).find("SELECT").val();
+	});
 }
 
 function create_demographic_pulldown(demographic) {
@@ -178,7 +202,6 @@ function setup_questions_for_section(i) {
 }
 
 function setup_questions_for_section_callback(data) {
-
 	var display = $("#question_section");
 	display.empty().append("<br />"); //Empty div and add room at top of page
 
@@ -186,6 +209,7 @@ function setup_questions_for_section_callback(data) {
 
 	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
+		if (q[i].subsection != "" && chosen_subsections[q[i].subsection] == "No") continue;  // If the subsection is No skip question
 		if (q[i].text == 'REQUIRED') {
 			answers[q[i].question_id] = 0;  //If the question is == "REQUIRED", skip and set answer to 0
 		} else {
@@ -312,7 +336,7 @@ function setup_document_callback(data) {
 }
 
 function create_new_document_callback(data) {
-	//alert (JSON.stringify(data, null, 2));
+	alert (JSON.stringify(data, null, 2));
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=1";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 
