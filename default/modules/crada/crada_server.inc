@@ -24,6 +24,7 @@ function crada_server() {
 		else if ($action == 'archive_version') $output = archive_version();
 		else if ($action == 'create_word_file') $output = create_word_file();
 		else if ($action == 'get_alternate_text_types') $output = get_alternate_text_types();
+		else if ($action == 'get_subsections') $output = get_subsections();
 		else if ($action == 'get_clause_information') $output = get_clause_information();
 		else if ($action == 'echo') $output = echo_data();
 		
@@ -59,6 +60,26 @@ function get_alternate_text_types() {
     $output["types"] = $list;
 	return $output;
 
+}
+
+function get_subsections() {
+	$document_id = $_REQUEST['document_id'];
+
+  $result = db_select('crada_document_element', 'cd')
+		->fields('cd', array('subsection'))
+		->condition('document_id', $document_id, '=')
+		->distinct()
+		->execute();
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$type = $row->subsection;
+		array_push($list, $type);
+	}
+	$output = array();
+    $output["status"] = "Ok";
+    $output["subsections"] = $list;
+	return $output;
 }
 
 function create_word_file() {
@@ -573,6 +594,7 @@ function db_get_questions_for_section() {
 		$question["question_id"] = $row->question_id;
 		$question["document_id"] = $row->document_id;
 		$question["section"] = $row->section;
+		$question["subsection"] = $row->subsection;
 		$question["predecessor"] = $row->predecessor;
 		$question["text"] = $row->question_text;
 
@@ -890,7 +912,9 @@ function create_new_document () {
 		db_insert_new_version($document_id, $user);
 		//Add elements(i.e. clauses, i.e. sections)
 		for ($i=0;$i<count($data); $i++) {
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
+			$subsection = $data[$i]['subsection'];
+			if ($subsection == NULL) $subsection = "";
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection, $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
 			$output["row"][$i] = $data[$i]['text'];
 			
 		}
@@ -960,13 +984,14 @@ function db_insert_new_version ($document_id, $user) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer, $user) {
+function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer, $user) {
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
 	  'document_version' => 0,
 	  'document_id' => $document_id,
 	  'section' => $section,
+	  'subsection' => $subsection,
 	  'location' => $document_element_id,
 	  'alternate_text_type' => 'default',
 	  'document_element_text' => $text,

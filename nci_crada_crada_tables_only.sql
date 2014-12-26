@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.1.12
+-- version 4.1.6
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 08, 2014 at 03:59 PM
+-- Generation Time: Dec 26, 2014 at 06:07 PM
 -- Server version: 5.6.16
--- PHP Version: 5.5.11
+-- PHP Version: 5.5.9
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `drupal`
+-- Database: `nci_crada`
 --
 
 -- --------------------------------------------------------
@@ -164,12 +164,12 @@ CREATE TABLE IF NOT EXISTS `crada_document` (
 --
 
 DROP TABLE IF EXISTS `crada_document_element`;
-
 CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `document_element_id` int(12) NOT NULL,
   `document_version` int(12) NOT NULL,
   `document_id` int(12) NOT NULL,
   `section` varchar(50) NOT NULL,
+  `subsection` varchar(50) NOT NULL,
   `location` int(4) NOT NULL,
   `alternate_text_type` varchar(50) NOT NULL,
   `document_element_text` longtext NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `crada_document_element` (
   `survivable` tinyint(1) NOT NULL,
   `required` tinyint(1) NOT NULL,
   `source_question` int(12) DEFAULT NULL,
-  `source_answer` int(12) DEFAULT '0',
+  `source_answer` int(12) DEFAULT NULL,
   `answer_changed` tinyint(1) NOT NULL DEFAULT '0',
   `updated_by` varchar(50) NOT NULL,
   `updated_date` datetime NOT NULL,
@@ -206,6 +206,19 @@ CREATE TABLE IF NOT EXISTS `crada_document_version` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `crada_groups`
+--
+
+DROP TABLE IF EXISTS `crada_groups`;
+CREATE TABLE IF NOT EXISTS `crada_groups` (
+  `document_id` int(12) NOT NULL,
+  `group` int(11) NOT NULL,
+  `access` enum('read','write','admin') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `crada_question`
 --
 
@@ -214,6 +227,7 @@ CREATE TABLE IF NOT EXISTS `crada_question` (
   `document_id` int(12) NOT NULL,
   `question_id` int(12) NOT NULL AUTO_INCREMENT,
   `section` varchar(50) NOT NULL,
+  `subsection` varchar(50) NOT NULL,
   `predecessor` int(12) NOT NULL,
   `question_text` text NOT NULL,
   PRIMARY KEY (`question_id`)

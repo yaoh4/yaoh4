@@ -19,6 +19,7 @@ function clean_tables_form($form, &$form_state) {
 
 function clean_tables_form_submit($form, &$form_state) {
     $result = db_truncate('crada_document')->execute();
+    $result = db_truncate('crada_groups')->execute();
     $result = db_truncate('crada_section')->execute();
     $result = db_truncate('crada_document_version')->execute();
     $result = db_truncate('crada_question')->execute();
@@ -29,7 +30,7 @@ function clean_tables_form_submit($form, &$form_state) {
     $result = db_truncate('crada_definition')->execute();
     $result = db_truncate('crada_definition_element_crosslink')->execute();
     $result = db_truncate('crada_clause_group_to_clause')->execute();
-	$result = db_truncate('crada_annotations')->execute();
+		$result = db_truncate('crada_annotations')->execute();
     $result = db_truncate('crada_demographics')->execute();
     $result = db_truncate('crada_demographics_pulldown_options')->execute();
 

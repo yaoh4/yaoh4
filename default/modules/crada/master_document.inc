@@ -249,6 +249,9 @@ function load_line($section, $line) {
 	
 //	drupal_set_message("LINE: " . json_encode($line));
 	
+	$subsection = $line["A"];
+	if ($subsection == null) $subsection = "";
+	// Subsection stuff below is old and may not be needed
 	$new_subsection = false; $new_question = false; $new_answer = false;
 	if ($line["A"] !=  $current_subsection && $line["A"] != "") {
 		$current_subsection = $line["A"];
@@ -301,17 +304,17 @@ function load_line($section, $line) {
 	
 	// We catch the exception above this
 	
-	if ($new_question || $current_answer == "REQUIRED") $question_id = db_insert_crada_question($section, $current_question);
+	if ($new_question || $current_answer == "REQUIRED") $question_id = db_insert_crada_question($section, $subsection, $current_question);
 	drupal_set_message(">>>($question_id):$current_question:A($answer_number_for_question): $current_answer");
 	if ($new_answer || $current_answer == 'REQUIRED') {
 		db_insert_crada_answer($question_id, $answer_number_for_question, $current_answer);
 		$clause_group_id = db_insert_crada_clause_group($section, $current_question, $current_answer);
 		db_insert_crada_valid_clause_group_by_answer($question_id, $answer_number_for_question, $clause_group_id);
-		db_insert_crada_document_element($clause_id, $section, "default", $default_text, $default_confidential_annotation, $default_public_annotation);
+		db_insert_crada_document_element($clause_id, $section, $subsection, "default", $default_text, $default_confidential_annotation, $default_public_annotation);
 		foreach ($alternate_text_array as $a) {
 			if($a['text'] && $a['text'] != "") {
 				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . $a['text'] ."]");
-				db_insert_crada_document_element($clause_id, $section, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation);
+				db_insert_crada_document_element($clause_id, $section, $subsection, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation);
 			}
 		}
 		db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id);
@@ -388,12 +391,13 @@ function db_insert_crada_definition_element_crosslink($clause_id, $term) {
 	drupal_set_message("[$document_id:$clause_id]:$term" );
 }
 
-function db_insert_crada_question($section, $current_question) {
+function db_insert_crada_question($section, $subsection, $current_question) {
 	global $document_id;
 	$question_id = db_insert('crada_question')->fields(array(
 		'document_id' => $document_id,
 		'question_id' => 0,
 		'section' => $section,
+		'subsection' => $subsection,
 		'predecessor' => 0,
 		'question_text' => $current_question
 	))->execute();
@@ -433,7 +437,7 @@ function db_insert_crada_valid_clause_group_by_answer($question_id, $answer_numb
 	drupal_set_message("Adding Valid Clause Group to Answer($question_id:$answer_number): $clause_group_id");
 }
 
-function db_insert_crada_document_element($clause_id, $section, $alternate_type, $text, $confidential_annotation, $public_annotation) {
+function db_insert_crada_document_element($clause_id, $section, $subsection, $alternate_type, $text, $confidential_annotation, $public_annotation) {
 	global $user, $document_id;
 	
 	db_insert('crada_document_element')->fields(array(
@@ -441,6 +445,7 @@ function db_insert_crada_document_element($clause_id, $section, $alternate_type,
 		'document_version' => 0,
 		'document_id' => $document_id,
 		'section' => $section,
+		'subsection' => $subsection,
 		'location' => $clause_id,
 		'alternate_text_type' => $alternate_type,
 		'document_element_text' => $text,
