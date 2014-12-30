@@ -17,13 +17,17 @@ function crada_current_document() {
 		crada_log("user->uid = ". $user->uid);
 		crada_log("user->name = ". $user->name);
 	}
+	if (in_array('editor', $user->roles)) {
+  // do fancy stuff
+		crada_log('User is an administrator');
+	}
 	crada_cookie_save('user', $user_info);
 
 	//dpm($module_path, "Module Path");
 	//crada_log("Now this is cool.");
-    drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
+	drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 	drupal_add_js('sites/all/modules/ckeditor/ckeditor.js', array('cache' => false, 'preprocess' => false));
-	
+
 	$data = "";
 	$data .= "<div id='current_document_container'>";
 	$data .= add_command_bar();
@@ -32,10 +36,9 @@ function crada_current_document() {
 	$data .= "  <DIV id='current_annotation_content'></DIV>";
 	$data .= "</div>";
 
-	$data .= "<div id='change_answer_container' style='display:none;'>";
+	$data .= "<div id='second_page_container' style='display:none;'>";
 	$data .= add_change_answer_bar();
-	$data .= "<p class='change-answer-intro'>Changing a document answer below will immediately replace the appropriate clauses into the current document.</p>";
-	$data .= "<div id='change_answer_questions'></div>";
+	$data .= "<div id='second_page'></div>";
 	$data .= "</div>";
 	$data .= "<div class='both' style='height:15px;'></div>";
 	$data .= "<div id='document_footer' class='both'></div>";
@@ -67,22 +70,6 @@ function crada_log($data, $debug_level=0) {
 function add_command_bar() {
 
 	$data = "<DIV id='command_bar' class='document_toolbar'>";
-/*
-	$data .= '<div class="btn-group open">
-  <a class="btn btn-primary" href="#"><i class="fa fa-user fa-fw"></i> User</a>
-  <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">
-    <span class="fa fa-caret-down"></span></a>
-  <ul class="dropdown-menu">
-    <li><a href="#"><i class="fa fa-pencil fa-fw"></i> Edit</a></li>
-    <li><a href="#"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
-    <li><a href="#"><i class="fa fa-ban fa-fw"></i> Ban</a></li>
-    <li class="divider"></li>
-    <li><a href="#"><i class="i"></i> Make admin</a></li>
-  </ul>
-</div>';
-	$data .= '<a class="btn btn-large btn-danger" href="#">
-  <i class="icon-flag icon-2x pull-left"></i> Font Awesome<br>Version 3.2.1</a>';
-*/
 
 	$data .= "<div id='annotation_selector'>";
 
@@ -97,6 +84,7 @@ function add_command_bar() {
 	$data .= add_button("load_button", "Load", "Load a new document", "fa fa-file");
 	$data .= add_button("archive_version_button", "Archive", "Archive Version", "fa fa-archive");
 	$data .= add_button("change_answer_button", "Change Answer", "Change an answer for this document", "fa fa-edit");
+	$data .= add_button("change_permission_button", "Set Permission", "Set permission for this document", "fa  fa-key");
 //	$data .= '<i class="fa fa-cloud-download fa-2x"></i>';
 //	$data .= '<i class="fa fa-file fa-2x"></i>';
 	$data .= '<span class="download-button-container">';
@@ -107,7 +95,7 @@ function add_command_bar() {
 	$data .= '<button id="download-pdf"  title="Download PDF"><i class="fa fa-file-pdf-o"></i></button>';
 	$data .= '</span>';
 	$data .= "</DIV>";
-	
+
 	return $data;
 }
 
@@ -116,7 +104,7 @@ function add_change_answer_bar() {
 	$data = "<DIV id='change_answer_bar' class='document_toolbar'>";
 	$data .= add_button("back_button_answer", "Back", "Return to document", "pull-right");
 	$data .= "</DIV>";
-	
+
 	return $data;
 }
 

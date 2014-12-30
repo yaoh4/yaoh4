@@ -18,6 +18,7 @@ $(document).ready(function () {
 		downloadDocument("Word");
 	});
 	$("#change_answer_button").click(click_change_answer_button);
+	$("#change_permission_button").click(click_change_permission_button);
 	$("#back_button_answer").click(click_back_button_answer);
 
 	$('#document_select').click(changed_document_id);
@@ -383,7 +384,7 @@ function load_document_version_into_select(data) {
 	var version_name;
 	var version_index = 0;
 	$("#document_version").empty();
-	$.each( documents[document_id].versions, function( key, version_id ) {
+	$.each(documents[document_id].versions, function( key, version_id ) {
 		version_index++;
 		version_name = "v"+version_id;
 		if(version_index == documents[document_id].versions.length)
@@ -405,19 +406,50 @@ function load_document_version_into_select(data) {
 
 function click_back_button_answer() {
 	$('#current_document_container').show();
-	$('#change_answer_container').hide();
+	$('#second_page_container').hide();
+}
+
+function add_spinner(id) {
+	$('#'+id).empty().append('<div></div><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>');
+}
+
+function show_second_page() {
+	$('#current_document_container').hide();
+	$('#second_page_container').show();
+}
+
+function click_change_permission_button() {
+	add_spinner("second_page");
+	show_second_page();
+	ajax_caller("get_answers", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_permission);
+}
+
+function load_change_permission() {
+	var instructions = '<p class="second-page-intro">Set permission for this document.</p>';
+	$('#second_page').empty().append(instructions);
+	$('#second_page').append(
+		$("<form>")
+			.attr('id', 'change-permission')
+	);
+	$('#change-permission').append(
+		$("<h2>")
+			.append('Document Permission')
+			.addClass('current_question')
+	);
+	$('#change-permission').append(
+		$("<hr>")
+	);
+
 }
 
 function click_change_answer_button() {
-	$('#current_document_container').hide();
-	$('#change_answer_container').show();
-	//var document_id = $("#document_select").val();
-//getCookie('Drupal.visitor.document.id')
+	add_spinner("second_page");
+	show_second_page();
 	ajax_caller("get_answers", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_answer);
 }
 
 function load_change_answer(data) {
-	change_answer_questions
+	//change_answer_questions
 
 /*
 	$('#change_answer_questions').empty().append(
@@ -426,7 +458,9 @@ function load_change_answer(data) {
 			.addClass("change-answer-intro")
 	);
 */
-	$('#change_answer_questions').empty().append(
+	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses into the current document.</p>';
+	$('#second_page').empty().append(instructions);
+	$('#second_page').append(
 		$("<form>")
 			.attr('id', 'change-answer')
 	);
@@ -442,7 +476,6 @@ function load_change_answer(data) {
 					.append(value.section)
 					.addClass('current_question')
 			);
-			previous_section = value.section;
 			$('#change-answer').append(
 				$("<hr>")
 			);
@@ -499,7 +532,6 @@ function load_change_answer(data) {
 	});
 
 }
-
 
 function click_archive_version_button () {
 	//alert("Clicked freeze version Button");
@@ -563,9 +595,11 @@ function set_toolbar_buttons(editable) {
 	// Remove buttons if not editable
 	if(editable) {
 		$('#change_answer_button').show();
+		$('#change_permission_button').show();
 		$('#archive_version_button').show();
 	} else {
 		$('#change_answer_button').hide();
+		$('#change_permission_button').hide();
 		$('#archive_version_button').hide();
 	}
 }

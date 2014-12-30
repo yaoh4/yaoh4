@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS `crada_document_version` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `crada_groups`
+-- Table structure for table `crada_document_role`
 --
 
 DROP TABLE IF EXISTS `crada_document_role`;

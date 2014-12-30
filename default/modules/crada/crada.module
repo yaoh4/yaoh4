@@ -14,38 +14,43 @@ function crada_help($section) {
  * Implementation of hook_menu().
  */
 function crada_menu() {
+  global $user;
+  if (in_array('editor', $user->roles)) {
+  // do fancy stuff
+    crada_log('CRADA_MENU User is an administrator.. Change USER MENU below.  Link to people');
+  }
   $items = array();
     $items['crada/new_document'] = array(
-      'path' => 'crada/new_document', 
-      'title' => '', 
-      'page callback' => 'crada_new_document', 
+      'path' => 'crada/new_document',
+      'title' => '',
+      'page callback' => 'crada_new_document',
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'new_document.inc',
     );
     $items['crada/current_document'] = array(
-      'path' => 'crada/load_document', 
-      'title' => '', 
-      'page callback' => 'crada_current_document', 
+      'path' => 'crada/load_document',
+      'title' => '',
+      'page callback' => 'crada_current_document',
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'current_document.inc',
     );
     $items['crada/search_documents'] = array(
-      'path' => 'crada/search_documents', 
-      'title' => '', 
-      'page callback' => 'crada_search_documents', 
+      'path' => 'crada/search_documents',
+      'title' => '',
+      'page callback' => 'crada_search_documents',
 			'access callback' => 'user_access',
 	    'access arguments' => array('build document'),
       'type' => MENU_CALLBACK,
       'file' => 'search_document.inc',
     );
-    
+
     $items['crada/clear_database'] = array(
-		'path' => 'crada/clear_database', 
-		'title' => '', 
+		'path' => 'crada/clear_database',
+		'title' => '',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array('clean_tables_form'),
 		'access callback' => 'user_access',
@@ -54,8 +59,8 @@ function crada_menu() {
 		'file' => 'clean_tables.inc',
     );
     $items['crada/master_document'] = array(
-		'path' => 'crada/master_document', 
-		'title' => '', 
+		'path' => 'crada/master_document',
+		'title' => '',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array('master_document_form'),
 		'access callback' => 'user_access',
@@ -63,10 +68,10 @@ function crada_menu() {
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'master_document.inc',
     );
- 
+
     $items['crada/server'] = array(
-		'path' => 'crada/server', 
-		'title' => '', 
+		'path' => 'crada/server',
+		'title' => '',
 		'page callback' => 'crada_server',
 		'access callback' => TRUE,
 		'type' => MENU_NORMAL_ITEM,
@@ -74,14 +79,14 @@ function crada_menu() {
     );
 
     $items['crada/download_document'] = array(
-    'path' => 'crada/download_document', 
-    'title' => '', 
+    'path' => 'crada/download_document',
+    'title' => '',
     'page callback' => 'download_document',
     'access callback' => TRUE,
     'type' => MENU_NORMAL_ITEM,
     'file' => 'download_document.inc',
     );
-    
+
   return $items;
 }
 
