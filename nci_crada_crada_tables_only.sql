@@ -209,10 +209,10 @@ CREATE TABLE IF NOT EXISTS `crada_document_version` (
 -- Table structure for table `crada_groups`
 --
 
-DROP TABLE IF EXISTS `crada_groups`;
-CREATE TABLE IF NOT EXISTS `crada_groups` (
+DROP TABLE IF EXISTS `crada_document_role`;
+CREATE TABLE IF NOT EXISTS `crada_document_role` (
   `document_id` int(12) NOT NULL,
-  `group` int(11) NOT NULL,
+  `rid` int(11) NOT NULL,
   `access` enum('read','write','admin') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
