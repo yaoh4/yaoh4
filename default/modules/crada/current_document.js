@@ -40,7 +40,12 @@ $(document).ready(function () {
 	});
 
 	$("#change_answer_container").on( "change", "select", function(event) {
+		alert("Change_answer_container");
 		changedAnswer(event);
+	});
+	$("#second_page").on( "change", "select.permission-select", function(event) {
+		changeDocumentPermissions(event);
+		//alert("Got it ");
 	});
 
 	var querystring = getQueryString();
@@ -57,6 +62,17 @@ $(document).ready(function () {
 
 	set_footer();
 });
+
+function changeDocumentPermissions(event) {
+	var ref = event.target.id;
+	var question_id = $("#"+ref).attr('question_id');
+	var answer_id = $("#"+ref).val();
+
+	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_document_permissions', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+
+}
+
 function downloadDocument(document_type) {
 //	console.dir(e);
 //	e.preventDefault();  //stop the browser from following
@@ -480,13 +496,14 @@ function load_change_permission(data) {
 				.append(value.name)
 				.addClass('question-label')
 				.attr('style', 'width:200px;')
-				.attr('for', 'question-'+value.rid)
+				.attr('for', 'permission-'+value.rid)
 			);
 		//Add question SELECT
 		$('#'+key).append(
 			$("<select>")
 				.attr('id', 'permission-'+value.rid)
 				.attr('name', 'permission-'+value.rid)
+				.attr('class', 'permission-select')
 				.attr('question_id', value.rid)
 		);
 		//Add question OPTIONS

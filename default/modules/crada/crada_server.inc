@@ -19,6 +19,7 @@ function crada_server() {
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'get_document_permissions') $output = get_document_permissions();
+		else if ($action == 'set_document_permissions') $output = set_document_permissions();
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
@@ -280,6 +281,7 @@ function db_document_last_element_version($document_id, $document_element_id) {
 return $row->max_document_version;
 
 }
+
 function db_document_element_version_exist($document_id, $document_element_id) {
 	//
 	//  Determine if an document_element exists for the latest version
@@ -299,6 +301,40 @@ return $row->element_exists;
 
 
 }
+
+function set_document_permissions() {
+
+	$output = array();
+	$list = array();
+
+	$document_id = $_REQUEST['document_id'];
+	$rid = $_REQUEST['question_id'];
+	$answer = $_REQUEST['answer_id'];
+
+	crada_log("set_document_permissions");
+	crada_log("document_id = $document_id question_id = $rid answer_id = $answer");
+
+	$query = "INSERT INTO crada_document_role (document_id, rid, access) ";
+	$query .= "VALUES ($document_id, $rid, '$answer') ";
+	$query .= "ON DUPLICATE KEY UPDATE access='$answer' ";
+	crada_log($query);
+
+	$result = db_query($query);
+	crada_log("RESULTS:");
+	crada_log(json_encode($result));
+
+	//$row = $result->fetchObject();
+	//crada_log(json_encode($row));
+
+	$output["status"] = "Ok";
+	crada_log("OUTPUT IS");
+	crada_log(json_encode($output));
+
+
+	return $output;
+
+}
+
 function set_answer_retrieve_new_element() {
 
 	$output = array();
@@ -450,40 +486,18 @@ function set_answer() {
 }
 
 function get_document_permissions() {
-/*
-	SELECT * FROM role r
-LEFT JOIN (select * from crada_document_role where document_id =2) as cdr
-ON r.rid = cdr.rid
-WHERE r.rid > 3
-order by r.rid;
-*/
-	$document_id = $_REQUEST['document_id'];
 
-	crada_log("get_document_permissions");
+	$document_id = $_REQUEST['document_id'];
 
 	$query = "SELECT r.rid, r.name, cdr.access FROM role r ";
 	$query .= "LEFT JOIN (select * from crada_document_role where document_id =$document_id) as cdr ";
 	$query .= "ON r.rid = cdr.rid ";
 	$query .= "WHERE r.rid > 3 ";
 	$query .= "order by r.rid; ";
-	crada_log($query);
-
 
 	$result = db_query($query);
 	$list = $result->fetchAll();
-	/*
-	$list = array();
-	for ($count = 0; $row = $result->fetchObject(); $count++) {
-		$obj = array();
-		$obj['text'] = $row->document_element_text;
-		$obj['section'] = $row->section;
-		$obj['confidential_annotation'] = trim($row->confidential_annotation);
-		$obj['public_annotation'] = trim($row->public_annotation);
-		$obj['document_version'] = $row->document_version;
-		$obj['answer_changed'] = $row->answer_changed;
-		array_push($list, $obj);
-	}
-	*/
+
 	return $list;
 }
 

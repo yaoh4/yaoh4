@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `crada_document` (
   `title` text NOT NULL,
   `master_document_id` int(12) DEFAULT NULL,
   `demographic_answers` text,
+  `uid` int(12) DEFAULT NULL,
   PRIMARY KEY (`document_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
@@ -210,10 +211,11 @@ CREATE TABLE IF NOT EXISTS `crada_document_version` (
 --
 
 DROP TABLE IF EXISTS `crada_document_role`;
-CREATE TABLE IF NOT EXISTS `crada_document_role` (
+CREATE TABLE `crada_document_role` (
   `document_id` int(12) NOT NULL,
-  `rid` int(12) NOT NULL,
-  `access` enum('read','write') NOT NULL
+  `rid` int(11) NOT NULL,
+  `access` enum('','read','write') NOT NULL,
+  PRIMARY KEY (`document_id`,`rid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
