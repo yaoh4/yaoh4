@@ -221,6 +221,11 @@ label, select, button, input[type="button"], input[type="reset"], input[type="su
 	text-align: right;
 }
 
+.question-header {
+  padding-top: 10px;
+  font-weight: bold;
+}
+
 .second-page-intro {
 	margin: 25px 50px;
 	font-weight: bold;

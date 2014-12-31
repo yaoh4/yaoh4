@@ -421,11 +421,11 @@ function show_second_page() {
 function click_change_permission_button() {
 	add_spinner("second_page");
 	show_second_page();
-	ajax_caller("get_answers", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_permission);
+	ajax_caller("get_document_permissions", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_permission);
 }
 
-function load_change_permission() {
-	var instructions = '<p class="second-page-intro">Set permission for this document.</p>';
+function load_change_permission(data) {
+	var instructions = '<p class="second-page-intro">Set group access permissions for document.</p>';
 	$('#second_page').empty().append(instructions);
 	$('#second_page').append(
 		$("<form>")
@@ -433,12 +433,101 @@ function load_change_permission() {
 	);
 	$('#change-permission').append(
 		$("<h2>")
-			.append('Document Permission')
+			.append('Document Group Access Permissions')
 			.addClass('current_question')
 	);
 	$('#change-permission').append(
 		$("<hr>")
 	);
+
+	var permission_answers = ["", "read", "write"];
+	//
+	// Add header
+	//
+	$('#change-permission').append(
+		$('<div>')
+			.attr('id', "question-header")
+	);
+	$('#question-header').append(
+		$("<div>")
+				.append("Group")
+				.addClass('question-label')
+				.addClass('question-header')
+				.attr('style', 'width:200px;')
+	);
+	$('#question-header').append(
+		$("<div>")
+				.append("Access")
+				.addClass('question-label')
+				.addClass('question-header')
+				.attr('style', 'text-align: left;')
+	);
+
+	$('#question-header').append(
+		$("<div>")
+			.addClass('both')
+	);
+	//
+	// Add all groups with selectable access
+	//
+	$.each(data , function( key, value ) {
+		console.dir(value);
+
+		$('#change-permission').append($('<div>').attr('id', key).addClass('form-group'));
+		//Add question LABEL
+		$('#'+key).append(
+			$("<label>")
+				.append(value.name)
+				.addClass('question-label')
+				.attr('style', 'width:200px;')
+				.attr('for', 'question-'+value.rid)
+			);
+		//Add question SELECT
+		$('#'+key).append(
+			$("<select>")
+				.attr('id', 'permission-'+value.rid)
+				.attr('name', 'permission-'+value.rid)
+				.attr('question_id', value.rid)
+		);
+		//Add question OPTIONS
+		for(i=0;permission_answers.length>i;i++) {
+			$('#permission-'+value.rid).append(
+				$('<option>')
+					.append(permission_answers[i])
+					.attr('value', permission_answers[i])
+			);
+		}
+		//
+		//Display answer
+		//
+		/*
+
+		if(value.access == null){
+			$('#'+key).append(
+				$("<span>")
+					.append("answer is null")
+					.css('color', 'red')
+			);
+		} else {
+			$('#'+key).append(
+				$("<span>")
+					.append(value.access)
+			);
+			//Select correct answer
+			$("#permission-"+value.rid).val(value.access).prop('selected', true);
+
+		}
+		*/
+		if(value.access != null) {
+			$("#permission-"+value.rid).val(value.access).prop('selected', true);
+		}
+
+		$('#'+key).append(
+			$("<div>")
+				.addClass('both')
+		);
+
+	});
 
 }
 

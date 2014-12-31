@@ -18,6 +18,7 @@ function crada_server() {
 		else if ($action == 'create_new_document') $output = create_new_document();
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
+		else if ($action == 'get_document_permissions') $output = get_document_permissions();
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
@@ -448,6 +449,44 @@ function set_answer() {
 */
 }
 
+function get_document_permissions() {
+/*
+	SELECT * FROM role r
+LEFT JOIN (select * from crada_document_role where document_id =2) as cdr
+ON r.rid = cdr.rid
+WHERE r.rid > 3
+order by r.rid;
+*/
+	$document_id = $_REQUEST['document_id'];
+
+	crada_log("get_document_permissions");
+
+	$query = "SELECT r.rid, r.name, cdr.access FROM role r ";
+	$query .= "LEFT JOIN (select * from crada_document_role where document_id =$document_id) as cdr ";
+	$query .= "ON r.rid = cdr.rid ";
+	$query .= "WHERE r.rid > 3 ";
+	$query .= "order by r.rid; ";
+	crada_log($query);
+
+
+	$result = db_query($query);
+	$list = $result->fetchAll();
+	/*
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['text'] = $row->document_element_text;
+		$obj['section'] = $row->section;
+		$obj['confidential_annotation'] = trim($row->confidential_annotation);
+		$obj['public_annotation'] = trim($row->public_annotation);
+		$obj['document_version'] = $row->document_version;
+		$obj['answer_changed'] = $row->answer_changed;
+		array_push($list, $obj);
+	}
+	*/
+	return $list;
+}
+
 function get_answers() {
 	//$document_id = intval($_REQUEST['document_id']);
 	//
@@ -501,6 +540,7 @@ function get_answers() {
     $output["questions"] = $list;
 	return $output;
 }
+
 function get_clauses_from_answers() {
 	$document_id = $_REQUEST['document_id'];
 	$answers = json_decode($_REQUEST['answers']);
