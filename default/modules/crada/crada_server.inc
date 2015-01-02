@@ -1,6 +1,25 @@
 <?php
 require_once 'crada_utilities.inc';
 
+
+	global $user;
+	crada_log(print_r($user, true));
+	if (!isset($user->uid)) {
+		//user is not logged in
+		crada_log("User is not logged in (crada_server)");
+		$user_info = array("uid"=>0, "name"=>"unknown");
+	} else {
+		crada_log("User is logged in (crada_server)");
+		$user_info = array("id"=> $user->uid,"name"=> $user->name);
+		crada_log("user->uid = ". $user->uid);
+		crada_log("user->name = ". $user->name);
+	}
+
+	if (in_array('administrator', $user->roles)) {
+  // do fancy stuff
+		crada_log('User is an ADMINISTRATOR');
+	}
+
 function crada_server() {
 	$action = $_REQUEST['action'];
 
@@ -20,6 +39,8 @@ function crada_server() {
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'get_document_permissions') $output = get_document_permissions();
 		else if ($action == 'set_document_permissions') $output = set_document_permissions();
+		else if ($action == 'get_document_owners') $output = get_document_owners();
+		else if ($action == 'set_document_owner') $output = set_document_owner();
 		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
@@ -43,6 +64,24 @@ function crada_server() {
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
 }
+
+function get_document_owners() {
+
+	$document_id = $_REQUEST['document_id'];
+
+
+	$query = "SELECT uid, name, mail FROM users WHERE uid > 1 ORDER BY mail ";
+	$result = db_query($query);
+	$list["users"] = $result->fetchAll();
+
+	$query = "SELECT uid FROM crada_document WHERE document_id = $document_id ";
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	$list["current_document_owner_uid"] = $row->uid;
+
+	return $list;
+}
+
 function get_alternate_text_types() {
 	$document_id = $_REQUEST['document_id'];
 
@@ -1074,6 +1113,7 @@ function get_full_document() {
 	$output['document'] = db_get_document_info($document_id);
 	$output['filename'] = db_get_filename_for_document($document_id);
 	$output['editable'] = db_is_version_editable($document_id, $version);
+	//$output['user_editable'] = db_is_document_user_editable($document_id, $version); // Determine if user can edit
 	$output['clauses'] = db_get_document_elements($document_id, $version);
 
 	$output['version'] = $version;
