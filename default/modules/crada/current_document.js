@@ -354,6 +354,7 @@ function create_dialogs() {
 function click_load_button () {
 	$("#load_dialog").dialog("open");
 	// Need to call into database to pull back the documents, then versions
+
 	ajax_caller("get_all_documents_info", null, load_document_info_into_select);
 
 }
@@ -546,6 +547,89 @@ function load_change_permission(data) {
 
 	});
 
+	// Add Document Owner Section
+	ajax_caller("get_document_owners", {'document_id':getCookie('Drupal.visitor.document.id')}, load_change_owner);
+
+}
+
+function load_change_owner(data) {
+
+	$('#change-permission').append(
+		$("<h2>")
+			.append('Document Owner')
+			.addClass('current_question')
+	);
+	$('#change-permission').append(
+		$("<hr>")
+	);
+
+	var key = "document_owner";
+
+	console.log("CHANGE_OWNER data");
+	console.dir(data);
+
+		$('#change-permission')
+			.append($('<div>')
+			.attr('id', key)
+			.addClass('form-group')
+			.attr('style', 'padding-top:25px;padding-bottom:150px;')
+
+		);
+		//Add question LABEL
+		$('#'+key).append(
+			$("<label>")
+				.append("Current Document Owner")
+				.addClass('question-label')
+				.attr('style', 'width:200px;')
+				.attr('for', 'current-owner')
+			);
+		//Add question SELECT
+		$('#'+key).append(
+			$("<select>")
+				.attr('id', 'current-owner-select')
+				.attr('name', 'current-owner')
+				.attr('class', 'current-owner-select')
+		);
+		//Add question OPTIONS
+
+		for(i=0;data.users.length>i;i++) {
+			$('#current-owner-select').append(
+				$('<option>')
+					.append(data.users[i].name+' ('+data.users[i].mail+')'
+						)
+					.attr('value', data.users[i].uid)
+			);
+		}
+		//
+		//Display answer
+		//
+		/*
+		if(data.current_document_owner_uid == null){
+			$('#'+key).append(
+				$("<span>")
+					.append("answer is null")
+					.css('color', 'red')
+			);
+		} else {
+			$('#'+key).append(
+				$("<span>")
+					.append(data.current_document_owner_uid)
+			);
+			//Select correct answer
+			$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
+
+		}
+		*/
+		
+		if(data.current_document_owner_uid != null) {
+			$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
+		}
+
+		$('#'+key).append(
+			$("<div>")
+				.addClass('both')
+		);
+
 }
 
 function click_change_answer_button() {
@@ -636,6 +720,7 @@ function load_change_answer(data) {
 		);
 
 	});
+
 
 }
 

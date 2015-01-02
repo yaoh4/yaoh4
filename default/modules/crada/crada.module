@@ -15,7 +15,7 @@ function crada_help($section) {
  */
 function crada_menu() {
   global $user;
-  if (in_array('editor', $user->roles)) {
+  if (in_array('administrator', $user->roles)) {
   // do fancy stuff
     crada_log('CRADA_MENU User is an administrator.. Change USER MENU below.  Link to people');
   }
