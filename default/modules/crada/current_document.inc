@@ -1,5 +1,7 @@
 <?php
 
+require_once 'crada_utilities.inc';
+
 function crada_current_document() {
 	$module_path = drupal_get_path('module', 'crada');
 	drupal_add_library('system','ui.dialog');
@@ -45,7 +47,7 @@ function crada_current_document() {
 
  	return $data;
 }
-
+/*
 function crada_log($data, $debug_level=0) {
 
 	$filename = "/tmp/crada.log";
@@ -66,7 +68,7 @@ function crada_log($data, $debug_level=0) {
 	}
 
 }
-
+*/
 function add_command_bar() {
 
 	$data = "<DIV id='command_bar' class='document_toolbar'>";

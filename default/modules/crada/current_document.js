@@ -47,6 +47,10 @@ $(document).ready(function () {
 		changeDocumentPermissions(event);
 		//alert("Got it ");
 	});
+	$("#second_page").on( "change", "select.current-owner-select", function(event) {
+		changeDocumentOwner(event);
+		alert("Got it ");
+	});
 
 	var querystring = getQueryString();
 	if (querystring["action"] == 'Load') {
@@ -66,6 +70,15 @@ $(document).ready(function () {
 function changeDocumentPermissions(event) {
 	var ref = event.target.id;
 	var question_id = $("#"+ref).attr('question_id');
+	var answer_id = $("#"+ref).val();
+
+	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_document_permissions', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+
+}
+
+function changeDocumentOwner(event) {
+	var ref = event.target.id;
 	var answer_id = $("#"+ref).val();
 
 	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);

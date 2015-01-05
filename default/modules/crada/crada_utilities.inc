@@ -10,7 +10,7 @@
 
 function crada_log($data, $debug_level=0) {
 
-	$filename = "/tmp/crada.log";
+	$filename = "/local/drupal/logs/crada.log";
 	$timestamp = date("Y-m-d H:i:s", time());
 	$output = $timestamp . " " . $data ;
 
