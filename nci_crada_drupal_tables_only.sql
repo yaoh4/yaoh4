@@ -2474,9 +2474,9 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 INSERT INTO `users` (`uid`, `name`, `pass`, `mail`, `theme`, `signature`, `signature_format`, `created`, `access`, `login`, `status`, `timezone`, `language`, `picture`, `init`, `data`) VALUES
 (0, '', '', '', '', '', NULL, 0, 0, 0, 0, NULL, '', 0, '', NULL),
-(1, 'breml', '$S$DKZVVFU9JnnKyGg2/zdHA4mjNTCoL4IyqkVZ8B8VUOv2U3Mr.3.C', 'breml@mail.nih.gov', '', '', NULL, 1407341583, 1409854787, 1409854398, 1, 'America/New_York', '', 0, 'breml@mail.nih.gov', 0x623a303b),
-(14, 'test-admin', '$S$DosqIjVOxpv1Y1HViMFnk9K6NV8kANJtkbQh/WTbDDc8iOrmdKsk', 'test@localhost.com', '', '', 'plain_text', 1409847584, 1409854267, 1409854267, 1, 'America/New_York', '', 0, 'test@localhost.com', 0x623a303b),
-(15, 'test-user', '$S$DyqSuk9rRk9WxzHXV2Sg3fkW.M7wjM9nHpJmTM17yC06dL5u.uUB', 'test@locahost.com', '', '', 'plain_text', 1409854227, 1409854244, 1409854244, 1, 'America/New_York', '', 0, 'test@locahost.com', NULL);
+(1, 'admin', '$DhOFQ0A1RVMSUc4NJZrhFHcUIlB27S82cci6CIMOCitMxi3Hu0h3 ', 'breml@mail.nih.gov', '', '', NULL, 1407341583, 1409854787, 1409854398, 1, 'America/New_York', '', 0, 'breml@mail.nih.gov', 0x623a303b),
+(2, 'test-admin', '$S$DosqIjVOxpv1Y1HViMFnk9K6NV8kANJtkbQh/WTbDDc8iOrmdKsk', 'test@localhost.com', '', '', 'plain_text', 1409847584, 1409854267, 1409854267, 1, 'America/New_York', '', 0, 'test@localhost.com', 0x623a303b),
+(3, 'test-user', '$S$DyqSuk9rRk9WxzHXV2Sg3fkW.M7wjM9nHpJmTM17yC06dL5u.uUB', 'test@locahost.com', '', '', 'plain_text', 1409854227, 1409854244, 1409854244, 1, 'America/New_York', '', 0, 'test@locahost.com', NULL);
 
 -- --------------------------------------------------------
 
@@ -2496,7 +2496,7 @@ CREATE TABLE IF NOT EXISTS `users_roles` (
 --
 
 INSERT INTO `users_roles` (`uid`, `rid`) VALUES
-(14, 3);
+(2, 3);
 
 -- --------------------------------------------------------
 
