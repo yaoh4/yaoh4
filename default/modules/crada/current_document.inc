@@ -34,7 +34,9 @@ function crada_current_document() {
 	$data .= "<div id='current_document_container'>";
 	$data .= add_command_bar();
 	$data .= add_load_dialog();
-	$data .= "  <DIV id='current_document_content'></DIV>";
+	$data .= "  <DIV id='current_document_content'>";
+  $data .= '    <div></div><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-2x"></i></p>';
+  $data .= "  </DIV>";
 	$data .= "  <DIV id='current_annotation_content'></DIV>";
 	$data .= "</div>";
 

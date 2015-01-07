@@ -359,7 +359,7 @@ function create_dialogs() {
 		position:['middle',100],
 		autoOpen: false,
 		height:'auto',
-		width:[300],
+		width:[350],
 		modal: true
 	});
 }
@@ -455,7 +455,7 @@ function click_change_permission_button() {
 }
 
 function load_change_permission(data) {
-	var instructions = '<p class="second-page-intro">Set group access permissions for document.</p>';
+	var instructions = '<p class="second-page-intro">Set document permissions.</p>';
 	$('#second_page').empty().append(instructions);
 	$('#second_page').append(
 		$("<form>")
@@ -463,7 +463,7 @@ function load_change_permission(data) {
 	);
 	$('#change-permission').append(
 		$("<h2>")
-			.append('Document Group Access Permissions')
+			.append('Document Role Access Permissions')
 			.addClass('current_question')
 	);
 	$('#change-permission').append(
@@ -480,7 +480,7 @@ function load_change_permission(data) {
 	);
 	$('#question-header').append(
 		$("<div>")
-				.append("Group")
+				.append("Role")
 				.addClass('question-label')
 				.addClass('question-header')
 				.attr('style', 'width:200px;')
@@ -809,9 +809,21 @@ function set_toolbar_buttons(editable) {
 }
 
 function get_document_elements_callback(data) {
-//	alert (JSON.stringify(data, null, 2));
 	console.log("get_document_elements_callback");
+  //alert (JSON.stringify(data, null, 2));
+
 	set_toolbar_buttons(data.editable);
+  if(data.access == 'none') {
+    // No document access.
+    $("#current_document_content")
+      .empty()
+      .append(
+          $('<div>')
+            .append('You are not authorized to access this page.')
+
+    );  
+    return;
+  }  
 //	console.dir(data);
 	//Clear document content
 	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));

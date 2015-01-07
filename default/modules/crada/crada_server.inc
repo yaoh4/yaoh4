@@ -1125,23 +1125,100 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 }
 
 function get_full_document() {
+  //
+  //Make sure user is authorized to view document...
+  //
+	global $user;
+  //
+  //Make sure user is authorized to view or edit this document.
+  //
+  // Administrators and Document Owners can always edit.
+  // Have to make sure to Lock document by making it not active...
+  //
 
-	$user = $_REQUEST['user'];
 	$document_id = $_REQUEST['document_id'];
 	$version = $_REQUEST['version'];
-	crada_log("user: $user, document_id: $document_id, version: $version");
+  // If $version is not a number then go get the current version
+	crada_log("user: {$user->uid}, document_id: $document_id, version: $version");
 
 	$output['status'] = 'Ok';
 	$output['document'] = db_get_document_info($document_id);
+  // If $version is not a number then go get the current version
+  if(!is_numeric($version)) {
+  	$version = $output['document']['current_version'];
+  	crada_log("SETTING TO LATEST VERSION $version");
+  }
+  //
+  //Check if user has access to this document.
+  //
+  $output['access'] = db_get_document_access($document_id, $user->uid);
+  if($output['access'] == "none") {
+  	//
+  	//  User does not have access to document.
+  	//  Exit without sending document details.
+  	//
+  	return $output;
+  }
+
 	$output['filename'] = db_get_filename_for_document($document_id);
 	$output['editable'] = db_is_version_editable($document_id, $version);
-	//$output['user_editable'] = db_is_document_user_editable($document_id, $version); // Determine if user can edit
+	//
+	// Lock document... make it uneditable if user only has read access.
+	//
+  if($output['access'] == "read") {
+		$output['editable'] = 0;
+  }
+
+  $output['version'] = $version;
+  crada_log(json_encode($output));
+
 	$output['clauses'] = db_get_document_elements($document_id, $version);
 
-	$output['version'] = $version;
 	return $output;
 
 }
+
+function db_get_document_access($document_id, $uid) {
+	//
+	//$access can be read, write, or none
+	//
+	$access = "none";
+	//
+	//  Get max_access user has any for this document
+	//
+	$query = "select max(cdr.access) as max_access from crada_document_role cdr, users_roles ur  
+where cdr.rid = ur.rid
+and cdr.access <> ''
+and ur.uid = $uid
+and cdr.document_id = $document_id;";
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	if ($row->max_access != null) {
+		$access = $row->max_access;
+	}
+	//
+	// if user is document owner give write access
+	//
+	$query = "SELECT uid FROM crada_document where document_id =$document_id";
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	if ($row->uid == $uid) {
+		crada_log('User is document owner');
+		$access = 'write';
+	}
+
+	//
+	// if user is an administrator give write access
+	//
+	if (in_array('editor', $user->roles)) {
+		crada_log('User is an administrator');
+		$access = 'write';
+	}
+
+	return $access;
+
+}
+
 
 function db_is_version_editable($document_id, $version) {
 
@@ -1166,11 +1243,21 @@ function db_get_document_info($document_id) {
 	->condition('document_id', $document_id, '=')
 	->execute()
 	->fetchObject();
-	file_put_contents ( "crada_debug.txt" , "You just got db_get_title_for_document", FILE_APPEND);
+	crada_log("You just got db_get_title_for_document");
+
 	$output['title'] = $record->title;
 	$output['filename'] = $record->document_name;
+  $output['uid'] = $record->uid;
+  //
+  // Get current version for this document
+  //
+	$query = "SELECT max(version) as current_version FROM crada_document_version where document_id =$document_id";
+	$result = db_query($query);
 
-	return $output;
+	$row = $result->fetchObject();
+	$output['current_version'] = $row->current_version;
+
+  return $output;
 }
 
 function db_get_filename_for_document($document_id) {
