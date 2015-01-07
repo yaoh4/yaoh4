@@ -3,7 +3,7 @@ require_once 'crada_utilities.inc';
 
 
 	global $user;
-	crada_log(print_r($user, true));
+	//crada_log(print_r($user, true));
 	if (!isset($user->uid)) {
 		//user is not logged in
 		crada_log("User is not logged in (crada_server)");
@@ -226,8 +226,6 @@ function archive_version() {
 	$output["version"] = $next_version;
 	crada_log("OUTPUT IS");
 	crada_log(json_encode($output));
-
-
 	return $output;
 }
 
@@ -250,7 +248,7 @@ function save_element() {
 		$query = "insert into crada_document_element  ";
 		$query .= "(select ";
 		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
-		$query .= "cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
+		$query .= "cde2.subsection, cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
 		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
 		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
 		$query .= "cde2.updated_by, cde2.updated_date ";
@@ -262,40 +260,44 @@ function save_element() {
 		crada_log($query);
 		$result=db_query($query);
 		crada_log("RESULTS:");
-		crada_log(json_encode($result));
-
+		//crada_log(json_encode($result));
 		$row = $result->fetchObject();
 		crada_log(json_encode($row));
+
 	}
 	//Update text and remove changed_answer
-/*
-update crada_document_element
-set
-document_element_text= '<strong>Principal Investigator</strong>: <strong>undefined</strong>',
-answer_changed= 0,
-updated_by= 'admin',
-updated_date = '2014-10-07 11:41:48'
-where document_id = 2 and document_element_id = 0 and document_version = 2;
-*/
+  global $user;
+
 	crada_log("UPDATE ELEMENT");
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$_REQUEST['column_text']}',  ";
 	$query .= "answer_changed = {$_REQUEST['answer_changed']}, ";
-	$query .= "updated_by= '{$_REQUEST['updated_by']}', ";
+	$query .= "updated_by= '{$user->uid}', ";
 	$query .= "updated_date = '".date('Y-m-d H:i:s', time())."' ";
 	$query .= "where document_id = $document_id and ";
 	$query .= "document_element_id = $document_element_id and ";
 	$query .= "document_version = $current_document_version;";
 	crada_log($query);
+
 	$result = db_query($query);
+
 	crada_log("UPDATE ELEMENT RESULTS:");
+
 	crada_log(json_encode($result));
 
-	$row = $result->fetchObject();
-	crada_log(json_encode($row));
+  //
+  //Increment modified from crada_document.  This automatically updates the updated date.
+  $query = 'UPDATE crada_document ';
+  $query .= 'SET modified = modified+1 ';
+  $query .= "WHERE document_id = $document_id ";
+  crada_log("UPDATE CRADA_DOCUMENT  ");
+  crada_log($query);
+
+  $result=db_query($query);
 
 }
+
 function db_current_document_version($document_id) {
 	$query = "SELECT max(version) as current_document_version FROM crada_document_version ";
 	$query .= " where document_id=$document_id;";
@@ -330,6 +332,7 @@ function db_document_element_version_exist($document_id, $document_element_id) {
 	$query .= " where document_element_id =$document_element_id and document_id=$document_id) cde, ";
 	$query .= "(SELECT max(version) as max_version from  crada_document_version ";
 	$query .= " where document_id = $document_id) cdv;";
+  crada_log("Determine if a document_element exists for the latest version");
 	crada_log($query);
 	$result=db_query($query);
 
@@ -1032,12 +1035,16 @@ function create_new_document () {
 }
 
 function db_insert_new_document ($name, $title, $master_document_id, $demographic_answers) {
-  	crada_log("***We are in db_insert_new_document");
+  global $user;
+  crada_log("***We are in db_insert_new_document");
+
 
 	crada_log("db_insert_new_document");
 	crada_log("name =$name, $master_document_id = $master_document_id");
 	crada_log("**************************** DEMOGRAPHIC_ANSWERS");
 	crada_log("demographic_answers = $demographic_answers");
+  crada_log("GLOBAL uid");
+  crada_log($user->uid);
 
 	$nid = db_insert('crada_document')
 	->fields(array(
@@ -1045,10 +1052,23 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 	  'document_name' => $name,
 	  'title' => $title,
 	  'master_document_id' => $master_document_id,
-	  'demographic_answers' => $demographic_answers
-	))
-	->execute();
+	  'demographic_answers' => $demographic_answers,
+    'status' => 1,
+    'uid' => $user->uid
+	))->execute();
 	  //'master_document_id' => $master_document_id
+  crada_log($nid);
+  //
+  //Grant administrator role write access to document
+  //
+  $administrator_rid = 3;
+  $nid = db_insert('crada_document_role')
+  ->fields(array(
+    'document_id' => $nid,
+    'rid' => $administrator_rid,
+    'access' => 'write'
+  ))->execute();
+
 
 	return $nid;
 }
@@ -1056,11 +1076,13 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 function db_insert_new_version ($document_id, $user) {
 	// All new documents will have a version 0 and 1.
 	// Version 0 represents the initial state of the document while all new edits will be saved under version1
+  global $user;
+
 	$nid = db_insert('crada_document_version') // Table name no longer needs {}
 	->fields(array(
 	  'document_id' => $document_id,
 	  'version' => 0,
-	  'updated_by' => $user,
+	  'updated_by' => $user->uid,
 	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
 	->execute();
@@ -1069,7 +1091,7 @@ function db_insert_new_version ($document_id, $user) {
 	->fields(array(
 	  'document_id' => $document_id,
 	  'version' => 1,
-	  'updated_by' => $user,
+	  'updated_by' =>  $user->uid,
 	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
 	->execute();

@@ -1,4 +1,9 @@
 <?php
+
+function crada_list_documents() {
+  return "Hello";
+}
+
 function crada_search_documents() {
 
  $html = '<table class="sticky-enabled table-select-processed tableheader-processed sticky-table">
@@ -8,7 +13,8 @@ function crada_search_documents() {
   <th>Status</th>
   <th>Roles</th>
   <th>Created</th>
-  <th>Last edited</th>
+  <th>Last Updated</th>
+  <th>Document Owner</th>
   <th>Operations</th>
  </tr>
 </thead>
