@@ -38,6 +38,15 @@ function crada_menu() {
       'type' => MENU_CALLBACK,
       'file' => 'current_document.inc',
     );
+    $items['crada/list_documents'] = array(
+      'path' => 'crada/list_documents',
+      'title' => '',
+      'page callback' => 'crada_list_documents',
+      'access callback' => 'user_access',
+      'access arguments' => array('build document'),
+      'type' => MENU_CALLBACK,
+      'file' => 'list_documents.inc',
+    );
     $items['crada/search_documents'] = array(
       'path' => 'crada/search_documents',
       'title' => '',
