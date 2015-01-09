@@ -236,23 +236,38 @@ function archive_version() {
 }
 
 function save_element() {
-	crada_log("Hello");
+	crada_log('save_element- Starting to save crada_document_element');
+	crada_log("Alternate Text Type needs to be 'current' for DOCUMENTS ");
+	crada_log('save_element- PRIMARY KEY (`document_element_id`,`document_version`,`document_id`,`alternate_text_type`),');
+
+	$alternate_text_type = 'current';
+
 	$document_id = $_REQUEST['document_id'];
 	$document_element_id = $_REQUEST['document_element_id'];
 	crada_log("*** save_element");
 	crada_log("REQUEST is ...");
 	crada_log(serialize($_REQUEST));
-	crada_log("document_element_id = $document_element_id");
 	//Get current version
 	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
 	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
 	$current_document_version = db_current_document_version($document_id, $document_element_id);
-	crada_log("element_exists = $element_exists, last_ element_version = $last_element_version, current_document_version = $current_document_version");
+	crada_log('save_element- Does element exists?');
+	crada_log("save_element- element_exists = $element_exists");
+	crada_log("save_element- last_ element_version = $last_element_version");
+
+	crada_log("save_element- key- document_element_id = $document_element_id");
+	crada_log("save_element- key- current_document_version = $current_document_version");
+	crada_log("save_element- key- document_id = $document_id");
+	crada_log("save_element- key- alternate_text_type = $alternate_text_type");
+
 	if(!$element_exists) {
+		crada_log("save_element- HERE IS WHERE THE TROUBLE BEGINS...");
 		//Insert a new element
 		crada_log("INSERT ELEMENT.  Make new copy of the last element version to the current document version.");
-
-		$query = "insert into crada_document_element  ";
+//
+//  THIS IS THE ERROR.....
+//
+		$query = "insert ignore into crada_document_element  ";
 		$query .= "(select ";
 		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
 		$query .= "cde2.subsection, cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
@@ -263,19 +278,31 @@ function save_element() {
 		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
 		$query .= "document_id = $document_id and document_element_id = $document_element_id) cde1 ";
 		$query .= "where cde2.document_id = $document_id and cde2.document_element_id = $document_element_id ";
+		$query .= "and cde2.alternate_text_type = '$alternate_text_type' ";
 		$query .= "and cde2.document_version = cde1.latest_document_version);";
 		crada_log($query);
+		crada_log("Not executing above");
+		try {
+			$result=db_query($query);
+		} catch (Exception $e) {
+			//
+			// I don't know why this is throwing a general MYSQL error.  But ignoring becasue it works.
+			// This started happening after the PRIMARY KEY was expanded to include alternate_text_type
+			crada_log("save_element- Ignore this exception");
+			crada_log_sql_error($e);
+		}
+
+		/*
 		$result=db_query($query);
 		crada_log("RESULTS:");
 		//crada_log(json_encode($result));
 		$row = $result->fetchObject();
 		crada_log(json_encode($row));
-
+		*/
 	}
 	//Update text and remove changed_answer
   global $user;
-  crada_log("Got here");
-	crada_log("UPDATE ELEMENT");
+
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$_REQUEST['column_text']}',  ";
@@ -295,13 +322,20 @@ function save_element() {
 
   //
   //Increment modified from crada_document.  This automatically updates the updated date.
+  //
   $query = 'UPDATE crada_document ';
-  $query .= 'SET modified = modified+1 ';
+  $query .= 'SET modified = modified+1, ';
+  $query .= 'updated = now() ';
   $query .= "WHERE document_id = $document_id ";
   crada_log("UPDATE CRADA_DOCUMENT  ");
   crada_log($query);
 
   $result=db_query($query);
+
+	$output["status"] = "Ok";
+	crada_log(json_encode($output));
+
+	return $output;
 
 }
 
@@ -317,16 +351,18 @@ function db_current_document_version($document_id) {
 }
 
 function db_document_last_element_version($document_id, $document_element_id) {
+	crada_log("last_element_version- ");
+
 	$query = "SELECT max(document_version) as max_document_version FROM crada_document_element ";
 	$query .= " where document_element_id =$document_element_id and document_id=$document_id;";
 	crada_log($query);
 	$result=db_query($query);
 
 	$row = $result->fetchObject();
-	crada_log(json_encode($row));
+	crada_log("last_element_version- "+json_encode($row));
+	crada_log("last_element_version- max_document_version = {$row->max_document_version}");
 
-
-return $row->max_document_version;
+	return $row->max_document_version;
 
 }
 
@@ -334,6 +370,8 @@ function db_document_element_version_exist($document_id, $document_element_id) {
 	//
 	//  Determine if an document_element exists for the latest version
 	//
+	crada_log("version_exist- Determine if an document_element exists for the latest version");
+
 	$query = "SELECT IF(cde.max_document_version  = cdv.max_version, true ,false) as element_exists FROM ";
 	$query .= "(SELECT max(document_version) as max_document_version FROM crada_document_element ";
 	$query .= " where document_element_id =$document_element_id and document_id=$document_id) cde, ";
@@ -345,10 +383,9 @@ function db_document_element_version_exist($document_id, $document_element_id) {
 
 	$row = $result->fetchObject();
 	crada_log(json_encode($row));
+	crada_log("version_exist- Element exists: {$row->element_exists}");
 
-return $row->element_exists;
-
-
+	return $row->element_exists;
 }
 
 function set_document_permissions() {
@@ -938,6 +975,40 @@ function db_get_all_definitions() {
 
 function db_get_all_documents_info() {
 
+//
+// REWRITE THIS SO USER CAN ONLY SEE THEIR DOCUMENTS
+//
+	global $user;
+
+	$query = "select * from ";
+	$query .= "( ";
+	$query .= "select docs.*, cdv.version FROM ";
+	$query .= "crada_document_version cdv,  ";
+	$query .= "(SELECT distinct(cd.document_id), cd.title, cd.is_master ";
+	$query .= "FROM users_roles ur, crada_document_role cdr, crada_document cd ";
+	$query .= "where ur.uid = {$user->uid}  ";
+	$query .= "and ur.rid = cdr.rid ";
+	$query .= "and cdr.document_id = cd.document_id ";
+	$query .= "and cd.uid <> {$user->uid} ";
+	$query .= "UNION ";
+	$query .= "SELECT document_id, title, is_master from crada_document where uid = 1 ";
+	$query .= ") as docs  ";
+	$query .= "where  ";
+	$query .= "docs.is_master = 0 ";
+	$query .= "and docs.document_id = cdv.document_id ";
+	$query .= "order by docs.title, cdv.version desc ";
+	$query .= ") as doc_version ";
+	$query .= "group by document_id; ";
+
+	$output = array();
+	$result = db_query($query);
+
+	$output["status"] = "Ok";
+	$output["documents"] = $result->fetchAll();
+
+	return $output;
+
+/*
 	$result = db_select('crada_document', 'cd')
 	->fields('cd')
 	->condition('is_master', 1, '!=')
@@ -962,12 +1033,8 @@ function db_get_all_documents_info() {
 
 		$list[$row->document_id] = $obj;
 	}
-	$output = array();
-    $output["status"] = "Ok";
-    $output["documents"] = $list;
-
-	return $output;
-
+*/	
+/*
 
 	global $conn;
 
@@ -982,6 +1049,7 @@ function db_get_all_documents_info() {
 		array_push($document_list, $document);
 	}
 	return $document_list;
+	*/
 }
 
 function create_new_document () {
@@ -1107,6 +1175,7 @@ function db_insert_new_version($document_id) {
 }
 
 function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer) {
+
 	global $user;
 
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
@@ -1117,7 +1186,7 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'section' => $section,
 	  'subsection' => $subsection,
 	  'location' => $document_element_id,
-	  'alternate_text_type' => 'default',
+	  'alternate_text_type' => 'current',
 	  'document_element_text' => $text,
 	  'confidential_annotation' => $confidential_annotation,
 	  'public_annotation' => $public_annotation,
@@ -1168,8 +1237,6 @@ function get_full_document() {
   	//
   	return $output;
   }
-
-	$output['filename'] = db_get_filename_for_document($document_id);
 	$output['editable'] = db_is_version_editable($document_id, $version);
 	//
 	// Lock document... make it uneditable if user only has read access.
@@ -1245,6 +1312,8 @@ function db_is_version_editable($document_id, $version) {
 }
 
 function db_get_document_info($document_id) {
+	crada_log("get_document_info- HERE WE GO");
+
 	$output = array();
 
 	$record = db_select('crada_document', 'cd')
@@ -1255,7 +1324,6 @@ function db_get_document_info($document_id) {
 	crada_log("You just got db_get_title_for_document");
 
 	$output['title'] = $record->title;
-	$output['filename'] = $record->document_name;
   $output['uid'] = $record->uid;
   //
   // Get current version for this document
@@ -1269,17 +1337,6 @@ function db_get_document_info($document_id) {
 	crada_log(json_encode($output));
 
   return $output;
-}
-
-function db_get_filename_for_document($document_id) {
-
-	$record = db_select('crada_document', 'cd')
-	->fields('cd')
-	->condition('document_id', $document_id, '=')
-	->execute()
-	->fetchObject();
-
-	return $record->title;
 }
 
 function db_get_document_elements ($document_id, $version) {

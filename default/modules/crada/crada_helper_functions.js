@@ -13,6 +13,13 @@ function ajax_caller (action, arguments, callback, type) {
     });
 }
 
+function stop_spinner(spinner_id, show_id) {
+  //Turn off the spinner
+  jQuery('#'+spinner_id).hide();
+  //Show next menu
+  jQuery("#"+show_id).show();
+}
+
 function addMadLib(madlib, demographics) {
     //serarch and replace {} with demographic answers
     //Example search {Agency} replace with FDA
