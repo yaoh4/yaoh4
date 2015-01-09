@@ -21,7 +21,7 @@ $(document).ready(function () {
 	$("#change_permission_button").click(click_change_permission_button);
 	$("#back_button_answer").click(click_back_button_answer);
 
-	$('#document_select').click(changed_document_id);
+	$('#document_select').change(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
 	$("#annotation_options").change(user_changed_annotation_option);
 
@@ -380,23 +380,38 @@ function click_load_button () {
 
 function changed_document_id() {
 	var document_id = $("#document_select").val();
+  var max_version = $("#document_select option:selected").attr('max_version');
+  //alert("changed.. max_version: "+max_version);
 	//setCookie("Drupal.visitor.document.id", document_id, 365);
 	//set the load_latest to 1
+  load_document_versions_into_select(max_version, 'current');
+
 	setCookie("Drupal.visitor.document.loadLatest", 1, 365);
-	ajax_caller("get_all_documents_info", null,	load_document_version_into_select);
+//	ajax_caller("get_all_documents_info", null,	load_document_version_into_select);
 }
 
 function load_document_info_into_select(data) {
 	var documents = data.documents;
 	var document_id = parseInt(getCookie("Drupal.visitor.document.id"));
+	var max_version;
 
 	console.log("load_document_info_into_select");
 	console.dir(data);
 
 	//populate select
 	$("#document_select").empty();
-	$.each( documents, function( document_id, doc ) {
-		$("#document_select").append($("<OPTION value='" + doc.document_id + "'>" + doc.name + "</OPTION>"));
+	$.each(documents, function( key, doc ) {
+
+		$("#document_select")
+			.append($("<OPTION>")
+				.attr("value", doc.document_id)
+				.append(doc.title)
+				.attr('max_version', doc.version)
+			);
+		if(doc.document_id == document_id) {
+			max_version = doc.version;
+		}
+
 	});
 
 	if(isNaN(document_id)) {
@@ -407,10 +422,53 @@ function load_document_info_into_select(data) {
 	//select the current document
 	$("#document_select").val(document_id).prop('selected', true);
 
-	load_document_version_into_select(data);
+	load_document_versions_into_select(max_version, parseInt(getCookie("Drupal.visitor.document.version")));
 }
 
-function load_document_version_into_select(data) {
+function load_document_versions_into_select(max_version, selected) {
+
+	$("#document_version").empty();
+	// Put in the versions.
+	console.log("CHANGED DOCUMENT");
+	console.log("max_version "+max_version);
+	console.log("selected "+selected);
+	for (i = 0; i <= max_version; i++) {
+		
+		version = "v" + i;
+		
+		if(i == max_version) {
+			version += " (current)";
+		}
+
+		$("#document_version").
+			append($("<OPTION>")
+				.attr("value", i)
+				.append(version)
+			);
+	}
+	/*
+	$.each(documents[document_id].versions, function( key, version_id ) {
+		version_index++;
+		version_name = "v"+version_id;
+		if(version_index == documents[document_id].versions.length)
+			version_name += " (current)";
+		$("#document_version").append($("<OPTION value='" + version_id + "'>" + version_name + "</OPTION>"));
+	});
+*/
+	//
+	if(selected == 'current') {
+		//Select last one
+		selected = max_version;
+	} else {
+		//Select
+	}
+	$("#document_version").val(selected).prop('selected', true);
+	              load_dialog_spinner
+	stop_spinner('load_dialog_spinner','load_dialog_select');
+
+}
+
+function load_document_version_into_select_old(data) {
 	var documents = data.documents;
 	var version_id = parseInt(getCookie("Drupal.visitor.document.version"));
 	var document_id = $("#document_select").val();
@@ -817,6 +875,8 @@ function set_toolbar_buttons(editable) {
 function get_document_elements_callback(data) {
 	console.log("get_document_elements_callback");
   //alert (JSON.stringify(data, null, 2));
+  //alert(data.version);
+	setCookie("Drupal.visitor.document.version", data.version, 365);
 
 	set_toolbar_buttons(data.editable);
   if(data.access == 'none') {

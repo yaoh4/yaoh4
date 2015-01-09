@@ -61,12 +61,6 @@ function add_spinner(id) {
 	$('#'+id).empty().append('<div></dir><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>Why is this not working....');
 }
 */
-function stop_spinner(spinner_id, show_id) {
-	//Turn off the spinner
-	$('#'+spinner_id).hide();
-	//Show next menu
-	$("#"+show_id).show();
-}
 
 function advance_progress_bar(step) {
 	switch (step) {

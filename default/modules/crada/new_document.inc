@@ -6,7 +6,7 @@ function crada_new_document() {
 	drupal_add_css('http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css');
 	drupal_add_css($module_path . '/crada.css');
 	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
-	drupal_add_js($module_path . '/crada.js',array('cache' => false, 'preprocess' => false));
+	drupal_add_js($module_path . '/new_document.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 
 
@@ -56,7 +56,7 @@ function add_instructions_div() {
 
 	<p> Above you will see a progress bar that shows the steps you need to complete before your document is generated. <p>
 	<UL>
-	<LI> Stage 1: We need to know which template you would like to use as a base: </LI>
+	<LI> Stage 1: We need to know which template you would like to use as a base</LI>
 	<LI> Stage 2: You can enter some basic demographic information to tailor the initial document </LI>
 	<LI> Stage 3: You will answer a series of questions that will help determine what sections are needed </LI>
 	<LI> Stage 4: You can edit or annotate all the clauses generated </LI>

@@ -1,5 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `drupal` /*!40100 DEFAULT CHARACTER SET latin1 */;
-USE `drupal`;
+CREATE DATABASE  IF NOT EXISTS `nci_crada` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `nci_crada`;
 -- MySQL dump 10.13  Distrib 5.6.17, for Win32 (x86)
 --
 -- Host: localhost    Database: drupal
