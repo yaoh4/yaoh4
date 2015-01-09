@@ -365,3 +365,17 @@ textarea {
     padding: 0;
     text-decoration: none;
 }
+
+#demographic-form hr, #question_section hr {
+  margin-bottom:15px;
+}
+
+#demographic-form h2, #question_section h2 {
+  margin-top:20px;
+}
+#question_section {
+  margin:20px;
+}
+#question_section .question-text {
+  font-weight:bold;
+}

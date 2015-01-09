@@ -43,11 +43,12 @@ function crada_list_documents() {
   <tbody>';
 
   $previous_document_id = 0;
+  $count = 0;
   foreach ($result as $key => $record) {
 
     if($previous_document_id != $record->document_id) {
 
-      $row_class = ($key % 2 == 0 ? 'even' : 'odd');
+      $row_class = ($count % 2 == 0 ? 'even' : 'odd');
       $active = ($record->status == 1 ? 'active' : 'archived');
       $created = date("F j, Y", $record->created);
 
@@ -80,6 +81,7 @@ function crada_list_documents() {
       $html .= '</tr>';
     }
     $previous_document_id = $record->document_id;
+    $count++;
   }
 
    $html .= '</tbody>
@@ -96,7 +98,7 @@ function getDocumentRoles($query, $document_id) {
   //
   $result = db_query($query);
 
-  //Get document roles for this document 
+  //Get document roles for this document
   //Determine overall document access read or write
   crada_log("getDocumnetRoles");
 

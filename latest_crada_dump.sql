@@ -824,8 +824,7 @@ CREATE TABLE `crada_document_element` (
   `source_answer` int(12) DEFAULT NULL,
   `answer_changed` tinyint(1) NOT NULL DEFAULT '0',
   `updated_by` varchar(50) NOT NULL,
-  `updated_date` datetime NOT NULL,
-  `udated` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `updated_date` datetime NOT NULL
   PRIMARY KEY (`document_element_id`,`document_version`,`document_id`,`alternate_text_type`),
   KEY `idx_document_element_id` (`document_element_id`),
   KEY `idx_document_version` (`document_version`),
