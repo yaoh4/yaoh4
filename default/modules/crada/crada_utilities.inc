@@ -5,8 +5,23 @@
 // Begin       : 2014-10-14
 // Last Update : 2014-10-14
 //
-// Description : Common php functions for CRADA Builder 
+// Description : Common php functions for CRADA Builder
 //============================================================+
+function crada_log_sql_error($e) {
+  $filename = "/local/drupal/logs/crada.log";
+
+  print_backtrace($filename);
+
+  file_put_contents($filename, json_encode($e) . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  file_put_contents($filename,  "MYSQL Exception Details" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  $output = print_r($document_roles, true);
+  file_put_contents($filename, "MYSQL Error Number: ".$e->errorInfo[1] . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  file_put_contents($filename, $e->errorInfo[2] . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  file_put_contents($filename, "SQL QUERY: " . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  file_put_contents($filename, $e->query_string . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+  file_put_contents($filename, "ARGUMENTS: ".print_r($e->args, true) . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+
+}
 
 function crada_log($data, $debug_level=0) {
 
@@ -21,17 +36,22 @@ function crada_log($data, $debug_level=0) {
 	file_put_contents($filename,  $output . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
 
 	if($debug_level > 0 ) {
-		foreach (debug_backtrace() as $key => $value) {
-			//alert( index + ": " + value );
-			file_put_contents($filename,  	$key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
-		}
+    print_backtrace($filename);
 	}
+
+}
+function print_backtrace($filename) {
+
+  file_put_contents($filename, "debug_backtrace()" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
+    foreach (debug_backtrace() as $key => $value) {
+      file_put_contents($filename,    $key . ": " . json_encode($value).PHP_EOL , FILE_USE_INCLUDE_PATH | FILE_APPEND );
+    }
 
 }
 
  // Set timezone
 //  date_default_timezone_set("UTC");
- 
+
   // Time format is UNIX timestamp or
   // PHP strtotime compatible strings
 function dateDiff($time1, $time2, $precision = 6) {
@@ -42,7 +62,7 @@ function dateDiff($time1, $time2, $precision = 6) {
     if (!is_int($time2)) {
       $time2 = strtotime($time2);
     }
- 
+
     // If time1 is bigger than time2
     // Then swap time1 and time2
     if ($time1 > $time2) {
@@ -50,11 +70,11 @@ function dateDiff($time1, $time2, $precision = 6) {
       $time1 = $time2;
       $time2 = $ttime;
     }
- 
+
     // Set up intervals and diffs arrays
     $intervals = array('year','month','day','hour','minute','second');
     $diffs = array();
- 
+
     // Loop thru all intervals
     foreach ($intervals as $interval) {
       // Create temp time from time1 and interval
@@ -72,7 +92,7 @@ function dateDiff($time1, $time2, $precision = 6) {
       $time1 = strtotime("+" . $looped . " " . $interval, $time1);
       $diffs[$interval] = $looped;
     }
-    
+
     $count = 0;
     $times = array();
     // Loop thru all diffs
@@ -93,7 +113,7 @@ $times[] = $value . " " . $interval;
 $count++;
       }
     }
- 
+
     // Return string with times
     return implode(", ", $times);
   }

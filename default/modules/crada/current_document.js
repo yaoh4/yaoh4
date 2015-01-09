@@ -234,7 +234,7 @@ function saveClause(e) {
 			};
 	//alert(JSON.stringify(data));
 	//var data['document_id'] =
-	ajax_caller("save_element", data, save_clause_callback);
+	ajax_caller("save_element", data, check_ajax);
 
 	/*
 	var ref = e.target.id;
@@ -245,6 +245,12 @@ function saveClause(e) {
 	*/
 }
 
+function check_ajax(data){
+  if(data.status == "Error") {
+    console.warn("crada ajax error: "+data.message);
+    alert(data.message);
+  }
+}
 function save_clause_callback() {
 	console.log('Clause saved');
 }
@@ -633,7 +639,7 @@ function load_change_owner(data) {
 
 		}
 		*/
-		
+
 		if(data.current_document_owner_uid != null) {
 			$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
 		}
@@ -821,9 +827,9 @@ function get_document_elements_callback(data) {
           $('<div>')
             .append('You are not authorized to access this page.')
 
-    );  
+    );
     return;
-  }  
+  }
 //	console.dir(data);
 	//Clear document content
 	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));
@@ -835,7 +841,7 @@ function get_document_elements_callback(data) {
 	}
 	//Append to title_bar
 	$("#title_bar").append(
-			$('<span>').addClass('document-title').append(data.title)
+			$('<span>').addClass('document-title').append(data.document.title)
 		);
 	$("#title_bar").append(
 			$('<span>').addClass('document-version').append('(version '+data.version+')')

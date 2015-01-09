@@ -12,13 +12,13 @@ var chosen_subsections;
 
 $(document).ready(function ($) {
 	$("#begin_question_button").click(function() {
+		$("#spinner").show();
 		$("#instructions").hide ();
-		$("#choose_template").fadeIn();
 		setup_template_chooser();
 	});
 	$("#template_chooser_button").click(function() {
+		$("#spinner").show();
 		$("#choose_template").hide();
-		$("#demographics").fadeIn();
 		document_id = parseInt($("#template_chooser").val());
 		advance_progress_bar("demographics");
 		setup_demographics();
@@ -27,8 +27,8 @@ $(document).ready(function ($) {
 	$("#demographics_button").click(function() {
 		//Save demographic answers
 		demographics = $('#demographic-form').serializeObject();
+		$("#spinner").show();
 		$("#demographics").hide();
-		$("#questions").fadeIn();
 		get_all_definitions(document_id);
 		advance_progress_bar("questions");
 		identify_subsections();
@@ -36,18 +36,37 @@ $(document).ready(function ($) {
 	});
 	$("#questions_button").click(function() {
 		store_current_answers(current_section_number);
-		if ((current_section_number+1) >= sections.length) {
+		if (current_section_number == sections.length-1) {
+			//Generate Document
+			$("#spinner").show();
+			$("#spinner p")
+				.append($('<span>')
+					.append("Generating CRADA Document")
+					.attr('style', 'font-weight:bold;font-size:150%;margin-left:10px;')
+				);
 			$("#progress_bar").hide();
 			$("#questions").hide();
-			$("#crada_document").fadeIn();
 			setup_document();
 		} else {
+			$("#spinner").show();
+			$("#questions").hide();
 			current_section_number++;
 			advance_progress_bar(current_section_number);
 			setup_questions_for_section(current_section_number);
 		}
 	});
 });
+/*
+function add_spinner(id) {
+	$('#'+id).empty().append('<div></dir><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>Why is this not working....');
+}
+*/
+function stop_spinner(spinner_id, show_id) {
+	//Turn off the spinner
+	$('#'+spinner_id).hide();
+	//Show next menu
+	$("#"+show_id).show();
+}
 
 function advance_progress_bar(step) {
 	switch (step) {
@@ -81,6 +100,11 @@ function display_demographic_questions(data) {
 	//var demographics = data.demographics;
 	var row;
 
+	$("#demographic-form")
+		.append($('<h2>').append("Demographics")
+		.append($('<hr>'))
+	);
+
 	$.each( data.demographics, function( i, demographic ) {
 		row = "";
 		if(demographic.html_type == 'pull down') {
@@ -95,19 +119,67 @@ function display_demographic_questions(data) {
 
 	// Add final questions: Alternate text and Subsections
 	ajax_caller('get_alternate_text_types', {'document_id': document_id}, get_alternate_text_types_callback);
-	ajax_caller('get_subsections', {'document_id': document_id}, get_subsections_callback);
 }
 
 function get_alternate_text_types_callback(data) {
+
+	$("#demographic-form")
+		.append(
+			$('<h2>').append("Alternate Text")
+			.append($('<hr>'))
+		);
+
+	$("#demographic-form")
+		.append(
+			$('<p>')
+				.append("This document has alternative text available to support contracts with multiple entities.")
+		);
+
 	var alternate_text_select = $("<SELECT id='alternate_text_type'>");
 	for (i=0;i<data.types.length;i++) {
 		alternate_text_select.append("<OPTION>" + data.types[i] + "</OPTION>");
 	}
 
-	$("#demographic-form").append("<BR />Please enter an Alternate Text Type:").append(alternate_text_select);
+	$("#demographic-form")
+		.append($('<label>')
+				.append("Select an Alternative Text Type:")
+				.addClass('demographic-label')
+				.attr("for", "alternate_text_type")
+		);
+
+	$("#demographic-form")
+		.append(alternate_text_select);
+
+	ajax_caller('get_subsections', {'document_id': document_id}, get_subsections_callback);
+
 }
 
 function get_subsections_callback(data) {
+
+	$("#demographic-form")
+		.append($('<h2>').append("Subsections")
+			.append($('<hr>'))
+	);
+
+	$("#demographic-form")
+		.append($('<P>')
+			.append("Select subsections that are applicable to this document:")
+		);
+	for (i=0;i<data.subsections.length;i++) {
+		if (data.subsections[i] != "") {
+				$("#demographic-form")
+					.append($('<div>')
+						.addClass('form-group')
+						.append("<LABEL class='demographic-label' for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL>")
+						.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT>")
+						.append("<div style='clear:both;'></div>")
+					);
+		}
+	}
+
+
+/*
+
 	var subsection_table = $("<TABLE id='subsection_table' style='width:auto;border-collapse:separate;'>");
 	for (i=0;i<data.subsections.length;i++) {
 		if (data.subsections[i] != "") {
@@ -116,8 +188,11 @@ function get_subsections_callback(data) {
 				.append("<TD><SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT></TD>"));
 		}
 	}
-	$("#demographic-form").append("<P>Which Subsections are applicable to this document:</P>")
+
+	$("#demographic-form").append("<P>Select subsections that are applicable to this document:</P>")
 		.append(subsection_table);
+*/
+		stop_spinner('spinner', 'demographics');
 }
 
 // Called when the demograhics advanced button is clicked
@@ -202,10 +277,23 @@ function setup_questions_for_section(i) {
 }
 
 function setup_questions_for_section_callback(data) {
-	var display = $("#question_section");
-	display.empty().append("<br />"); //Empty div and add room at top of page
 
 	var q = data.questions; //Set q to array of questions sent in
+	var section_title = q[0].section;
+	$("#question_section").empty()
+		.append($('<h2>').append(section_title)
+		.append($('<hr>'))
+		.append($('<div>')
+			.attr('id',"question_detail")
+			.attr('style', 'padding-left:30px;')
+		)
+	);
+	var display = $("#question_detail");
+
+	console.log(data);
+	console.log('Questions q for this section');
+	console.log(q);
+
 
 	var number_of_questions_asked = 0;
 	for (i=0;i<q.length; i++) {
@@ -216,16 +304,22 @@ function setup_questions_for_section_callback(data) {
 			answers[q[i].question_id] = 0;  //Set default to 0
 //			alert(JSON.stringify(q[i],null,2));
 			number_of_questions_asked++;
-			display.append(q[i].text).append("<br />");
+			display
+				.append($('<div>')
+					.append(q[i].text)
+					.addClass("question-text")
+				);
 			for (j=0;j<q[i].answers.length; j++) {
-				display.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT>"));
+				display.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT><br>"));
 			}
-			display.append("<br /><br />")
+			display.append("<br />")
 		}
 	}
 	if (number_of_questions_asked == 0) {
 		display.append("<P>This section has no questions.</P>");
 	}
+
+	stop_spinner('spinner', 'questions');
 }
 
 function store_current_answers(section_number) {
@@ -247,6 +341,7 @@ function setup_template_chooser() {
 }
 
 function setup_template_chooser_callback(data) {
+
 	var template_select = $("#template_chooser");
 	for (var i=0; i<data.templates.length; i++) {
 		var name = data.templates[i].name;
@@ -254,13 +349,14 @@ function setup_template_chooser_callback(data) {
 	}
 
 //	alert (JSON.stringify(data, null, 2));
+	stop_spinner('spinner', 'choose_template');
 }
 
 function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
 	var answers_encoded = JSON.stringify(answers);
 	var alternate_text_type = $("#alternate_text_type").val();
-	alert ("Alternate Text Type: " + alternate_text_type);
+	console.log("Alternate Text Type: " + alternate_text_type);
 	ajax_caller('get_clauses_from_answers',
 		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type},
 		setup_document_callback, 'POST');
@@ -336,7 +432,7 @@ function setup_document_callback(data) {
 }
 
 function create_new_document_callback(data) {
-	alert (JSON.stringify(data, null, 2));
+	//alert (JSON.stringify(data, null, 2));
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=1";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 

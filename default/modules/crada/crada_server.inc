@@ -22,6 +22,7 @@ require_once 'crada_utilities.inc';
 
 function crada_server() {
 	$action = $_REQUEST['action'];
+	crada_log("ACTION: ".$action);
 
 	try {
 		// Functions for New Document
@@ -52,15 +53,20 @@ function crada_server() {
 		else if ($action == 'echo') $output = echo_data();
 
 	} catch (Exception $e) {
+		crada_log("SQL EXCEPTION");
 		$output['status'] = 'Error';
 		$output['message'] = $e->getMessage();
+		$output['e'] = $e;
+
+		crada_log(json_encode($e));
+		crada_log_sql_error($e);
 	}
 
 	if (isset($output))
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	else {
 		$output["status"] = 'Error';
-		$output["message"] = 'Unknown Function Called. action = '.$action;
+		$output["message"] = 'Function action = '.$action .'does not produce any output.';
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
 }
@@ -230,6 +236,7 @@ function archive_version() {
 }
 
 function save_element() {
+	crada_log("Hello");
 	$document_id = $_REQUEST['document_id'];
 	$document_element_id = $_REQUEST['document_element_id'];
 	crada_log("*** save_element");
@@ -267,7 +274,7 @@ function save_element() {
 	}
 	//Update text and remove changed_answer
   global $user;
-
+  crada_log("Got here");
 	crada_log("UPDATE ELEMENT");
 	$query = "update crada_document_element ";
 	$query .= "set ";
@@ -958,7 +965,6 @@ function db_get_all_documents_info() {
 	$output = array();
     $output["status"] = "Ok";
     $output["documents"] = $list;
-	file_put_contents ( "crada_debug.txt" , "You just got db_get_all_documents", FILE_APPEND);
 
 	return $output;
 
@@ -988,7 +994,6 @@ function create_new_document () {
 	crada_log(json_encode($demographic_answers));
 
 	$data = json_decode($_REQUEST['data'], true);
-	$user = $_REQUEST['user'];
 	$name = $_REQUEST['name'];
 	$master_document_id = $_REQUEST['master_document_id'];
 	crada_log('$master_document_id');
@@ -1004,13 +1009,14 @@ function create_new_document () {
 	  	crada_log("**About to step into db_insert_new_document");
 	  	//Add document
 		$document_id = db_insert_new_document($name, $title, $master_document_id, $_REQUEST['demographic_answers']);
+		crada_log("Just created a new document.  Here is the document_id $document_id");
 		//Add initial versions
-		db_insert_new_version($document_id, $user);
+		db_insert_new_version($document_id);
 		//Add elements(i.e. clauses, i.e. sections)
 		for ($i=0;$i<count($data); $i++) {
 			$subsection = $data[$i]['subsection'];
 			if ($subsection == NULL) $subsection = "";
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection, $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer'], $user);
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection, $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer']);
 			$output["row"][$i] = $data[$i]['text'];
 
 		}
@@ -1023,13 +1029,15 @@ function create_new_document () {
 
 
 	} catch (Exception $e) {
-		crada_log("Rolling Back - something went wrong");
+		crada_log("Rolling Back db_transaction - something went wrong.");
 		crada_log($e->getMessage(), 1);
+		crada_log(json_encode($e));
 
 		$transaction->rollback();
 		watchdog_exception('crada', $e, $e->getMessage());
- 	 	$output["status"] = "Error";
- 	 	$output["error"] = $e->getMessage();
+		crada_log_sql_error($e);
+		$output["status"] = "Error";
+		$output["error"] = $e->getMessage();
  	 	return $output;
 	}
 }
@@ -1038,15 +1046,13 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
   global $user;
   crada_log("***We are in db_insert_new_document");
 
-
 	crada_log("db_insert_new_document");
-	crada_log("name =$name, $master_document_id = $master_document_id");
+	crada_log("name =$name, master_document_id = $master_document_id");
 	crada_log("**************************** DEMOGRAPHIC_ANSWERS");
 	crada_log("demographic_answers = $demographic_answers");
-  crada_log("GLOBAL uid");
-  crada_log($user->uid);
+  crada_log("GLOBAL uid {$user->uid}");
 
-	$nid = db_insert('crada_document')
+	$document_id = db_insert('crada_document')
 	->fields(array(
 	  'is_master' => 0,
 	  'document_name' => $name,
@@ -1057,27 +1063,27 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
     'uid' => $user->uid
 	))->execute();
 	  //'master_document_id' => $master_document_id
-  crada_log($nid);
+  crada_log($document_id);
   //
   //Grant administrator role write access to document
   //
   $administrator_rid = 3;
   $nid = db_insert('crada_document_role')
   ->fields(array(
-    'document_id' => $nid,
+    'document_id' => $document_id,
     'rid' => $administrator_rid,
     'access' => 'write'
   ))->execute();
 
 
-	return $nid;
+	return $document_id;
 }
 
-function db_insert_new_version ($document_id, $user) {
+function db_insert_new_version($document_id) {
 	// All new documents will have a version 0 and 1.
 	// Version 0 represents the initial state of the document while all new edits will be saved under version1
   global $user;
-
+  crada_log('db_insert_new_version 0');
 	$nid = db_insert('crada_document_version') // Table name no longer needs {}
 	->fields(array(
 	  'document_id' => $document_id,
@@ -1087,6 +1093,7 @@ function db_insert_new_version ($document_id, $user) {
 	))
 	->execute();
 
+  crada_log('db_insert_new_version 1');
 	$nid = db_insert('crada_document_version') // Table name no longer needs {}
 	->fields(array(
 	  'document_id' => $document_id,
@@ -1099,7 +1106,9 @@ function db_insert_new_version ($document_id, $user) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer, $user) {
+function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer) {
+	global $user;
+
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
@@ -1116,7 +1125,7 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'source_answer' => $source_answer,
 	  'survivable' => 0,
 	  'required' => 0,
-	  'updated_by' => $user,
+	  'updated_by' => $user->uid,
 	  'updated_date' => date("Y-m-d H:i:s", time()),
 	))
 	->execute();
@@ -1186,7 +1195,7 @@ function db_get_document_access($document_id, $uid) {
 	//
 	//  Get max_access user has any for this document
 	//
-	$query = "select max(cdr.access) as max_access from crada_document_role cdr, users_roles ur  
+	$query = "select max(cdr.access) as max_access from crada_document_role cdr, users_roles ur
 where cdr.rid = ur.rid
 and cdr.access <> ''
 and ur.uid = $uid
@@ -1199,7 +1208,7 @@ and cdr.document_id = $document_id;";
 	//
 	// if user is document owner give write access
 	//
-	$query = "SELECT uid FROM crada_document where document_id =$document_id";
+	$query = "SELECT uid FROM crada_document where document_id = $document_id";
 	$result = db_query($query);
 	$row = $result->fetchObject();
 	if ($row->uid == $uid) {
@@ -1251,11 +1260,13 @@ function db_get_document_info($document_id) {
   //
   // Get current version for this document
   //
-	$query = "SELECT max(version) as current_version FROM crada_document_version where document_id =$document_id";
+	$query = "SELECT max(version) as current_version FROM crada_document_version where document_id = $document_id";
 	$result = db_query($query);
 
 	$row = $result->fetchObject();
 	$output['current_version'] = $row->current_version;
+	crada_log("LATEST VERSION LOOKED UP");
+	crada_log(json_encode($output));
 
   return $output;
 }
@@ -1267,7 +1278,6 @@ function db_get_filename_for_document($document_id) {
 	->condition('document_id', $document_id, '=')
 	->execute()
 	->fetchObject();
-	file_put_contents ( "crada_debug.txt" , "You just got db_get_title_for_document", FILE_APPEND);
 
 	return $record->title;
 }
