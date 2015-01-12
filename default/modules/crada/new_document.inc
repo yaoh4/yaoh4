@@ -9,7 +9,6 @@ function crada_new_document() {
 	drupal_add_js($module_path . '/new_document.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 
-
 	$page_data = "";
 	$page_data .= add_progress_bar_div();
 	$page_data .= add_spinner_div();
@@ -25,7 +24,7 @@ function add_progress_bar_div() {
 <div id='progress_bar'>
 <table class='progress_bar'>
 <tr>
-	<td class='not_done' id='initial_step'>Pick an Initial Template</td>
+	<td class='not_done' id='initial_step'>Select a Base Template</td>
 	<td class='not_done' id='demographic_step'>Demographic Information</td>
 	<td class='not_done' id='question_step'>Answer Questions</td>
 	<td class='not_done' id='conclusion_step'>Edit the Document</td>
@@ -75,7 +74,7 @@ function add_choose_template_div() {
 <div id='choose_template' style='display:none'>
 <TABLE id='basic_document_info'>
 <TR><TD>Document Title: </TD><TD><INPUT id='document_title' size='40' type='text' /></TD></TR>
-<TR><TD>Choose your template: </TD><TD><SELECT id='template_chooser'> </SELECT></TD></TR>
+<TR><TD>Choose Base Template: </TD><TD><SELECT id='template_chooser'> </SELECT></TD></TR>
 <TR><TD></TD><TD><BUTTON id='template_chooser_button'>Advance to Next Section</BUTTON></TD></TR>
 </TABLE>
 </div>

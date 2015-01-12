@@ -246,7 +246,7 @@ function rebuild_progress_bar() {
 	// We need to completely rebuild the progress bar
 
 	$("#progress_bar").empty().append($("<TR>")
-			.append($("<td class='done' id='initial_step'>Pick an Initial Template</td>"))
+			.append($("<td class='done' id='initial_step'>Select a Base Template</td>"))
 			.append($("<td class='done' id='demographic_step'>Demographic Information</td>")));
 
 	for (i=0;i<sections.length;i++){
@@ -304,7 +304,9 @@ function setup_questions_for_section_callback(data) {
 					.addClass("question-text")
 				);
 			for (j=0;j<q[i].answers.length; j++) {
-				display.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT><br>"));
+				display
+					.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT><br>")
+							.attr('checked', (j==0)));
 			}
 			display.append("<br />")
 		}
@@ -330,6 +332,11 @@ function store_current_answers(section_number) {
 
 function setup_template_chooser() {
 	ajax_caller('get_document_templates', {}, setup_template_chooser_callback);
+	$("#choose_template")
+		.prepend($('<hr>'))
+		.prepend($('<h2>').append("Base Template")
+	);
+
 	$("#document_title").focus();
 	advance_progress_bar("template");
 }
