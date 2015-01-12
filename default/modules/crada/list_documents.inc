@@ -4,6 +4,7 @@ require_once 'crada_utilities.inc';
 function crada_list_documents() {
 
   global $user;
+  crada_log("CRADA_LIST_DOCUMENTS");
 
   $query = "select * from  ";
   $query .= "(SELECT doc_owner.name, doc_owner.mail, cdr.document_id, cd.title, cd.status,  ";
@@ -22,7 +23,9 @@ function crada_list_documents() {
   $query .= "'Owner' as role_name, 'write' as access ";
   $query .= "FROM users u, crada_document cd ";
   $query .= "WHERE cd.uid = {$user->uid} and u.uid = cd.uid and cd.is_master = 0) as t ";
-  $query .= "order by updated";
+  $query .= "order by -updated desc, -created desc; ";
+
+  crada_log("HERE IS THE QUERY");
 
   crada_log($query);
   $result = db_query($query);
@@ -56,7 +59,7 @@ function crada_list_documents() {
 
       //$updated = dateDiff(time(), $record->updated)+ 'ago';
       $document_roles = getDocumentRoles($query, $record->document_id);
-      crada_log(print_r($document_roles, true));
+      //crada_log(print_r($document_roles, true));
       $document_read_write = "read";
 
       $html .= "<tr class='$row_class'>";
@@ -100,16 +103,16 @@ function getDocumentRoles($query, $document_id) {
 
   //Get document roles for this document
   //Determine overall document access read or write
-  crada_log("getDocumnetRoles");
+  //crada_log("getDocumnetRoles");
 
-  crada_log("searching for document id: $document_id");
-  crada_log(json_encode($result, true));
+  //crada_log("searching for document id: $document_id");
+  //crada_log(json_encode($result, true));
 
   $document_roles = array();
   $write_access_count = 0;
   $html_roles = "";
   foreach ($result as $key => $record) {
-    crada_log("FOR EACH {$record->document_id} {$record->role_name} {$record->role_name}");
+    //crada_log("FOR EACH {$record->document_id} {$record->role_name} {$record->role_name}");
     if($record->document_id == $document_id) {
       if($record->access == 'write') {
         $write_access_count++;
@@ -122,7 +125,7 @@ function getDocumentRoles($query, $document_id) {
   }
   $document_roles['access'] = ($write_access_count>0 ? 'edit': 'view');
   $document_roles['html_roles'] = $html_roles;
-  crada_log(print_r($document_roles, true));
+  //crada_log(print_r($document_roles, true));
 
   return $document_roles;
 
