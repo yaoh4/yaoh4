@@ -56,6 +56,7 @@ $(document).ready(function ($) {
 		}
 	});
 });
+
 /*
 function add_spinner(id) {
 	$('#'+id).empty().append('<div></dir><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>Why is this not working....');
@@ -266,6 +267,11 @@ function setup_sections_callback(data) {
 }
 
 function setup_questions_for_section(i) {
+	//if this is the last section change button text to "Generate Document"
+	if(i == sections.length-1) {
+		$("#questions_button").text("Generate Document");
+	}
+
 	ajax_caller('get_questions_for_section', {'document_id':document_id, 'section':sections[i]}, setup_questions_for_section_callback);
 
 }

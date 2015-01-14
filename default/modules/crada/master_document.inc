@@ -1,12 +1,18 @@
-<?php 
-
+<?php
+require_once 'crada_utilities.inc';
 
 function master_document_form($form, &$form_state) {
+	//
+	// Get a list of current document names
+	//
+
+	getDocumentNames();
+
 	$form['description'] = array(
 			'#type' => 'item',
 			'#title' => t('Master Document Creator'),
 	);
-	
+
 	$form['document_title'] = array(
 			'#type' => 'textfield',
 			'#title' => 'Document Title',
@@ -14,7 +20,7 @@ function master_document_form($form, &$form_state) {
 			'#description' => 'Please enter a document title',
 			'#size' => 100,
 	);
-	
+
 	$form['document_name'] = array(
 			'#type' => 'textfield',
 			'#title' => 'Document Short Name',
@@ -23,51 +29,61 @@ function master_document_form($form, &$form_state) {
 			'#size' => 20,
 
 	);
-	
+
 	$form['file'] = array(
 			'#type' => 'file',
 			'#title' => 'Filename',
-			'#description' => 'Choose a File',
+			'#description' => 'Choose a Base Template File',
 	);
 
 	$form['submit'] = array(
 			'#type' => 'submit',
 			'#value' => 'Create New Master Document',
-
-
 	);
+
 	return $form;
 }
 
 function master_document_form_validate($form, &$form_state) {
+
 	$validators = array(
 			'file_validate_extensions' => array('csv txt xls xlsx'), // does not work for user 1
 			'file_validate_size' => array(1000000, 0),
 	);
+	//
+	//Check to see if document_name is already in use
+	//
+	$crada_document = getDocumentNames();
+	if (in_array(strtoupper(t($form['document_name']['#value'])), $crada_document['document_names'])) {
+		form_error($form['document_name'], "Document Short Name <b>{$form['document_name']['#value']}</b> is already in use .  Please enter a unique Document Short Name.");
+		return;
+	}
+
 	$file = file_save_upload('file',$validators);
 
 	if ($file) {
 		// Make it a permanent file so it doesn't get deleted by cron.
 		$file->status = 1;
 		file_save($file);
-
 		// Save file name for submit handler.
 		$form_state['storage']['filename'] = $file->uri;
-
 	} else {
 		form_set_error('file',t('The file could not be uploaded'));
 	}
+
 }
 
 function master_document_form_submit ($form, &$form_state) {
+	crada_log("master_document_form_submit");
+
 	global $filename, $shorthand, $title;
-	
-	drupal_set_message(t('Loading in the form: '));
+
+	drupal_set_message(t('Loading the form: '));
 	$filename = $form_state['storage']['filename'];
-	
+
 	$title = trim($form_state['values']['document_title']);
 	$shorthand = trim($form_state['values']['document_name']);
-	
+
 	load_excel_file();
 }
 
@@ -78,13 +94,13 @@ function load_excel_file() {
 		drupal_set_message( "Failed to Load PHPExcel Library" );
 		return;
 	}
-		
+
 	drupal_set_message(t("Filename is: $filename"));
 
 	$filetype = PHPExcel_IOFactory::identify($filename);
 	$xls_reader = PHPExcel_IOFactory::createReader($filetype);
 	$xls_reader->setReadDataOnly(TRUE);
-		
+
 	$transaction = db_transaction();
 	try {
 		$document_id = db_insert_crada_document();
@@ -97,7 +113,7 @@ function load_excel_file() {
 		watchdog_exception('crada', $e, $e->getMessage());
 		drupal_set_message("Failed on insert crada_document: ". $e->getMessage(), "error");
 	}
-		
+
 }
 
 function load_coversheet() {
@@ -107,7 +123,7 @@ function load_coversheet() {
 
 function load_definitions() {
 	global $xls_reader, $filename;
-	
+
 	$xls_reader->setLoadSheetsOnly("Definitions");
 	$xls_data = $xls_reader->load($filename);
 	$array_data = $xls_data->getActiveSheet()->toArray(null,true,true,true);
@@ -155,7 +171,7 @@ function load_sections() {
 
 	global $clause_id;
 	$clause_id = 0;
-	
+
 	//  Pull the names of the worksheets before even loading the file
 	$sheet_names = $xls_reader->listWorksheetNames($filename);
 	foreach($sheet_names as $i => $sheet_name) {
@@ -166,36 +182,36 @@ function load_sections() {
 			load_specific_section($i, $sheet_name);
 		}
 	}
-	
+
 	show_definitions();
 }
 
 function show_definitions() {
 	global $all_defined_terms;
 	$keys = array_keys($all_defined_terms);
-	
+
 	for ($i=0; $i<count($keys); $i++) {
 		drupal_set_message("Terms are: $keys[$i]");
 	}
-	
+
 }
 function load_specific_section($i, $section_name) {
 	global $xls_reader, $filename;
-	
+
 	$xls_reader->setLoadSheetsOnly($section_name);
 	$xls_data = $xls_reader->load($filename);
 	drupal_set_message("Loading Section: " . $section_name);
-	
+
 	$array_data = $xls_data->getActiveSheet()->toArray(null,true,true,true);
 
 	// There is a lot of data that reflects information from a previous row to get the right values for the current row
 	// Consequently there are a lot of global variables that hold the state as we pass from one line to the next
 	// Most will be in the load_line function, but a couple are needed here.
 	global $clause_id, $row_in_section;
-	
+
 	// Row 0 is the header, we will treat it special
 	// We need to find out which columns are: 'Defined Terms', 'Confidential Annotation', and 'Public Annotation'
-	
+
 	$row_in_section = 0;
 	$first_row = true;
 	foreach ($array_data as $line) {
@@ -212,12 +228,12 @@ function load_specific_section($i, $section_name) {
 }
 function determine_columns($line) {
 	global $defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
-	
+
 	// This limits the number of alternate texts to about 30
- 
-	$column_names = preg_split("/,/", 
+
+	$column_names = preg_split("/,/",
 		"A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO");
-	
+
 	$i = 0;
 	foreach ($column_names as $c) {
 		if (isset($line[$c])) {
@@ -230,9 +246,9 @@ function determine_columns($line) {
 				$alternate_text_columns[$i]['column_id'] = $c;
 				$i++;
 			}
-		} 
+		}
 	}
-	
+
 	drupal_set_message("Alternate Text:" . json_encode($alternate_text_columns));
 	drupal_set_message("Defined Terms Column: $defined_terms_column");
 	drupal_set_message("Confidential Annotation Column: $confidential_annotation_column");
@@ -246,9 +262,9 @@ function load_line($section, $line) {
 		$question_number_for_subsection, $answer_number_for_question, $user_name, $question_id,
         $clause_id, $row_in_section,
 		$defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
-	
+
 //	drupal_set_message("LINE: " . json_encode($line));
-	
+
 	$subsection = $line["A"];
 	if ($subsection == null) $subsection = "";
 	// Subsection stuff below is old and may not be needed
@@ -276,7 +292,7 @@ function load_line($section, $line) {
 	// We need to deal with the followon question later (line['D'])
 	$default_text = $line["E"]; //This can be hard coded to letter E
 
-	
+
 	$alternate_text_array = array();
 	for ($i=0; $i<count($alternate_text_columns);$i++) {
 		drupal_set_message("### Alternate Text[".$i."]:" . json_encode($alternate_text_columns[$i]));
@@ -286,24 +302,24 @@ function load_line($section, $line) {
 			if ($alternate_text['text'] != "") {
 				$alternate_text['column_id'] = $column_id;
 				$alternate_text['name'] = $alternate_text_columns[$i]['name'];
-				
+
 				array_push($alternate_text_array, $alternate_text);
 				drupal_set_message("* Alternate Text[" . $clause_id . "]:[" . json_encode($alternate_text) ."]". json_encode($alternate_text_columns[$i]) ."|");
 			}
 		}
 	}
-	
-	$default_confidential_annotation = $line[$confidential_annotation_column]; 
+
+	$default_confidential_annotation = $line[$confidential_annotation_column];
 	$default_public_annotation = $line[$public_annotation_column];
 
 	$defined_terms = $line[$defined_terms_column];
-	
-	
+
+
 	// Ignore the header line
 	if ($current_question == 'Question') return;
-	
+
 	// We catch the exception above this
-	
+
 	if ($new_question || $current_answer == "REQUIRED") $question_id = db_insert_crada_question($section, $subsection, $current_question);
 	drupal_set_message(">>>($question_id):$current_question:A($answer_number_for_question): $current_answer");
 	if ($new_answer || $current_answer == 'REQUIRED') {
@@ -327,7 +343,7 @@ function load_line($section, $line) {
 
 function load_all_defined_terms($clause_id, $defined_terms) {
 	global $document_id, $all_defined_terms;
-	
+
 	$list_of_terms = preg_split("/\r?\n/", $defined_terms);
 	foreach ($list_of_terms as $single_term) {
 		$all_defined_terms[$single_term] = true;
@@ -439,7 +455,7 @@ function db_insert_crada_valid_clause_group_by_answer($question_id, $answer_numb
 
 function db_insert_crada_document_element($clause_id, $section, $subsection, $alternate_type, $text, $confidential_annotation, $public_annotation) {
 	global $user, $document_id;
-	
+
 	db_insert('crada_document_element')->fields(array(
 		'document_element_id' => $clause_id,
 		'document_version' => 0,
@@ -456,7 +472,7 @@ function db_insert_crada_document_element($clause_id, $section, $subsection, $al
 		'updated_by' => $user->name,
 		'updated_date' => date("Y-m-d H:i:s", time())
 	))->execute();
-	
+
 	drupal_set_message("Adding Clause($document_id:$clause_id):($alternate_type) $text ($confidential_annotation)($public_annotation)");
 }
 
@@ -469,4 +485,21 @@ function db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id) {
 		'clause_id' => $clause_id
 	))->execute();
 	drupal_set_message("Adding Clause Group to Clause ($clause_group_id): $clause_id");
+}
+
+function getDocumentNames() {
+
+	$crada_document = array();
+
+	$query = "SELECT upper(document_name) as document_name FROM crada_document ";
+	$query .= "WHERE is_master = 1 and status = 1; ";
+	$result = db_query($query);
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		array_push($list, $row->document_name);
+	}
+	$crada_document["document_names"] = $list;
+
+	return $crada_document;
 }

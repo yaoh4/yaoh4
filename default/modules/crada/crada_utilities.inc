@@ -40,6 +40,8 @@ function crada_log($data, $debug_level=0) {
 	}
 
 }
+
+
 function print_backtrace($filename) {
 
   file_put_contents($filename, "debug_backtrace()" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );
@@ -49,8 +51,19 @@ function print_backtrace($filename) {
 
 }
 
- // Set timezone
-//  date_default_timezone_set("UTC");
+function crada_include() {
+  //
+  // Base include files
+  //
+  $module_path = drupal_get_path('module', 'crada');
+  drupal_add_library('system','ui.dialog');
+  drupal_add_css($module_path . '/crada.css');
+  drupal_add_css($module_path . '/crada.css');
+  drupal_add_js($module_path . '/crada_helper_functions.js', array('cache' => false, 'preprocess' =>false));
+  //drupal_add_css('sites/all/libraries/bootstrap/css/bootstrap.css'); //This messed everything up.
+  drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
+
+}
 
   // Time format is UNIX timestamp or
   // PHP strtotime compatible strings
