@@ -1,7 +1,13 @@
 <?php
 require_once 'crada_utilities.inc';
 
+
 function crada_list_documents() {
+  crada_include();
+
+  $module_path = drupal_get_path('module', 'crada');
+  drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
+  drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 
   global $user;
   crada_log("CRADA_LIST_DOCUMENTS");
@@ -23,14 +29,27 @@ function crada_list_documents() {
   $query .= "'Owner' as role_name, 'write' as access ";
   $query .= "FROM users u, crada_document cd ";
   $query .= "WHERE cd.uid = {$user->uid} and u.uid = cd.uid and cd.is_master = 0) as t ";
-  $query .= "order by -updated desc, -created desc; ";
+  $query .= "order by created desc; ";
 
   crada_log("HERE IS THE QUERY");
 
   crada_log($query);
   $result = db_query($query);
 
-  $html = "<h2>CRADA Documents</h2>";
+// Add a search input
+/*
+  <div class="input-group margin-bottom-sm">
+          <span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>
+          <input type="text" placeholder="Email address" class="form-control">
+        </div>
+*/
+
+$html = '<div class="input-group margin-bottom-sm pull-right">
+  <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
+  <input class="form-control" type="text" placeholder="Search">
+</div>';
+
+  $html .= "<h2>CRADA Documents</h2>";
   $html .= '<table class="sticky-enabled table-select-processed tableheader-processed sticky-table">
    <thead>
    <tr>

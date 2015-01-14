@@ -373,7 +373,7 @@ textarea {
 #demographic-form h2, #question_section h2 {
   margin-top:20px;
 }
-#question_section {
+#question_section, #instructions {
   margin:20px;
 }
 #question_section .question-text {

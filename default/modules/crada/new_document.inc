@@ -48,17 +48,15 @@ function add_spinner_div() {
 function add_instructions_div() {
 	return "
 
-<div id='instructions'  >
+<div id='instructions'>
 
-	<p>We will be building an initial version of your document by pulling from an existing template,
-	filling out a simple form, and then answering some questions.</p>
-
-	<p> Above you will see a progress bar that shows the steps you need to complete before your document is generated. <p>
+	<p><b>Make New Document</b> will create an initial document using information from an existing base template.   After answering questions and filling out a simple form a new document will be created.</p>
+	<p> The progress bar above shows the steps to complete before the document is generated. <p>
 	<UL>
-	<LI> Stage 1: We need to know which template you would like to use as a base</LI>
-	<LI> Stage 2: You can enter some basic demographic information to tailor the initial document </LI>
-	<LI> Stage 3: You will answer a series of questions that will help determine what sections are needed </LI>
-	<LI> Stage 4: You can edit or annotate all the clauses generated </LI>
+	<LI> <b>Stage 1</b>: Select a base template which will be used to generate a new document</LI>
+	<LI> <b>Stage 2</b>: Enter basic demographic information, alternate text, and subsection options to customize the document</LI>
+	<LI> <b>Stage 3</b>: Answer a series of questions which will determine which clauses will be included in document</LI>
+	<LI> <b>Stage 4</b>: Edit document, set document permissions, archive versions, and/or download document</LI>
 	</UL>
 	<BR/><P>Click on the button to begin: <BUTTON id='begin_question_button'>Begin</BUTTON></P>
 </div>
