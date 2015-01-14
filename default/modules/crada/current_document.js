@@ -57,11 +57,17 @@ $(document).ready(function () {
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
+//		setCookie("Drupal.visitor.document.id", "", 365);
+//		setCookie("Drupal.visitor.document.version", "", 365);
 	if(getCookie('Drupal.visitor.document.id') != "") {
+		change_annotation_selection();
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
 	} else {
-		// Open up the Load document Dialog
+
+		$("#current_document_container").hide();
+		$("#document_footer").hide();
 		click_load_button();
+
 	}
 
 	set_footer();
@@ -113,7 +119,7 @@ function updateClauseParagraph() {
 	//remove editor
 	my_editor.destroy();
 }
-/*
+
 function change_annotation_selection() {
 
 	annotation_option = getCookie("Drupal.visitor.annotation.option");
@@ -129,7 +135,7 @@ function change_annotation_selection() {
 	}
 
 }
-*/
+
 
 function set_footer(){
 	$("#document_footer").empty().append(
@@ -371,14 +377,45 @@ function create_dialogs() {
 }
 
 function click_load_button () {
-	$("#load_dialog").dialog("open");
-	// Need to call into database to pull back the documents, then versions
+	///
+	// Determine if documents are available for this user
+	//
+	ajax_caller("get_document_count", null, get_document_count_callback);
 
-	ajax_caller("get_all_documents_info", null, load_document_info_into_select);
+}
+
+function get_document_count_callback(data) {
+	console.log("get_document_count_callback");
+	console.dir(data);
+
+	if(data.count> 0) {
+		$("#load_dialog").dialog("open");
+		ajax_caller("get_all_documents_info", null, load_document_info_into_select);
+	} else {
+		//User has no documents
+		// Redirect to instructions
+		$("#current_document_container").empty();
+		$("#current_document_container")
+			.append($("<h2>")
+				.append("No Documents are Accessable")
+
+			).append($("<hr>"));
+		$("#current_document_container")
+			.append($("<p>")
+				.append("No documents are currently active or available for your roles.")
+			);
+		$("#current_document_container")
+			.append($("<p>")
+				.append("Please contact an administrator to ensure you have the correct roles.")
+			);
+		$("#current_document_container").show();
+
+	}
 
 }
 
 function changed_document_id() {
+
 	var document_id = $("#document_select").val();
   var max_version = $("#document_select option:selected").attr('max_version');
   //alert("changed.. max_version: "+max_version);
@@ -386,7 +423,7 @@ function changed_document_id() {
 	//set the load_latest to 1
   load_document_versions_into_select(max_version, 'current');
 
-	setCookie("Drupal.visitor.document.loadLatest", 1, 365);
+	//setCookie("Drupal.visitor.document.loadLatest", 1, 365);
 //	ajax_caller("get_all_documents_info", null,	load_document_version_into_select);
 }
 
@@ -397,6 +434,11 @@ function load_document_info_into_select(data) {
 
 	console.log("load_document_info_into_select");
 	console.dir(data);
+
+	if(isNaN(document_id)) {
+		document_id = $("#document_select").val();
+		//setCookie("Drupal.visitor.document.id", document_id, 365);
+	};
 
 	//populate select
 	$("#document_select").empty();
@@ -414,11 +456,6 @@ function load_document_info_into_select(data) {
 
 	});
 
-	if(isNaN(document_id)) {
-		document_id = $("#document_select").val();
-		setCookie("Drupal.visitor.document.id", document_id, 365);
-	};
-
 	//select the current document
 	$("#document_select").val(document_id).prop('selected', true);
 
@@ -427,15 +464,21 @@ function load_document_info_into_select(data) {
 
 function load_document_versions_into_select(max_version, selected) {
 
+	if(isNaN(selected)) {
+		//document_id = $("#document_select").val();
+		selected = max_version;
+		setCookie("Drupal.visitor.document.version", selected, 365);
+	};
+
 	$("#document_version").empty();
 	// Put in the versions.
 	console.log("CHANGED DOCUMENT");
 	console.log("max_version "+max_version);
 	console.log("selected "+selected);
 	for (i = 0; i <= max_version; i++) {
-		
+
 		version = "v" + i;
-		
+
 		if(i == max_version) {
 			version += " (current)";
 		}
@@ -446,24 +489,8 @@ function load_document_versions_into_select(max_version, selected) {
 				.append(version)
 			);
 	}
-	/*
-	$.each(documents[document_id].versions, function( key, version_id ) {
-		version_index++;
-		version_name = "v"+version_id;
-		if(version_index == documents[document_id].versions.length)
-			version_name += " (current)";
-		$("#document_version").append($("<OPTION value='" + version_id + "'>" + version_name + "</OPTION>"));
-	});
-*/
-	//
-	if(selected == 'current') {
-		//Select last one
-		selected = max_version;
-	} else {
-		//Select
-	}
+
 	$("#document_version").val(selected).prop('selected', true);
-	              load_dialog_spinner
 	stop_spinner('load_dialog_spinner','load_dialog_select');
 
 }
@@ -846,6 +873,7 @@ function create_word_file_callback(data) {
 
 function click_select_document_button() {
 //	alert("Clicked Select Document Button: " + $("#document_select").val());
+
 	document_id = $("#document_select").val();
 	version_id = $("#document_version").val();
 	//Set cookies
@@ -853,9 +881,11 @@ function click_select_document_button() {
 	setCookie("Drupal.visitor.document.version", version_id, 365);
 
 	set_footer();
-
+	change_annotation_selection();
 	ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
 	$("#load_dialog").dialog( "close" );
+	$("#current_document_container").show();
+	$("#document_footer").show();
 
 }
 
@@ -976,7 +1006,6 @@ function get_document_elements_callback(data) {
 		}
 	});
 
-	//change_annotation_selection();
 	//$( ".clause-paragraph" ).accordion( "option", "active", 2 );
 /*
 	$(".accordion").accordion({collapsible: true,
