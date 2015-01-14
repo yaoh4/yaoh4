@@ -58,7 +58,6 @@ function crada_include() {
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_library('system','ui.dialog');
   drupal_add_css($module_path . '/crada.css');
-  drupal_add_css($module_path . '/crada.css');
   drupal_add_js($module_path . '/crada_helper_functions.js', array('cache' => false, 'preprocess' =>false));
   //drupal_add_css('sites/all/libraries/bootstrap/css/bootstrap.css'); //This messed everything up.
   drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');

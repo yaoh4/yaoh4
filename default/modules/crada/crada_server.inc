@@ -3,11 +3,14 @@ require_once 'crada_utilities.inc';
 
 
 	global $user;
-	//crada_log(print_r($user, true));
 	if (!isset($user->uid)) {
-		//user is not logged in
+		//user is not logged in Exit()
 		crada_log("User is not logged in (crada_server)");
 		$user_info = array("uid"=>0, "name"=>"unknown");
+		$output["status"] = 'Error';
+		$output["message"] = 'Drupal user unknown';
+		echo json_encode($output, JSON_PRETTY_PRINT);
+		exit();
 	} else {
 		crada_log("User is logged in (crada_server)");
 		$user_info = array("id"=> $user->uid,"name"=> $user->name);
@@ -50,6 +53,7 @@ function crada_server() {
 		else if ($action == 'get_alternate_text_types') $output = get_alternate_text_types();
 		else if ($action == 'get_subsections') $output = get_subsections();
 		else if ($action == 'get_clause_information') $output = get_clause_information();
+		else if ($action == 'get_document_count') $output = get_document_count();
 		else if ($action == 'echo') $output = echo_data();
 
 	} catch (Exception $e) {
@@ -66,7 +70,7 @@ function crada_server() {
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	else {
 		$output["status"] = 'Error';
-		$output["message"] = 'Function action = '.$action .'does not produce any output.';
+		$output["message"] = 'Function action = '.$action .'does not produce an output.';
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
 }
@@ -74,7 +78,6 @@ function crada_server() {
 function get_document_owners() {
 
 	$document_id = $_REQUEST['document_id'];
-
 
 	$query = "SELECT uid, name, mail FROM users WHERE uid > 1 ORDER BY mail ";
 	$result = db_query($query);
@@ -206,7 +209,6 @@ function create_word_file() {
 	*/
 
 }
-
 
 function archive_version() {
 	$output = array();
@@ -971,13 +973,52 @@ function db_get_all_definitions() {
 
 }
 
-// Functions for Load Documents
+function get_document_count() {
+
+	global $user;
+
+	crada_log("get_document_count");
+
+	crada_log("User id = {$user->uid}");
+	$query = "select count(*) as count from (";
+	// Same query as in db_get_all_documents_info
+	$query .= "select * from ";
+	$query .= "( ";
+	$query .= "select docs.*, cdv.version FROM ";
+	$query .= "crada_document_version cdv,  ";
+	$query .= "(SELECT distinct(cd.document_id), cd.title, cd.is_master ";
+	$query .= "FROM users_roles ur, crada_document_role cdr, crada_document cd ";
+	$query .= "where ur.uid = {$user->uid}  ";
+	$query .= "and ur.rid = cdr.rid ";
+	$query .= "and cdr.document_id = cd.document_id ";
+	$query .= "and cd.uid <> {$user->uid} ";
+	$query .= "UNION ";
+	$query .= "SELECT document_id, title, is_master from crada_document where uid = {$user->uid} ";
+	$query .= ") as docs  ";
+	$query .= "where  ";
+	$query .= "docs.is_master = 0 ";
+	$query .= "and docs.document_id = cdv.document_id ";
+	$query .= "order by docs.title, cdv.version desc ";
+	$query .= ") as doc_version ";
+	$query .= "group by document_id ";
+
+	$query .= ") as document_count; ";
+
+	$output = array();
+	crada_log($query);
+
+	$result = db_query($query);
+	$row = $result->fetchObject();
+
+	$output["status"] = "Ok";
+	$output["count"] = $row->count;
+//	$output["count"] = 0;
+
+	return $output;
+}
 
 function db_get_all_documents_info() {
 
-//
-// REWRITE THIS SO USER CAN ONLY SEE THEIR DOCUMENTS
-//
 	global $user;
 
 	$query = "select * from ";
@@ -991,7 +1032,7 @@ function db_get_all_documents_info() {
 	$query .= "and cdr.document_id = cd.document_id ";
 	$query .= "and cd.uid <> {$user->uid} ";
 	$query .= "UNION ";
-	$query .= "SELECT document_id, title, is_master from crada_document where uid = 1 ";
+	$query .= "SELECT document_id, title, is_master from crada_document where uid = {$user->uid} ";
 	$query .= ") as docs  ";
 	$query .= "where  ";
 	$query .= "docs.is_master = 0 ";
@@ -1001,6 +1042,9 @@ function db_get_all_documents_info() {
 	$query .= "group by document_id; ";
 
 	$output = array();
+	crada_log("db_get_all_documents_info");
+	crada_log($query);
+
 	$result = db_query($query);
 
 	$output["status"] = "Ok";
@@ -1033,7 +1077,7 @@ function db_get_all_documents_info() {
 
 		$list[$row->document_id] = $obj;
 	}
-*/	
+*/
 /*
 
 	global $conn;
@@ -1255,6 +1299,8 @@ function get_full_document() {
 }
 
 function db_get_document_access($document_id, $uid) {
+
+	global $user;
 	//
 	//$access can be read, write, or none
 	//

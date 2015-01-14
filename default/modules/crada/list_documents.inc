@@ -46,7 +46,7 @@ function crada_list_documents() {
 
 $html = '<div class="input-group margin-bottom-sm pull-right">
   <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
-  <input class="form-control" type="text" placeholder="Search">
+  <input id="search-term" class="form-control" type="text" placeholder="Search">
 </div>';
 
   $html .= "<h2>CRADA Documents</h2>";
@@ -81,7 +81,7 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
       //crada_log(print_r($document_roles, true));
       $document_read_write = "read";
 
-      $html .= "<tr class='$row_class'>";
+      $html .= "<tr class='$row_class' id='{$record->document_id}'>";
       $html .= '<td>';
       $html .= "  <a title='Edit or view contract' href='load_document?action=Load&document_id={$record->document_id}&version=current'>";
       $html .= $record->title;
