@@ -34,7 +34,7 @@ $(document).ready(function () {
 	});
 
 	$("#current_annotation_content").on( "click", "p", function(event) {
-		if($('#'+event.target.id).hasClass("annotate-editable") == true) {
+		if($('#'+event.target.id).attr("annotate-editable") == "true") {
 				editAnnotation(event);
 		}
 	});
@@ -467,7 +467,7 @@ function load_document_versions_into_select(max_version, selected) {
 	if(isNaN(selected)) {
 		//document_id = $("#document_select").val();
 		selected = max_version;
-		setCookie("Drupal.visitor.document.version", selected, 365);
+		//setCookie("Drupal.visitor.document.version", selected, 365);
 	};
 
 	$("#document_version").empty();
@@ -515,7 +515,7 @@ function load_document_version_into_select_old(data) {
 
 	if(isNaN(version_id)) {
 		version_id = $("#document_version").val();
-		setCookie("Drupal.visitor.document.version", version_id, 365);
+		//setCookie("Drupal.visitor.document.version", version_id, 365);
 	};
 	if(parseInt(getCookie("Drupal.visitor.document.loadLatest")) == 1) {
 		version_id = documents[document_id].versions[documents[document_id].versions.length-1];
@@ -896,13 +896,14 @@ function set_toolbar_buttons(editable) {
 		$('#change_permission_button').show();
 		$('#archive_version_button').show();
 	} else {
-		$('#change_answer_button').hide();
-		$('#change_permission_button').hide();
-		$('#archive_version_button').hide();
+		$('#change_answer_button').remove();
+		$('#change_permission_button').remove();
+		$('#archive_version_button').remove();
 	}
 }
 
 function get_document_elements_callback(data) {
+
 	console.log("get_document_elements_callback");
   //alert (JSON.stringify(data, null, 2));
   //alert(data.version);
@@ -1100,6 +1101,7 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 	//console.info(section_reference);
 	//console.log('position');
 	//console.info(position);
+// Set div editable value
 
 	var annotation_index = 0;
 	var annotation_types = ["confidential_annotation", "public_annotation"];
@@ -1107,6 +1109,7 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 	var annotate = [];
 	var annotate_offset = 0;
 	var offset = 45; //ie. Height of annotate.
+
 	console.log("POSITION");
 	console.dir(position);
 
@@ -1151,7 +1154,8 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 				console.log(x);
 				$("#current_annotation_content")
 					.append(
-						$("<p class='conatract_clause'>")
+						$("<p>")
+							.addClass("contract_clause")
 							.append( "<b>" + annotation_footnote + "</b> " + annotation_short)
 							.addClass('annotation')
 							.addClass(annotation_type)
@@ -1163,11 +1167,14 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 							.css("left", "0px")
 							.css("top", x)
 				);
+				console.info("editable ="+ editable);
+				if(editable) {
 
-				if(editable == 1) {
-					$("#"+ref).addClass('annotate-editable');
+					$("#"+ref)
+						.attr("annotate-editable", "true");
 				}
-				// add
+
+			// add
 				var annotate_position = {
 					ref : ref,
 					height: 30,

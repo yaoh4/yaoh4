@@ -49,7 +49,7 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
   <input id="search-term" class="form-control" type="text" placeholder="Search">
 </div>';
 
-  $html .= "<h2>CRADA Documents</h2>";
+  $html .= "<h2 title='Accessable Documents'>CRADA Documents</h2>";
   $html .= '<table class="sticky-enabled table-select-processed tableheader-processed sticky-table">
    <thead>
    <tr>

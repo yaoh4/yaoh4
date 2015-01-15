@@ -972,53 +972,12 @@ function db_get_all_definitions() {
 	return $output;
 
 }
-
-function get_document_count() {
-
-	global $user;
-
-	crada_log("get_document_count");
-
-	crada_log("User id = {$user->uid}");
-	$query = "select count(*) as count from (";
-	// Same query as in db_get_all_documents_info
-	$query .= "select * from ";
-	$query .= "( ";
-	$query .= "select docs.*, cdv.version FROM ";
-	$query .= "crada_document_version cdv,  ";
-	$query .= "(SELECT distinct(cd.document_id), cd.title, cd.is_master ";
-	$query .= "FROM users_roles ur, crada_document_role cdr, crada_document cd ";
-	$query .= "where ur.uid = {$user->uid}  ";
-	$query .= "and ur.rid = cdr.rid ";
-	$query .= "and cdr.document_id = cd.document_id ";
-	$query .= "and cd.uid <> {$user->uid} ";
-	$query .= "UNION ";
-	$query .= "SELECT document_id, title, is_master from crada_document where uid = {$user->uid} ";
-	$query .= ") as docs  ";
-	$query .= "where  ";
-	$query .= "docs.is_master = 0 ";
-	$query .= "and docs.document_id = cdv.document_id ";
-	$query .= "order by docs.title, cdv.version desc ";
-	$query .= ") as doc_version ";
-	$query .= "group by document_id ";
-
-	$query .= ") as document_count; ";
-
-	$output = array();
-	crada_log($query);
-
-	$result = db_query($query);
-	$row = $result->fetchObject();
-
-	$output["status"] = "Ok";
-	$output["count"] = $row->count;
-//	$output["count"] = 0;
-
-	return $output;
-}
-
-function db_get_all_documents_info() {
-
+function base_access_query() {
+	//
+	// Get the base access_query for accessable documents for this user
+	//  This is meant to be used over in over in a few areas
+	//  Wanted a single function to reuse so as not to make a mistake.
+	//
 	global $user;
 
 	$query = "select * from ";
@@ -1030,6 +989,7 @@ function db_get_all_documents_info() {
 	$query .= "where ur.uid = {$user->uid}  ";
 	$query .= "and ur.rid = cdr.rid ";
 	$query .= "and cdr.document_id = cd.document_id ";
+	$query .= "and cdr.access <> '' ";
 	$query .= "and cd.uid <> {$user->uid} ";
 	$query .= "UNION ";
 	$query .= "SELECT document_id, title, is_master from crada_document where uid = {$user->uid} ";
@@ -1038,6 +998,38 @@ function db_get_all_documents_info() {
 	$query .= "docs.is_master = 0 ";
 	$query .= "and docs.document_id = cdv.document_id ";
 	$query .= "order by docs.title, cdv.version desc ";
+	$query .= ") as doc_version ";
+	$query .= "group by document_id ";
+
+	return $query;
+}
+
+function get_document_count() {
+
+	crada_log("get_document_count");
+
+	$query = "select count(*) as count from (";
+	$query .= base_access_query();
+	$query .= ") as document_count; ";
+
+	$output = array();
+
+	$result = db_query($query);
+	$row = $result->fetchObject();
+
+	$output["status"] = "Ok";
+	$output["count"] = $row->count;
+
+	return $output;
+}
+
+function db_get_all_documents_info() {
+
+	global $user;
+
+	$query = "select * from ";
+	$query .= "( ";
+	$query .= base_access_query();
 	$query .= ") as doc_version ";
 	$query .= "group by document_id; ";
 
@@ -1051,53 +1043,11 @@ function db_get_all_documents_info() {
 	$output["documents"] = $result->fetchAll();
 
 	return $output;
-
-/*
-	$result = db_select('crada_document', 'cd')
-	->fields('cd')
-	->condition('is_master', 1, '!=')
-	->execute();
-
-	$list = array();
-	for ($count = 0; $row = $result->fetchObject(); $count++) {
-		$obj = array();
-		$obj['document_id'] = $row->document_id;
-		$obj['is_master'] = $row->is_master;
-		$obj['name'] = $row->document_name;
-		$obj['title'] = $row->title;
-
-		$r2 = db_select('crada_document_version', 'cdv')
-			->fields('cdv')
-			->condition('document_id', $row->document_id, '=')
-			->execute();
-		$obj['versions'] = array();  //resetting this on each iteration
-		for ($c2 = 0; $row2 = $r2->fetchObject(); $c2++) {
-			$obj['versions'][$c2] = $row2->version;
-		}
-
-		$list[$row->document_id] = $obj;
-	}
-*/
-/*
-
-	global $conn;
-
-	$query = "SELECT * from crada_document";
-	$result = $conn->query($query);
-
-	$document_list = array();
-	for ($count = 0; $row = $result->fetch_object(); $count++) {
-		$document['id'] = $row->document_id;
-		$document['name'] = $row->document_name;
-		$document['title'] = $row->title;
-		array_push($document_list, $document);
-	}
-	return $document_list;
-	*/
 }
 
 function create_new_document () {
 	//global $user;
+
 	crada_log("create_new_document");
 	crada_log("_REQUEST['demographic_answers']");
 	crada_log($_REQUEST['demographic_answers']);
@@ -1113,13 +1063,13 @@ function create_new_document () {
 
 	$title = $_REQUEST['title'];
 	//$answers = $_REQUEST['answers'];
-  	$output["status"] = "Ok";
-  	crada_log(json_encode($answers));
+	$output["status"] = "Ok";
+	crada_log(json_encode($answers));
 
 	$transaction = db_transaction();
 	try {
-	  	crada_log("**About to step into db_insert_new_document");
-	  	//Add document
+		crada_log("**About to step into db_insert_new_document");
+		//Add document
 		$document_id = db_insert_new_document($name, $title, $master_document_id, $_REQUEST['demographic_answers']);
 		crada_log("Just created a new document.  Here is the document_id $document_id");
 		//Add initial versions
