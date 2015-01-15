@@ -179,13 +179,19 @@ label {
 	margin-bottom: 5px;
 }
 label, input, button, select, textarea {
-	font-size: 14px;
-	font-weight: normal;
-	line-height: 20px;
+/*	font-size: 14px; */
+/*	line-height: 20px; */
+  font-weight: normal;
 }
+
 label, select, button, input[type="button"], input[type="reset"], input[type="submit"], input[type="radio"], input[type="checkbox"] {
 	cursor: pointer;
 }
+
+button {
+  height:25px;
+}
+
 #command_bar label {
 	display: inline-block;
 	width: 170px;
@@ -437,6 +443,10 @@ input.form-control {
 .input-group-addon:last-child {
   border-radius: 0 5px 5px 0;
 
+}
+
+#document_select {
+  width:225px;
 }
 
 /*

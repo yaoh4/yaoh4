@@ -20,9 +20,9 @@ function crada_current_document() {
 		crada_log("user->name = ". $user->name);
 	}
 	if (in_array('editor', $user->roles)) {
-  // do fancy stuff
 		crada_log('User is an administrator');
 	}
+
 	crada_cookie_save('user', $user_info);
 
 	//dpm($module_path, "Module Path");
@@ -106,7 +106,7 @@ function add_command_bar() {
 // change answer Bar
 function add_change_answer_bar() {
 	$data = "<DIV id='change_answer_bar' class='document_toolbar'>";
-	$data .= add_button("back_button_answer", "Back", "Return to document", "pull-right");
+	$data .= add_button("back_button_answer", "Back", "Return to document", "fa fa-mail-reply");
 	$data .= "</DIV>";
 
 	return $data;

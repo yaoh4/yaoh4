@@ -11,7 +11,7 @@ body {
 }
 
 input {
-  font: 1em/100% Verdana, sans-serif;
+  /*font: 1em/100% Verdana, sans-serif; */
   color: #494949;
 }
 
@@ -37,17 +37,11 @@ h1 {
   font-size: 170%;
 }
 
-h2,
 /*
-#center h1 {
-  font-size: 160%;
-  line-height: 130%;
-}
-*/
-
 h3 {
   font-size: 140%;
 }
+*/
 
 h4 {
   font-size: 130%;
@@ -100,6 +94,7 @@ hr {
   border: none;
   height: 1px;
   background: #5294c1;
+  margin-bottom:5px;
 }
 
 ul,
