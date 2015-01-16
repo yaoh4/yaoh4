@@ -37,7 +37,7 @@ function search_clauses_callback(data) {
     console.log( index + ": " + target_id );
     if($.inArray(target_id, data.filter) == -1) {
       console.log(target_id+" is NOT in filter");
-      $(this).hide();
+      $(this).hide("slow");
     } else {
       console.log(target_id+" is in filter");
       $(this).removeClass();
@@ -46,7 +46,7 @@ function search_clauses_callback(data) {
       } else {
         $(this).addClass('odd');
       }
-      $(this).show();
+      $(this).show("show");
       count++;
     }
   });
