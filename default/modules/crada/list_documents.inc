@@ -7,12 +7,12 @@ function crada_list_documents() {
 
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
-  drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
+  //drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 
   global $user;
   crada_log("CRADA_LIST_DOCUMENTS");
 
-  $query = "select * from  ";
+  $query = "select IFNULL(t.updated, t.created) as last_date, t.* FROM ";
   $query .= "(SELECT doc_owner.name, doc_owner.mail, cdr.document_id, cd.title, cd.status,  ";
   $query .= "unix_timestamp(cd.created) as created, unix_timestamp(cd.updated) as updated, ";
   $query .= "r.name as role_name, cdr.access ";
@@ -29,7 +29,7 @@ function crada_list_documents() {
   $query .= "'Owner' as role_name, 'write' as access ";
   $query .= "FROM users u, crada_document cd ";
   $query .= "WHERE cd.uid = {$user->uid} and u.uid = cd.uid and cd.is_master = 0) as t ";
-  $query .= "order by created desc; ";
+  $query .= "order by last_date desc; ";
 
   crada_log("HERE IS THE QUERY");
 
