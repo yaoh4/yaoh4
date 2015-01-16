@@ -337,7 +337,7 @@ function store_current_answers(section_number) {
 }
 
 function setup_template_chooser() {
-	ajax_caller('get_document_templates', {}, setup_template_chooser_callback);
+	ajax_caller('get_document_templates', null, setup_template_chooser_callback);
 	$("#choose_template")
 		.prepend($('<hr>'))
 		.prepend($('<h2>').append("Base Template")
@@ -348,11 +348,28 @@ function setup_template_chooser() {
 }
 
 function setup_template_chooser_callback(data) {
+	console.log("setup_template_chooser_callback");
+	console.log(data);
 
-	var template_select = $("#template_chooser");
-	for (var i=0; i<data.templates.length; i++) {
-		var name = data.templates[i].name;
-		template_select.append($("<OPTION>").attr('value', data.templates[i].id).append(name));
+	if(data.templates.length == 0) {
+		// Stop Progress because no templates available.
+		// Display message to user.
+		$("#choose_template > hr")
+			.append($('<div>')
+				.append($('<p>')
+					.append("No <b>Base Templates</b> have been loaded.  Please contact an administrator and ask them to load a <b>Master Base Template</b>.")
+					.css('padding', '15px')
+					.css('color', 'black')
+					.css('width', '400px')
+				)
+			)
+		$('#basic_document_info').remove();
+		$('#progress_bar').remove();
+	} else {
+		for (var i=0; i<data.templates.length; i++) {
+			var name = data.templates[i].name;
+			$("#template_chooser").append($("<OPTION>").attr('value', data.templates[i].id).append(name));
+		}
 	}
 
 //	alert (JSON.stringify(data, null, 2));

@@ -923,7 +923,7 @@ function get_document_elements_callback(data) {
   }
 //	console.dir(data);
 	//Clear document content
-	$("#current_document_content").empty().append($('<div>', {'id':'title_bar'}));
+	$("#current_document_content").empty().append($('<div>').attr('id', 'title_bar'));
 	if(data.editable) {
 		$("#current_document_content").removeClass("document-locked");
 	} else {
