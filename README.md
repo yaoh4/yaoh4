@@ -1,12 +1,12 @@
-INSTALLAIONT NOTES:
+INSTALLATION NOTES:
 
 Step 1: Install drush
 Execute install-drush.sh as sudo or as root user
 
 sudo ./install-drush.sh
 
-Step 2: Install CRATA site
-Edit the install-crada-site.sh and make sure the MYSQL_USERNAME, MYSQL_PASSWORD, and WEBSITE_ROOT are set correctly. 
+Step 2: Install CRADA site
+Edit the install-crada-site.sh and make sure the MYSQL_USERNAME, MYSQL_PASSWORD, and WEBSITE_ROOT are set correctly.
 
 WEBSITE_ROOT=/var/www/html
 MYSQL_USERNAME=crada

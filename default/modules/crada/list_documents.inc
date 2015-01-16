@@ -1,14 +1,16 @@
 <?php
 require_once 'crada_utilities.inc';
 
-
-function crada_list_documents() {
-  crada_include();
-
+  crada_include();  //
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
-  //drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
 
+function crada_list_documents() {
+  //
+  //This query indexes on updated decending but if updated
+  //is null it replaces the updated date with the created date.
+  //That is what the IFNULL function performs wrapped around the select.
+  //
   global $user;
   crada_log("CRADA_LIST_DOCUMENTS");
 
@@ -50,7 +52,7 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
 </div>';
 
   $html .= "<h2 title='Accessable Documents'>CRADA Documents</h2>";
-  $html .= '<table class="sticky-enabled table-select-processed tableheader-processed sticky-table">
+  $html .= '<table  id="list-document" class="sticky-enabled table-select-processed tableheader-processed sticky-table">
    <thead>
    <tr>
     <th>Document Title</th>
@@ -72,10 +74,10 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
 
       $row_class = ($count % 2 == 0 ? 'even' : 'odd');
       $active = ($record->status == 1 ? 'active' : 'archived');
-      $created = date("F j, Y", $record->created);
+      $created = date("M j, y", $record->created);
 
-      $updated = ($record->updated == null ? 'never' : date("F j, Y", $record->updated));
-
+      $updated = ($record->updated == null ? 'never' : howLongAgo($record->updated));
+      /*date("M j, g:i a", $record->updated)*/
       //$updated = dateDiff(time(), $record->updated)+ 'ago';
       $document_roles = getDocumentRoles($query, $record->document_id);
       //crada_log(print_r($document_roles, true));
@@ -87,7 +89,7 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
       $html .= $record->title;
       $html .='  </a>';
       $html .= '</td>';
-      $html .= "<td>$active</td>";
+      $html .= "<td>$active {$record->document_id}</td>";
       $html .= '<td>';
       $html .= '  <div class="item-list">';
       $html .= '    <ul>';

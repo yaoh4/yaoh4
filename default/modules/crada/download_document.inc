@@ -1,5 +1,7 @@
 <?php
 
+ini_set('max_execution_time', 90);
+
 require_once 'crada_utilities.inc';
 require_once 'crada_server.inc';
 require_once 'sites/default/libraries/PHPRtfLite/PHPRtfLite.php';
