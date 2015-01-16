@@ -3,6 +3,10 @@ require_once 'crada_utilities.inc';
 
 
 	global $user;
+//
+// Make sure user is logged into Drupal
+// If not exit.
+//
 	if (!isset($user->uid)) {
 		//user is not logged in Exit()
 		crada_log("User is not logged in (crada_server)");
@@ -16,11 +20,6 @@ require_once 'crada_utilities.inc';
 		$user_info = array("id"=> $user->uid,"name"=> $user->name);
 		crada_log("user->uid = ". $user->uid);
 		crada_log("user->name = ". $user->name);
-	}
-
-	if (in_array('administrator', $user->roles)) {
-  // do fancy stuff
-		crada_log('User is an ADMINISTRATOR');
 	}
 
 function crada_server() {
@@ -54,6 +53,7 @@ function crada_server() {
 		else if ($action == 'get_subsections') $output = get_subsections();
 		else if ($action == 'get_clause_information') $output = get_clause_information();
 		else if ($action == 'get_document_count') $output = get_document_count();
+		else if ($action == 'search_clauses') $output = search_clauses();
 		else if ($action == 'echo') $output = echo_data();
 
 	} catch (Exception $e) {
@@ -73,6 +73,46 @@ function crada_server() {
 		$output["message"] = 'Function action = '.$action .'does not produce an output.';
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
+}
+
+function search_clauses() {
+
+	$searchterm = $_REQUEST['searchterm'];
+	crada_log("SEARCH CLAUSE");
+	crada_log("searchterm: $searchterm");
+/* SQL: Example
+select distinct(user_document.document_id) as document_id  from
+	(select * from ( select docs.*, cdv.version FROM crada_document_version cdv,  (SELECT distinct(cd.document_id), cd.title, cd.is_master FROM users_roles ur, crada_document_role cdr, crada_document cd where ur.uid = 1  and ur.rid = cdr.rid and cdr.document_id = cd.document_id and cdr.access <> '' and cd.uid <> 1 UNION SELECT document_id, title, is_master from crada_document where uid = 1 ) as docs  where  docs.is_master = 0 and docs.document_id = cdv.document_id order by docs.title, cdv.version desc ) as doc_version group by document_id )
+as user_document,
+crada_document_element cde
+WHERE user_document.document_id = cde.document_id
+AND cde.document_element_text like '%entity%';
+*/
+	$query = "select distinct(user_document.document_id) as document_id from (";
+	$query .= base_access_query();
+	$query .= ") as user_document, ";
+	$query .= "crada_document_element cde ";
+	$query .= "WHERE user_document.document_id = cde.document_id ";
+	$query .= "AND cde.document_element_text like '%{$searchterm}%' ";
+	$query .= "	OR user_document.title like '%{$searchterm}%' ";
+
+	crada_log($query);
+
+	$result = db_query($query);
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		array_push($list, $row->document_id);
+	}
+
+	$output = array();
+  $output["status"] = "Ok";
+  $output["searchterm"] = $searchterm;
+  $output["filter"] = $list;
+  crada_log(print_r($output,true));
+
+	return $output;
+
 }
 
 function get_document_owners() {
