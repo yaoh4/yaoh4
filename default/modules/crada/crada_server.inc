@@ -74,8 +74,61 @@ function crada_server() {
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	}
 }
-
 function search_clauses() {
+	$searchterm = $_REQUEST['searchterm'];
+	crada_log("SEARCH CLAUSE");
+	crada_log("searchterm: $searchterm");
+
+/* OLD Search searches all clauses (faster) */
+
+	$query = "select distinct(user_document.document_id) as document_id from (";
+	$query .= base_access_query();
+	$query .= ") as user_document, ";
+	$query .= "crada_document_element cde ";
+	$query .= "WHERE user_document.document_id = cde.document_id ";
+	$query .= "AND cde.document_element_text like '%{$searchterm}%' ";
+	$query .= "	OR user_document.title like '%{$searchterm}%' ";
+
+/* NEW Search searches only latest clause (slower)*/
+/*
+	$query = "select distinct(finallist.document_id) as document_id from  ( ";
+	$query .= "select document_id, document_element_text, title from ( ";
+	$query .= "select newone.document_id, newone.document_element_id, max(newone.document_version) as maxversion, newone.title from ( ";
+	$query .= "select cde_link.*, base_search.title from ( ";
+	$query .= base_access_query();
+	$query .= ") as base_search, ";
+	$query .= "(select document_id, document_element_id, document_version from crada_document_element) as cde_link ";
+	$query .= "WHERE base_search.document_id = cde_link.document_id ";
+	$query .= ") as newone ";
+	$query .= "GROUP BY newone.document_id, newone.document_element_id ";
+	$query .= ") as maxelements, ";
+	$query .= "(select document_id as document_id2, document_element_id, document_version, document_element_text from  ";
+	$query .= "crada_document_element) as cde2 ";
+	$query .= "WHERE maxelements.document_id = cde2.document_id2 and  maxelements.document_element_id = cde2.document_element_id and maxelements.maxversion = cde2.document_version ";
+	$query .= "and cde2.document_element_text like '%{$searchterm}%' or maxelements.title like '%{$searchterm}%'  ";
+	$query .= ") as finallist ";
+*/
+	crada_log ("Start here.  Get only the current clauses.");
+	crada_log($query);
+
+	$result = db_query($query);
+
+	$list = array();
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		array_push($list, $row->document_id);
+	}
+
+	$output = array();
+  $output["status"] = "Ok";
+  $output["searchterm"] = $searchterm;
+  $output["filter"] = $list;
+  crada_log(print_r($output,true));
+
+	return $output;
+
+}
+
+function search_clauses_old_faster() {
 
 	$searchterm = $_REQUEST['searchterm'];
 	crada_log("SEARCH CLAUSE");
@@ -95,7 +148,7 @@ AND cde.document_element_text like '%entity%';
 	$query .= "WHERE user_document.document_id = cde.document_id ";
 	$query .= "AND cde.document_element_text like '%{$searchterm}%' ";
 	$query .= "	OR user_document.title like '%{$searchterm}%' ";
-
+	crada_log ("Start here.  Get only the current clauses.");
 	crada_log($query);
 
 	$result = db_query($query);
@@ -1040,7 +1093,8 @@ function base_access_query() {
 	$query .= "order by docs.title, cdv.version desc ";
 	$query .= ") as doc_version ";
 	$query .= "group by document_id ";
-
+	crada_log("BASE QUERY");
+	crada_log($query);
 	return $query;
 }
 
@@ -1384,7 +1438,8 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
 	$query .= " and cde2.document_version = cde1.ver ";
 	$query .= " and cde2.document_id = $document_id;";
-
+	crada_log("GET LATEST DOCUMENT BASED on a version number");
+	crada_log($query);
 	$result=db_query($query);
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -1395,6 +1450,8 @@ function db_get_document_elements ($document_id, $version) {
 		$obj['public_annotation'] = trim($row->public_annotation);
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
+		$obj['survivable'] = $row->survivable;
+
 		array_push($list, $obj);
 	}
 	return $list;

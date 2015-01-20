@@ -32,6 +32,14 @@ $(document).ready(function () {
 	$("#current_document_content").on( "blur", "p.clause", function(event) {
 		updateClauseParagraph();
 	});
+	$("#current_document_content").on( "click", "a", function(event) {
+		event.preventDefault();
+		scrollToAnchor('#'+this.id);
+		//	alert(this.bookmark);
+		//var id = event.target.id;
+		//var bookmark = $('#'+id).attr('href');
+		//scrollToAnchor(bookmark);
+	});
 
 	$("#current_annotation_content").on( "click", "p", function(event) {
 		if($('#'+event.target.id).attr("annotate-editable") == "true") {
@@ -44,12 +52,12 @@ $(document).ready(function () {
 		changedAnswer(event);
 	});
 	$("#second_page").on( "change", "select.permission-select", function(event) {
+		alert("Got it does this work? ");
 		changeDocumentPermissions(event);
-		//alert("Got it ");
 	});
 	$("#second_page").on( "change", "select.current-owner-select", function(event) {
+		alert("Got it. Now");
 		changeDocumentOwner(event);
-		alert("Got it ");
 	});
 
 	var querystring = getQueryString();
@@ -78,17 +86,52 @@ function changeDocumentPermissions(event) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
-	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
 	ajax_caller('set_document_permissions', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 
 }
 
 function changeDocumentOwner(event) {
+	alert('changeDoucmentOwner open a dialog box to confirm');
+
 	var ref = event.target.id;
 	var answer_id = $("#"+ref).val();
+	alert(answer_id);
 
-	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	ajax_caller('set_document_permissions', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+	var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
+	content = '<textarea id="annotate-textarea-'+unique+'" rows="5" cols="70" class="edit_annotation_textarea">';
+	content += data_annotate;
+	content += '</textarea>';
+
+	$(content).dialog({
+		resizable: false,
+		height:430,
+		width:550,
+		modal: true,
+		title: $("#"+ref).attr("dialog-title"),
+		buttons: {
+			Cancel: function() {
+				$( this ).dialog( "close" );
+			},
+			Save: function() {
+				$( this ).dialog( "close" );
+				var textarea = $('#annotate-textarea-'+unique).val();
+				//textarea = $(textarea).text();
+				console.log("TEXTAREA");
+				console.log(textarea);
+				var header = $("#"+ref).text();
+				header = header.substr(0, header.search(']') + 1);
+				var newText = '<b>'+header+'</b> '+ trimAnnotation(textarea);
+				$("#"+ref).html(newText);
+				$("#"+ref).attr("data-annotate", textarea);
+				$("#"+ref).attr("title", textarea);
+				updateAnnotateData(ref, textarea);
+			}
+		}
+	});
+
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 
 }
 
@@ -546,8 +589,9 @@ function click_change_permission_button() {
 }
 
 function load_change_permission(data) {
-	var instructions = '<p class="second-page-intro">Set document permissions.</p>';
+	var instructions = '<p class="second-page-intro">Change document access permissions or document owner.</p>';
 	$('#second_page').empty().append(instructions);
+
 	$('#second_page').append(
 		$("<form>")
 			.attr('id', 'change-permission')
@@ -954,6 +998,7 @@ function get_document_elements_callback(data) {
 	var annotation_positions = [];
 	var annotation_detail = [];
 	var annotate = [];
+	var survivable_clauses = [];
 
 	//Walk through each clause
 	for (var i=0; i<data.clauses.length; i++) {
@@ -967,16 +1012,24 @@ function get_document_elements_callback(data) {
 			}
 			clause_number++;
 			section_reference = section_number+"-"+clause_number;
-//			if(section_number == 3) { // For testing only
-				var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
-				var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
-				if(annotate_detail.length > 0) {
-					annotate.push(annotate_detail);
-				}
-				annotation_positions.push(position);
-//			} //Testing section only
+			if(section_number == 5) { // For testing only
+			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+			var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
+			if(annotate_detail.length > 0) {
+				annotate.push(annotate_detail);
+			}
+			annotation_positions.push(position);
+			} //For testing only
+			if(data.clauses[i].survivable == 1){
+				survivable_clauses.push(section_reference);
+			}
 		}
 	}
+
+// Add survivability statement at bottom of document
+		printSurvivabilityStatement(survivable_clauses);
+//	Survivability.  The provisions of Paragraphs 3.3, 3.4, 3.8, 4.2, 4.3, 5.3, 5.4, 6.1-9.2, 10.3-10.6, 11.1, 11.2, 12.1-12.3, 13.1-13.3, 13.7, 13.10 and 13.14 will survive the expiration or early termination of this CRADA.
+
 //	documentSections = data;
 //	console.info("documentSections")
 //	console.dir(documentSections);
@@ -1020,6 +1073,40 @@ function get_document_elements_callback(data) {
 	var options = $( ".accordion" ).accordion( "option" );
 	console.dir(options);
 	*/
+}
+
+function printSurvivabilityStatement(survivable_clauses) {
+
+		var survivability_statement;
+		var label = (survivable_clauses.length == 1) ? "Paragraph" : "Paragraphs";
+		console.warn("Survivable_clauses");
+		console.dir(survivable_clauses);
+
+		if(survivable_clauses.length > 0) {
+			survivability_statement = "<strong>Survivability</strong>.  ";
+			survivability_statement += "The provisions of "+label+" ";
+			survivability_statement += explodeLegalArray(survivable_clauses, "clause");
+			survivability_statement += " will survive the expiration or early termination of this CRADA.";
+
+			$("#current_document_content")
+					.append($("<div>")
+						.addClass('clause-container')
+								.append($('<p>')
+									.addClass('survivability-statement')
+									.append(survivability_statement)
+								)
+					);
+		}
+}
+
+function scrollToAnchor(aid){
+	console.warn(scrollToAnchor);
+	console.dir(aid);
+    var aTag = $("a[name='"+ aid +"']");
+    $('html,body').animate({scrollTop: aTag.offset().top},'slow')
+    		.complete(
+    			alert(aid)
+    		);
 }
 
 function drawAnnotate(annotate, rect) {
@@ -1213,15 +1300,20 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	console.info('clause '+clause);
 	console.info('index '+index);
 	console.info('element_id '+element_id);
-	$("#"+element_id).append(
-		$('<div/>', {'class': 'clause-paragraph'}).append(
-		    $('<div/>', {'class': 'minor-version'}).append(
-		        section_number+"-"+minor_number
-		    )
-		)
+	$("#"+element_id)
+		.append($('<div>')
+					.addClass('clause-paragraph')
+					.append($('<a>')
+							.attr('name', '#clause-'+section_number+"-"+minor_number)
+						)
+					.append($('<div>')
+								.addClass('minor-version')
+								.append(section_number+"-"+minor_number)
+					)
+
 		.append(
-		    $('<div/>', {'class': 'clause-container'}).append(
-		    	$('<p/>', {'class':'clause'}).append(
+		    $('<div>', {'class': 'clause-container'}).append(
+		    	$('<p>', {'class':'clause'}).append(
 		        	clause.text
 		        )
 		        .attr('id', 'clause-'+index)
