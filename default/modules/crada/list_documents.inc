@@ -45,13 +45,16 @@ function crada_list_documents() {
           <input type="text" placeholder="Email address" class="form-control">
         </div>
 */
+if(function_exists('openssl_encrypt')) {
+  crada_log("BTW, PHP opensslq_encrypt function exists.  Yes...");
+}
 
 $html = '<div class="input-group margin-bottom-sm pull-right">
   <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
   <input id="search-term" class="form-control" type="text" placeholder="Search">
 </div>';
 
-  $html .= "<h2 title='Accessable Documents'>CRADA Documents</h2>";
+  $html .= "<h2 title='Accessable Documents'>CRADA Documents</h2><div class='both'></div><hr style='margin:10px 0;'>";
   $html .= '<table  id="list-document" class="sticky-enabled table-select-processed tableheader-processed sticky-table">
    <thead>
    <tr>
@@ -89,7 +92,7 @@ $html = '<div class="input-group margin-bottom-sm pull-right">
       $html .= $record->title;
       $html .='  </a>';
       $html .= '</td>';
-      $html .= "<td>$active {$record->document_id}</td>";
+      $html .= "<td>$active</td>";
       $html .= '<td>';
       $html .= '  <div class="item-list">';
       $html .= '    <ul>';

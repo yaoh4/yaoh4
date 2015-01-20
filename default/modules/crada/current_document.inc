@@ -2,13 +2,17 @@
 
 require_once 'crada_utilities.inc';
 
+if(function_exists('openssl_encrypt')) {
+  crada_log("BTW, PHP opensslq_encrypt function exists.  Yes... (current_document.inc)");
+}
+
 function crada_current_document() {
 	$module_path = drupal_get_path('module', 'crada');
 	drupal_add_library('system','ui.dialog');
 	drupal_add_css($module_path . '/crada.css');
 	drupal_add_js($module_path . '/crada_helper_functions.js', array('cache' => false, 'preprocess' => false));
-	drupal_add_js($module_path . '/current_document.js', array('cache' => false, 'preprocess' => false));
-
+	drupal_add_js($module_path . '/current_document.js', array('cache' => true, 'preprocess' => false));
+		//drupal_add_js('sites/default/libraries/gibberish-aes/gibberish.aes.min.js', array('cache' => true, 'preprocess' => false));
 	global $user;
 	if (!isset($user->uid)) {
 		//user is not logged in

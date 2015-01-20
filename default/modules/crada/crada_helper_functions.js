@@ -83,3 +83,26 @@ function getCookie(cname) {
     }
     return "";
 }
+
+function explodeLegalArray(entities, bookmark) {
+    //Turn an arry into a legal statement to use in a scentense
+    //Example: array("Maryland", "New York", "Virginia")
+    // = "Maryland, New York, and Virgina"
+
+    var delimiter = ",";
+    var output;
+
+    jQuery.each(entities, function (key, value) {
+        if(key == 0) {
+            output = "<a href='#' id="+bookmark+"-"+value+">"+value+"</a>";
+        } else if(key == entities.length-1) {
+                output += " and "+"<a href='#' id="+bookmark+"-"+value+">"+value+"</a>";
+        } else {
+                output += delimiter+" "+"<a href='#' id="+bookmark+"-"+value+">"+value+"</a>";
+        }
+    });
+
+    return output;
+
+}
+
