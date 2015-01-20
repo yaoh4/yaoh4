@@ -108,6 +108,7 @@ function load_excel_file() {
 		load_definitions();
 		load_demographics();
 		load_sections();
+		load_footer();
 	} catch (Exception $e) {
 		$transaction->rollback();
 		watchdog_exception('crada', $e, $e->getMessage());
@@ -118,7 +119,12 @@ function load_excel_file() {
 
 function load_coversheet() {
 	global $xls_reader, $filename;
-	drupal_set_message("Coversheet Loading Coming Soon");
+	//drupal_set_message("Coversheet Loading Coming Soon");
+}
+
+function load_footer() {
+	global $xls_reader, $filename;
+	drupal_set_message("Footer Loading Coming Soon");
 }
 
 function load_definitions() {
@@ -210,7 +216,7 @@ function load_specific_section($i, $section_name) {
 	global $clause_id, $row_in_section;
 
 	// Row 0 is the header, we will treat it special
-	// We need to find out which columns are: 'Defined Terms', 'Confidential Annotation', and 'Public Annotation'
+	// We need to find out which columns are: 'Defined Terms', 'Confidential Annotation', 'Public Annotation', and 'Survivability'
 
 	$row_in_section = 0;
 	$first_row = true;
@@ -227,7 +233,7 @@ function load_specific_section($i, $section_name) {
 	}
 }
 function determine_columns($line) {
-	global $defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
+	global $defined_terms_column, $confidential_annotation_column, $public_annotation_column, $survivability_column, $alternate_text_columns;
 
 	// This limits the number of alternate texts to about 30
 
@@ -240,7 +246,8 @@ function determine_columns($line) {
 			if ($line[$c] == "Defined Terms") $defined_terms_column = $c;
 			else if ($line[$c] == "Confidential Annotation") $confidential_annotation_column = $c;
 			else if ($line[$c] == "Public Annotation") $public_annotation_column = $c;
-			else if ($c != "A" && $c != "B" && $c != "C" && $c != "D" && $c != "E" && $line[$c] != "Survivablity") {
+			else if ($line[$c] == "Survivability") $survivability_column = $c;
+			else if ($c != "A" && $c != "B" && $c != "C" && $c != "D" && $c != "E" && $line[$c] != "Survivability") {
 				// All these columns make up the alternate text
 				$alternate_text_columns[$i]['name'] = $line[$c];
 				$alternate_text_columns[$i]['column_id'] = $c;
@@ -253,6 +260,7 @@ function determine_columns($line) {
 	drupal_set_message("Defined Terms Column: $defined_terms_column");
 	drupal_set_message("Confidential Annotation Column: $confidential_annotation_column");
 	drupal_set_message("Public Annotation Column: $public_annotation_column");
+	drupal_set_message("Survivability Column: $survivability_column");
 }
 
 
@@ -260,8 +268,8 @@ function determine_columns($line) {
 function load_line($section, $line) {
 	global $document_id, $current_subsection, $current_question, $current_answer,
 		$question_number_for_subsection, $answer_number_for_question, $user_name, $question_id,
-        $clause_id, $row_in_section,
-		$defined_terms_column, $confidential_annotation_column, $public_annotation_column, $alternate_text_columns;
+		$clause_id, $row_in_section, $defined_terms_column, $confidential_annotation_column,
+		$public_annotation_column, $survivability_column, $alternate_text_columns;
 
 //	drupal_set_message("LINE: " . json_encode($line));
 
@@ -311,6 +319,7 @@ function load_line($section, $line) {
 
 	$default_confidential_annotation = $line[$confidential_annotation_column];
 	$default_public_annotation = $line[$public_annotation_column];
+	$default_survivability = (strtoupper($line[$survivability_column]) == "YES") ? 1:0;
 
 	$defined_terms = $line[$defined_terms_column];
 
@@ -326,11 +335,11 @@ function load_line($section, $line) {
 		db_insert_crada_answer($question_id, $answer_number_for_question, $current_answer);
 		$clause_group_id = db_insert_crada_clause_group($section, $current_question, $current_answer);
 		db_insert_crada_valid_clause_group_by_answer($question_id, $answer_number_for_question, $clause_group_id);
-		db_insert_crada_document_element($clause_id, $section, $subsection, "default", $default_text, $default_confidential_annotation, $default_public_annotation);
+		db_insert_crada_document_element($clause_id, $section, $subsection, "default", $default_text, $default_confidential_annotation, $default_public_annotation, $default_survivability);
 		foreach ($alternate_text_array as $a) {
 			if($a['text'] && $a['text'] != "") {
 				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . $a['text'] ."]");
-				db_insert_crada_document_element($clause_id, $section, $subsection, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation);
+				db_insert_crada_document_element($clause_id, $section, $subsection, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation, $default_survivability);
 			}
 		}
 		db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id);
@@ -453,7 +462,7 @@ function db_insert_crada_valid_clause_group_by_answer($question_id, $answer_numb
 	drupal_set_message("Adding Valid Clause Group to Answer($question_id:$answer_number): $clause_group_id");
 }
 
-function db_insert_crada_document_element($clause_id, $section, $subsection, $alternate_type, $text, $confidential_annotation, $public_annotation) {
+function db_insert_crada_document_element($clause_id, $section, $subsection, $alternate_type, $text, $confidential_annotation, $public_annotation, $survivability) {
 	global $user, $document_id;
 
 	db_insert('crada_document_element')->fields(array(
@@ -467,7 +476,7 @@ function db_insert_crada_document_element($clause_id, $section, $subsection, $al
 		'document_element_text' => $text,
 		'confidential_annotation' => $confidential_annotation,
 		'public_annotation' => $public_annotation,
-		'survivable' => 0,
+		'survivable' => $survivability,
 		'required' => 0,
 		'updated_by' => $user->name,
 		'updated_date' => date("Y-m-d H:i:s", time())
