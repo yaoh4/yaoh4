@@ -50,7 +50,7 @@ if(function_exists('openssl_encrypt')) {
 }
 
 $html = '<div class="input-group margin-bottom-sm pull-right">
-  <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
+  <span class="input-group-addon" title="Search archived documents, current documents, and document titles"><i class="fa fa-search fa-fw"></i></span>
   <input id="search-term" class="form-control" type="text" placeholder="Search">
 </div>';
 

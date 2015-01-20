@@ -411,6 +411,7 @@ function setup_document_callback(data) {
 		new_clauses[i] = new Object();
 		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
+		new_clauses[i].survivable = 0;
 	}
 	console.log("new_clauses");
 	console.dir(new_clauses);
@@ -428,6 +429,7 @@ function setup_document_callback(data) {
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
 		new_clauses[used_terms.length+i].confidential_annotation = data.clauses[i].confidential_annotation;
 		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
+		new_clauses[used_terms.length+i].survivable = data.clauses[i].survivable;
 		console.log("new clauses populate where i = "+i);
 		console.log("question  = "+i);
 		console.log("answer = "+answers[i]);
@@ -439,6 +441,8 @@ function setup_document_callback(data) {
 	}
 
 	var new_clauses_encoded = JSON.stringify(new_clauses);
+	console.log("NEW CLAUSES");
+	console.dir(new_clauses);
 
 	var title = $("#document_title").val();
 	if (title == null || title == "") title = "New Title";

@@ -1,7 +1,9 @@
 <?php
 require_once 'crada_utilities.inc';
 
-
+//Create new document steps:
+//Step 1: get_clauses_from_answers()
+//Step 2: create_new_document()
 	global $user;
 //
 // Make sure user is logged into Drupal
@@ -33,11 +35,11 @@ function crada_server() {
 		else if ($action == 'get_questions_for_section') $output = db_get_questions_for_section();
 		else if ($action == 'get_section_list') $output = db_get_section_list();
 		else if ($action == 'get_section') $output = db_get_section();
-		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers();
 		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
 		else if ($action == 'get_demographics') $output = db_get_demographics();
 		else if ($action == 'get_all_documents_info') $output = db_get_all_documents_info();
-		else if ($action == 'create_new_document') $output = create_new_document();
+		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers(); //Step 1:
+		else if ($action == 'create_new_document') $output = create_new_document(); //Step 2:
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'get_document_permissions') $output = get_document_permissions();
@@ -988,6 +990,8 @@ function db_get_clause_information($document_id, $version, $clause, $alternate_t
 	$clause_info['public_annotation'] = $record->public_annotation;
 	$clause_info['survivable'] = $record->survivable;
 	$clause_info['required'] = $record->required;
+	crada_log("clause_info");
+	crada_log(print_r($clause_info, true));
 
 	return $clause_info;
 
@@ -1169,10 +1173,18 @@ function create_new_document () {
 		//Add initial versions
 		db_insert_new_version($document_id);
 		//Add elements(i.e. clauses, i.e. sections)
+
+		crada_log("");
+
 		for ($i=0;$i<count($data); $i++) {
 			$subsection = $data[$i]['subsection'];
+			crada_log("subsection: $subsection");
 			if ($subsection == NULL) $subsection = "";
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection, $data[$i]['text'], $data[$i]['confidential_annotation'], $data[$i]['public_annotation'], $data[$i]['source_question'], $data[$i]['source_answer']);
+			crada_log(print_r($data[$i],true));
+			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection,
+				$data[$i]['text'], $data[$i]['confidential_annotation'],
+				$data[$i]['public_annotation'], $data[$i]['survivable'],
+				$data[$i]['source_question'], $data[$i]['source_answer']);
 			$output["row"][$i] = $data[$i]['text'];
 
 		}
@@ -1262,10 +1274,14 @@ function db_insert_new_version($document_id) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $source_question, $source_answer) {
+function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $survivable, $source_question, $source_answer) {
 
 	global $user;
-
+	//Make sure $survivable is set
+	if(!isset($survivable)) {
+			$survivable = 0;
+	}
+	crada_log("doc: $document_id, element: $element_id, survivable: $survivable	");
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
@@ -1280,7 +1296,7 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'public_annotation' => $public_annotation,
 	  'source_question' => $source_question,
 	  'source_answer' => $source_answer,
-	  'survivable' => 0,
+	  'survivable' => $survivable,
 	  'required' => 0,
 	  'updated_by' => $user->uid,
 	  'updated_date' => date("Y-m-d H:i:s", time()),
