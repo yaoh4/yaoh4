@@ -35,10 +35,6 @@ $(document).ready(function () {
 	$("#current_document_content").on( "click", "a", function(event) {
 		event.preventDefault();
 		scrollToAnchor('#'+this.id);
-		//	alert(this.bookmark);
-		//var id = event.target.id;
-		//var bookmark = $('#'+id).attr('href');
-		//scrollToAnchor(bookmark);
 	});
 
 	$("#current_annotation_content").on( "click", "p", function(event) {
@@ -1012,14 +1008,14 @@ function get_document_elements_callback(data) {
 			}
 			clause_number++;
 			section_reference = section_number+"-"+clause_number;
-			if(section_number == 5) { // For testing only
+			//if(section_number == 5) { // For testing only
 			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
 			var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
 			if(annotate_detail.length > 0) {
 				annotate.push(annotate_detail);
 			}
 			annotation_positions.push(position);
-			} //For testing only
+			//} //For testing only
 			if(data.clauses[i].survivable == 1){
 				survivable_clauses.push(section_reference);
 			}
@@ -1100,13 +1096,8 @@ function printSurvivabilityStatement(survivable_clauses) {
 }
 
 function scrollToAnchor(aid){
-	console.warn(scrollToAnchor);
-	console.dir(aid);
-    var aTag = $("a[name='"+ aid +"']");
-    $('html,body').animate({scrollTop: aTag.offset().top},'slow')
-    		.complete(
-    			alert(aid)
-    		);
+		var aTag = $("a[name='"+ aid +"']");
+		$('html,body').animate({scrollTop: aTag.offset().top},'slow');
 }
 
 function drawAnnotate(annotate, rect) {
