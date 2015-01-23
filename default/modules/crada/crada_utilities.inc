@@ -27,7 +27,7 @@ function crada_log($data, $debug_level=0) {
 
 	$filename = "/local/drupal/logs/crada.log";
 	$timestamp = date("Y-m-d H:i:s", time());
-	$output = $timestamp . " " . $data ;
+	$output = $timestamp . " " . $data;
 
 	if($debug_level > 0 ) {
 		file_put_contents($filename,  "*******************************************" . PHP_EOL, FILE_USE_INCLUDE_PATH | FILE_APPEND );

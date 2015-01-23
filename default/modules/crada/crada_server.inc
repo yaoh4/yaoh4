@@ -46,14 +46,15 @@ function crada_server() {
 		else if ($action == 'set_document_permissions') $output = set_document_permissions();
 		else if ($action == 'get_document_owners') $output = get_document_owners();
 		else if ($action == 'set_document_owner') $output = set_document_owner();
-		else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
+		//else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
+		else if ($action == 'set_new_answer') $output = set_new_answer();
 		else if ($action == 'set_answer') $output = set_answer();
 		else if ($action == 'save_element') $output = save_element();
 		else if ($action == 'archive_version') $output = archive_version();
 		else if ($action == 'create_word_file') $output = create_word_file();
 		else if ($action == 'get_alternate_text_types') $output = get_alternate_text_types();
 		else if ($action == 'get_subsections') $output = get_subsections();
-		else if ($action == 'get_clause_information') $output = get_clause_information();
+/*		else if ($action == 'get_clause_information') $output = get_clause_information(); */
 		else if ($action == 'get_document_count') $output = get_document_count();
 		else if ($action == 'search_clauses') $output = search_clauses();
 		else if ($action == 'echo') $output = echo_data();
@@ -337,7 +338,7 @@ function save_element() {
 	crada_log("Alternate Text Type needs to be 'current' for DOCUMENTS ");
 	crada_log('save_element- PRIMARY KEY (`document_element_id`,`document_version`,`document_id`,`alternate_text_type`),');
 
-	$alternate_text_type = 'current';
+//	$alternate_text_type = 'current';
 
 	$document_id = $_REQUEST['document_id'];
 	$document_element_id = $_REQUEST['document_element_id'];
@@ -375,7 +376,7 @@ function save_element() {
 		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
 		$query .= "document_id = $document_id and document_element_id = $document_element_id) cde1 ";
 		$query .= "where cde2.document_id = $document_id and cde2.document_element_id = $document_element_id ";
-		$query .= "and cde2.alternate_text_type = '$alternate_text_type' ";
+//		$query .= "and cde2.alternate_text_type = '$alternate_text_type' ";
 		$query .= "and cde2.document_version = cde1.latest_document_version);";
 		crada_log($query);
 		crada_log("Not executing above");
@@ -564,8 +565,76 @@ function set_answer_retrieve_new_element() {
     return $output;
 }
 
+function set_new_answer() {
+	global $user;
+
+	$document_id = $_REQUEST['document_id'];
+	$question_id = $_REQUEST['question_id'];
+	$answer_id = $_REQUEST['answer_id'];
+
+	$statement = "document_id: $document_id, question_id: $question_id, answer_id: $answer_id, user: {$user->uid}";
+	crada_log("SET_NEW_ANSWER");
+	crada_log($statement);
+
+	//GET Exact Row
+	$query = "select document_element_id, max_version, master_document_id, alternate_text_type from ( ";
+	$query .= document_current_question_answer_sql($document_id);
+	$query .= ") lca WHERE question_id = $question_id ";
+  crada_log("Row info");
+	crada_log($query);
+
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(print_r($row, true));
+	$document_element_id = $row->document_element_id;
+	$max_version = $row->max_version;
+	$master_document_id = $row->master_document_id;
+
+	$alternate_text_type = $row->alternate_text_type;
+
+	$statement = "document_element_id: $document_element_id;
+	max_version: $max_version;
+	master_document_id: $master_document_id;
+	alternate_text_type: $alternate_text_type;";
+
+	crada_log($statement);
+
+	//GET alternate text type.
+	crada_log("Get alternate_text_type");
+
+	//GET element text
+	crada_log("Get clause");
+
+	//ADD Demographics
+	crada_log("add Mad Lib Demographics.");
+
+	//replace in crada_document_element
+	//Use this statement to update source_answer, answer_changed, updated_by, document_element_text
+	$query = "select * from crada_document_element
+					where document_id = $document_id
+					and source_question = $question_id
+					and document_version = $max_version";
+	crada_log("document_element_text BEFORE: ");
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(print_r($row, true));
+
+	crada_log("Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
+	crada_log("document_element_text AFTER: ");
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(print_r($row, true));
+
+	//DATABASE Unique KEY: document_id, document_element_id, version
+
+	$output = array();
+	$output["status"] = "OK";
+
+	return $output;
+}
+
 function set_answer() {
-	/*
+
 	crada_log("set_answer()");
 	crada_log($_REQUEST['data']);
 	$data = json_decode($_REQUEST['data'], true);
@@ -596,7 +665,7 @@ function set_answer() {
  	$result = db_query($query);
   	$row = $result->fetchObject();
   	$count = $row->count;
-  	crada_log("Row Count = "+$count)
+  	crada_log("Row Count = "+$count);
   	return;
   	if($count == 0) {
   		//Insert new row
@@ -612,7 +681,7 @@ function set_answer() {
   	}
   	// Update row
 	$transaction = db_transaction();
-	try {/*
+	try {
 	  	if($count == 0) {
 	  		//Insert new row
 			$query  = "insert into crada_document_element select cde.document_element_id, cdv.max_version, cde.document_id,	cde.section, ";
@@ -636,8 +705,8 @@ function set_answer() {
 		->condition('source_question', $question_id, '=')
 		->condition('document_version', $max_version, '=')
 		->execute();
-		*/
-/*
+
+
 
 	$result = db_select('crada_document', 'cd')
 		->fields('cd')
@@ -646,9 +715,9 @@ function set_answer() {
 
 	$row = $result->fetchObject();
 	$master_document_id = $row->master_document_id;
-*/
 
-/*		$output = array();
+
+		$output = array();
 	    $output["status"] = "Ok";
 	    $output["version"] = $max_version;
 
@@ -665,7 +734,7 @@ function set_answer() {
  	 	$output["error"] = $e->getMessage();
  	 	return $output;
 	}
-*/
+
 }
 
 function get_document_permissions() {
@@ -684,14 +753,66 @@ function get_document_permissions() {
 	return $list;
 }
 
+function document_current_question_answer_sql($document_id) {
+	//
+	// Get question and answers for a document
+	//
+/*
+	$query = "SELECT cde.document_id, cde.document_element_id, max(cde.document_version) as maxversion, cde.source_question, cde.source_answer ";
+	$query .= "FROM crada_document_element cde ";
+	$query .= "where cde.document_id = {$document_id} ";
+	$query .= "and cde.source_question is not null ";
+	$query .= "group by cde.document_element_id ";
+*/
+
+/*Linking current document elements to questions and answers. */
+	$query = "select cde_b.*, cq.question_id, cq.section, cq.subsection, cq.predecessor, cq.question_text FROM ( ";
+
+/* Link to master_document_id*/
+	$query .= "select cde_a.*, cd.master_document_id FROM ( ";
+/* Base Select with maxversion */
+	$query .= "SELECT cde.document_id, cde.document_element_id, max(cde.document_version) as max_version, cde.source_question, cde.source_answer, cde.alternate_text_type ";
+	$query .= "FROM crada_document_element cde ";
+	$query .= "where cde.document_id = {$document_id} ";
+	$query .= "and cde.source_question is not null ";
+	$query .= "group by cde.document_element_id ";
+
+	$query .= ") cde_a, crada_document cd ";
+	$query .= "where cd.document_id = cde_a.document_id ";
+
+	$query .= ") cde_b, crada_question cq ";
+	$query .= "WHERE cde_b.master_document_id = cq.document_id ";
+	$query .= "AND cde_b.source_question = cq.question_id ";
+	$query .= "AND cq.question_text <> 'REQUIRED' ";
+	$query .= "ORDER BY cde_b.source_question ";
+
+	crada_log('document_current_question_answer_sql(document_id)');
+	crada_log($query);
+
+return $query;
+
+}
+
 function get_answers() {
 	//$document_id = intval($_REQUEST['document_id']);
 	//
 	//Hard coded for now.  Retrieve master_document_id from crada_question
 	//
 	//Look up master
-
+	crada_log('get_answers');
+	//crada_log(print_r($_REQUEST, true));
 	$document_id = $_REQUEST['document_id'];
+
+	//
+	// Let's change all these to sql statements to see if we can make this more
+	// effecient.
+	//
+
+
+
+	//
+	// Look up crada_document (Get the master_document_id)
+	//
 	$result = db_select('crada_document', 'cd')
 		->fields('cd')
 		->condition('document_id', $document_id, '=')
@@ -699,28 +820,33 @@ function get_answers() {
 	$row = $result->fetchObject();
 	$master_document_id = $row->master_document_id;
 
-	$result = db_select('crada_question', 'cq')
-		->fields('cq')
-		->condition('document_id', $master_document_id, '=')
-		->condition('question_text', 'REQUIRED', '<>')
-		->execute();
-
 	$list = array();
-	for ($count = 0; $row = $result->fetchObject(); $count++) {
+	$output = array();
 
+// Part 2
+
+	$query = document_current_question_answer_sql($document_id);
+	$result = db_query($query);
+
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$question["question_id"] = $row->question_id;
 		$question["section"] = $row->section;
 		$question["question_text"] = $row->question_text;
+		$question["source_answer"] = $row->source_answer;
 		$question_id = $row->question_id;
-
+		//
+		// Look at crada_document_element
+		//
 		$r3 = db_select('crada_document_element', 'cde')
 				->fields('cde')
 				->condition('document_id', $document_id, '=')
 				->condition('source_question', $question["question_id"], '=')
 				->execute();
 		$row3 = $r3->fetchObject();
-		$question["answer"] = $row3->source_answer;
-
+//		$question["answer"] = $row3->source_answer;
+		//
+		// Look at crada_answer
+		//
 		$r2 = db_select('crada_answer', 'c')
 			->fields('c')
 			->condition('document_id', $master_document_id, '=')
@@ -732,38 +858,63 @@ function get_answers() {
 		}
 		array_push($list, $question);
 	}
-	$output = array();
-    $output["status"] = "Ok";
-    $output["questions"] = $list;
+
+	$output["status"] = "Ok";
+	$output["questions"] =$list;
+	$output["count"] = $count;
+	crada_log("get_answers 0 thru 2 output");
+	crada_log(print_r($output["questions"][0], true));
+	crada_log(print_r($output["questions"][1], true));
+	crada_log(print_r($output["questions"][2], true));
 	return $output;
 }
 
 function get_clauses_from_answers() {
-	$document_id = $_REQUEST['document_id'];
+	$master_document_id = $_REQUEST['document_id'];
 	$answers = json_decode($_REQUEST['answers']);
-	// Save answers in crada_document
+	crada_log("OH MY GOODNESS.  DAYS TO FIND THIS.  GIVE ME WATER.");
+	crada_log(print_r($_REQUEST['answers'], true));
 
+	// Save answers in crada_document
+/*
 	if (isset($_REQUEST['alternate_text'])) $alternate_text = $_REQUEST['alternate_text'];
 	else $alternate_text = 'default';
 	if (isset($_REQUEST['version'])) $version = intval($_REQUEST['version']);
 	else $version = 0;
+*/
+	$alternate_text = (isset($_REQUEST['alternate_text'])) ? $_REQUEST['alternate_text'] : 'default';
+	$version = (isset($_REQUEST['version'])) ? $_REQUEST['version'] : 0;
 
-	$message = "";
 
 	$clause_output = array();
 	$count=0;
-	foreach ($answers as $question => $answer) {
+	foreach ($answers as $question_id => $answer_id) {
 		$count++;
-		$q = intval($question);
-		$a = intval($answer);
-
-		$cg = db_get_clause_group($document_id, $q, $a);
-		$clauses = db_get_clause_ids_from_clause_group($document_id, $cg, $version);
+		//$q = intval($question_id);
+		//$a = intval($answer);
+		//
+		// Get a single CLAUSE_GROUP_ID for this master_document_id, question_id, and answer_id
+		//
+		$cg = db_get_clause_group($master_document_id, $question_id, $answer_id);
+		//
+		// Get clause_ids from clause
+		//
+		$clauses = db_get_clause_ids_from_clause_group($master_document_id, $cg, $version);
 		foreach ($clauses as $clause) {
-			$full_clause = db_get_clause_information($document_id, $version, $clause, $alternate_text);
-			if ($full_clause == NULL) $full_clause = db_get_clause_information($document_id, $version, $clause, "default");
-			// put q&a
+			//
+			// get ORIGINAL clause information from for an ALTERNATE_TEXT
+			//
+			$full_clause = db_get_clause_information($master_document_id, $version, $clause, $alternate_text);
+			if ($full_clause == NULL) {
+					//		get ORIGINAL caluse information for "default"
+					$full_clause = db_get_clause_information($master_document_id, $version, $clause, "default");
+			}
+			//put
 			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
+			//Attach $question_id
+			$full_clause['question_id'] = $question_id;
+			$full_clause['answer_id'] = $answer_id;
+
 			if ($full_clause['alternate_text'] == $alternate_text) {
 				array_push($clause_output, $full_clause);
 			} else if ($full_clause['alternate_text'] == "default") {
@@ -774,10 +925,12 @@ function get_clauses_from_answers() {
 		}
 	}
 	$output['status'] = 'Ok';
-	if ($message != "") $output['message'] = $message;
-	$output['count'] = $count;
+//	$output['count'] = $count;
 	$output['clauses'] = $clause_output;
+	$output['alternate_text'] = $alternate_text;
+
 	return $output;
+
 }
 
 function db_get_title() {
@@ -815,6 +968,7 @@ function db_get_document_templates() {
 }
 
 function db_get_questions_for_section() {
+
 	$document_id = intval($_REQUEST['document_id']);
 	$section = $_REQUEST['section'];
 
@@ -845,11 +999,12 @@ function db_get_questions_for_section() {
 			$question['answers'][$c2] = $row2->answer_text;
 		}
 		array_push($list, $question);
-
 	}
+
 	$output = array();
-    $output["status"] = "Ok";
-    $output["questions"] = $list;
+	$output["status"] = "Ok";
+	$output["questions"] = $list;
+
 	return $output;
 }
 
@@ -959,15 +1114,17 @@ function db_get_clause_ids_from_clause_group($document_id, $cg, $version) {
 }
 
 // Temp access function
+/*
 function get_clause_information () {
 	$out = db_get_clause_information(1,0,5,'Multiple Collaborators');
 	if ($out == NULL) return "NO";
 
 	return $out;
 }
-
+*/
 
 function db_get_clause_information($document_id, $version, $clause, $alternate_text_type) {
+
 	$record = db_select('crada_document_element', 'cd')
 	->fields('cd')
 	->condition('document_id', $document_id, '=')
@@ -990,8 +1147,8 @@ function db_get_clause_information($document_id, $version, $clause, $alternate_t
 	$clause_info['public_annotation'] = $record->public_annotation;
 	$clause_info['survivable'] = $record->survivable;
 	$clause_info['required'] = $record->required;
-	crada_log("clause_info");
-	crada_log(print_r($clause_info, true));
+//	crada_log("clause_info");
+//	crada_log(print_r($clause_info, true));
 
 	return $clause_info;
 
@@ -1144,58 +1301,86 @@ function db_get_all_documents_info() {
 }
 
 function create_new_document () {
-	//global $user;
+/*
+		ajax_caller('create_new_document', {
+			'demographic_answers':JSON.stringify(demographics),
+			'data':new_clauses_encoded,
+			'alternate_text':alternate_text,
+			'title':title,
+			'master_document_id':master_document_id},
+		create_new_document_callback, 'POST');
 
-	crada_log("create_new_document");
-	crada_log("_REQUEST['demographic_answers']");
-	crada_log($_REQUEST['demographic_answers']);
-	$demographic_answers = json_decode($_REQUEST['demographic_answers'], true);
-	crada_log("demographic_answers");
-	crada_log(json_encode($demographic_answers));
+*/
+/*
+	ajax_caller(
+	'create_new_document',
+	{
+	'demographic_answers':JSON.stringify(demographics),
+	 'data':new_clauses_encoded,
+	 'alternate_text':alternate_text,
+	 'title':title,
+	 'master_document_id':master_document_id},
+		create_new_document_callback, 'POST');
+*/
 
 	$data = json_decode($_REQUEST['data'], true);
-	$name = $_REQUEST['name'];
-	$master_document_id = $_REQUEST['master_document_id'];
-	crada_log('$master_document_id');
-	crada_log($master_document_id);
 
+	$demographic_answers = json_decode($_REQUEST['demographic_answers'], true);
+	$master_document_id = $_REQUEST['master_document_id'];
+	$alternate_text = $_REQUEST['alternate_text'];
 	$title = $_REQUEST['title'];
+
 	//$answers = $_REQUEST['answers'];
-	$output["status"] = "Ok";
+	crada_log("ANSWERS");
+	crada_log(print_r($answers));
+
 	crada_log(json_encode($answers));
+
+//	crada_log("THE BIG ONE");
+//	crada_log(print_r($data, true));
 
 	$transaction = db_transaction();
 	try {
 		crada_log("**About to step into db_insert_new_document");
 		//Add document
-		$document_id = db_insert_new_document($name, $title, $master_document_id, $_REQUEST['demographic_answers']);
+		$document_id = db_insert_new_document($title, $master_document_id,
+					$_REQUEST['demographic_answers']);
 		crada_log("Just created a new document.  Here is the document_id $document_id");
 		//Add initial versions
 		db_insert_new_version($document_id);
 		//Add elements(i.e. clauses, i.e. sections)
 
-		crada_log("");
+		crada_log("Adding New clauses.");
+		crada_log("document_id: $document_id");
+		crada_log("subsection:	$subsection");
+		crada_log("alternate_text: {$alternate_text}");
 
 		for ($i=0;$i<count($data); $i++) {
+
+		//crada_log("section: {$data[$i]['section']}");
+		//crada_log("text: {$data[$i]['text']}");
+		crada_log("source_question : {$data[$i]['source_question']}");
+		crada_log("source_answer: {$data[$i]['source_answer']}");
+
 			$subsection = $data[$i]['subsection'];
 			crada_log("subsection: $subsection");
 			if ($subsection == NULL) $subsection = "";
-			crada_log(print_r($data[$i],true));
-			db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection,
-				$data[$i]['text'], $data[$i]['confidential_annotation'],
-				$data[$i]['public_annotation'], $data[$i]['survivable'],
-				$data[$i]['source_question'], $data[$i]['source_answer']);
-			$output["row"][$i] = $data[$i]['text'];
+				crada_log(print_r($data[$i],true));
+			/****************
+			// CAUSING ALL THE PROBLMES HERE
+			********************************/
+				db_insert_document_element($document_id, $i, $data[$i]['section'], $subsection,
+					$data[$i]['text'], $data[$i]['confidential_annotation'],
+					$data[$i]['public_annotation'], $data[$i]['survivable'],
+					$data[$i]['source_question'], $data[$i]['source_answer'],
+					$alternate_text);
+					$output["row"][$i] = $data[$i]['text'];
 
-		}
+	}
+		$output["status"] = "Ok";
+		$output["document_id"] = $document_id;
 
-	  $output["document_id"] = $document_id;
-	  $output["count"] = count($data);
-
-  	return $output;
-
-
-
+		return $output;
 	} catch (Exception $e) {
 		crada_log("Rolling Back db_transaction - something went wrong.");
 		crada_log($e->getMessage(), 1);
@@ -1210,7 +1395,7 @@ function create_new_document () {
 	}
 }
 
-function db_insert_new_document ($name, $title, $master_document_id, $demographic_answers) {
+function db_insert_new_document ($title, $master_document_id, $demographic_answers) {
   global $user;
   crada_log("***We are in db_insert_new_document");
 
@@ -1223,7 +1408,7 @@ function db_insert_new_document ($name, $title, $master_document_id, $demographi
 	$document_id = db_insert('crada_document')
 	->fields(array(
 	  'is_master' => 0,
-	  'document_name' => $name,
+	  'document_name' => '(depricated)',
 	  'title' => $title,
 	  'master_document_id' => $master_document_id,
 	  'demographic_answers' => $demographic_answers,
@@ -1274,14 +1459,15 @@ function db_insert_new_version($document_id) {
 	return $nid;
 }
 
-function db_insert_document_element ($document_id, $document_element_id, $section, $subsection, $text, $confidential_annotation, $public_annotation, $survivable, $source_question, $source_answer) {
+function db_insert_document_element ($document_id, $document_element_id, $section,
+		$subsection, $text, $confidential_annotation, $public_annotation, $survivable,
+		$source_question, $source_answer, $alternate_text) {
 
 	global $user;
-	//Make sure $survivable is set
-	if(!isset($survivable)) {
-			$survivable = 0;
-	}
-	crada_log("doc: $document_id, element: $element_id, survivable: $survivable	");
+
+	$survivable = (isset($survivable)) ? $survivable : 0;
+	$alternate_text = (isset($alternate_text))? $alternate_text : 'default';
+	crada_log("doc: $document_id, element: $document_element_id, survivable: $survivable, alternate_text: $alternate_text	");
 	$nid = db_insert('crada_document_element') // Table name no longer needs {}
 	->fields(array(
 	  'document_element_id' => $document_element_id,
@@ -1290,7 +1476,7 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'section' => $section,
 	  'subsection' => $subsection,
 	  'location' => $document_element_id,
-	  'alternate_text_type' => 'current',
+	  'alternate_text_type' => $alternate_text,
 	  'document_element_text' => $text,
 	  'confidential_annotation' => $confidential_annotation,
 	  'public_annotation' => $public_annotation,

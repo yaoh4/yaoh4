@@ -278,8 +278,13 @@ function setup_questions_for_section(i) {
 
 function setup_questions_for_section_callback(data) {
 
+	console.log('Just got a section');
+	console.dir(data);
+
 	var q = data.questions; //Set q to array of questions sent in
 	var section_title = q[0].section;
+	console.log('section: '+section_title);
+
 	$("#question_section").empty()
 		.append($('<h2>').append(section_title)
 		.append($('<hr>'))
@@ -325,13 +330,16 @@ function setup_questions_for_section_callback(data) {
 }
 
 function store_current_answers(section_number) {
+	console.log("store_current_answers");
+	console.log('section_number');
+	console.log(section_number);
+
 	var question_pane = $("#question_section");
 	var str = "";
 	$("#question_section").find("INPUT[type=radio]:checked").each(function () {
 		str += $(this).attr("name") + ":" + $(this).val() + "\n";
 		answers[$(this).attr("name")] = $(this).val();
 	})
-	console.log("store_current_answers");
 	console.dir(answers);
 	//alert (JSON.stringify(answers));
 }
@@ -379,6 +387,11 @@ function setup_template_chooser_callback(data) {
 function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
 	var answers_encoded = JSON.stringify(answers);
+	console.log("OH MY GOODNESS.  THIS IS IT.  WHAT THE HECK IS answers_encoded.");
+	console.dir(answers);
+	console.log(answers_encoded);
+	alert(answers_encoded);
+
 	var alternate_text_type = $("#alternate_text_type").val();
 	console.log("Alternate Text Type: " + alternate_text_type);
 	ajax_caller('get_clauses_from_answers',
@@ -387,10 +400,13 @@ function setup_document() {
 }
 
 function setup_document_callback(data) {
-	console.log("In setup_document_callback");
+	console.log("setup_document_callback");
 	console.log("Where are the question/answers????");
+
 	console.log("data");
 	console.dir(data);
+	var alternate_text = data.alternate_text;
+	alert('check the data in console');
 
 // What to do with definitions?
 //	for (i=0;i<used_terms.length; i++) {
@@ -415,26 +431,38 @@ function setup_document_callback(data) {
 	}
 	console.log("new_clauses");
 	console.dir(new_clauses);
+	console.log("ANSWERS");
+	console.dir(answers);
 
 // Add the values to the database all at once...
 // Substitute the demographics here
 
 	for (var i=0; i<data.clauses.length; i++) {
 		//Set answers index to 0 if user did not answer the question.
+		/*
 		if(typeof answers[i+1] === 'undefined' || answers[i+1] == null) {
 			answers[i+1] = 0;
 		}
+		*/
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
 		new_clauses[used_terms.length+i].confidential_annotation = data.clauses[i].confidential_annotation;
 		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
 		new_clauses[used_terms.length+i].survivable = data.clauses[i].survivable;
+		/*
 		console.log("new clauses populate where i = "+i);
 		console.log("question  = "+i);
 		console.log("answer = "+answers[i]);
-		new_clauses[used_terms.length+i].source_question = (i+1);  // this is wrong
-		new_clauses[used_terms.length+i].source_answer = answers[i+1];
+		*/
+/*************************************************
+* DON'T STOP LOOKING AT THE NEXT 2 LINES
+**********************************************/
+		//new_clauses[used_terms.length+i].source_question = (i+1);  // this is wrong
+		//new_clauses[used_terms.length+i].source_answer = answers[i+1];
+		new_clauses[used_terms.length+i].source_question = data.clauses[i].question_id;  //This works
+		new_clauses[used_terms.length+i].source_answer = data.clauses[i].answer_id;;
+
 		console.log("new_clauses["+(used_terms.length+i)+"]");
 		console.dir(new_clauses[used_terms.length+i]);
 
@@ -455,12 +483,17 @@ function setup_document_callback(data) {
 	console.log(JSON.stringify(demographics));
 //	alert("About to send demographics");
 
-	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'user':getCookie('Drupal.visitor.user.name'), 'name':name, 'title':title, 'master_document_id':master_document_id},
+	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'alternate_text':alternate_text, 'title':title, 'master_document_id':master_document_id},
 		create_new_document_callback, 'POST');
 }
 
 function create_new_document_callback(data) {
-	//alert (JSON.stringify(data, null, 2));
+	alert (JSON.stringify(data, null, 2));
+	if(data.status == "Error") {
+		console.error("Server Error");
+		console.log(data.message);
+	}
+
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=1";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
 

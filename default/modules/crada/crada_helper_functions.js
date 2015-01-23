@@ -36,7 +36,11 @@ function addMadLib(madlib, demographics) {
     jQuery.each(demographics, function(key, val) {
         search_term = "{"+key+"}";
         replace_term = val;
-        madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+        alert(replace_term);
+        //Search and replace if length is greater than 0
+        if(replace_term.length > 0) {
+            madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+        }
     });
 
     console.log('madlib after');
