@@ -329,13 +329,18 @@ function load_line($section, $line) {
 
 	// We catch the exception above this
 
-	if ($new_question || $current_answer == "REQUIRED") $question_id = db_insert_crada_question($section, $subsection, $current_question);
+	if ($new_question || $current_answer == "REQUIRED") {
+		$question_id = db_insert_crada_question($section, $subsection, $current_question);
+	}
 	drupal_set_message(">>>($question_id):$current_question:A($answer_number_for_question): $current_answer");
 	if ($new_answer || $current_answer == 'REQUIRED') {
 		db_insert_crada_answer($question_id, $answer_number_for_question, $current_answer);
 		$clause_group_id = db_insert_crada_clause_group($section, $current_question, $current_answer);
 		db_insert_crada_valid_clause_group_by_answer($question_id, $answer_number_for_question, $clause_group_id);
 		db_insert_crada_document_element($clause_id, $section, $subsection, "default", $default_text, $default_confidential_annotation, $default_public_annotation, $default_survivability);
+		//
+		// Add Alternate TEXT TYPES if available.
+		//
 		foreach ($alternate_text_array as $a) {
 			if($a['text'] && $a['text'] != "") {
 				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . $a['text'] ."]");

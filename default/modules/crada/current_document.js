@@ -43,16 +43,14 @@ $(document).ready(function () {
 		}
 	});
 
-	$("#change_answer_container").on( "change", "select", function(event) {
-		alert("Change_answer_container");
+	$("#second_page").on( "change", "select.change-answer-select", function(event) {
 		changedAnswer(event);
 	});
+
 	$("#second_page").on( "change", "select.permission-select", function(event) {
-		alert("Got it does this work? ");
 		changeDocumentPermissions(event);
 	});
 	$("#second_page").on( "change", "select.current-owner-select", function(event) {
-		alert("Got it. Now");
 		changeDocumentOwner(event);
 	});
 
@@ -82,9 +80,19 @@ function changeDocumentPermissions(event) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	ajax_caller('set_document_permissions', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+//	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_document_permissions',
+			{'document_id':getCookie("Drupal.visitor.document.id"),
+			'question_id':question_id,
+			'answer_id':answer_id},
+			generic_callback);
+}
 
+function generic_callback(data) {
+	console.info("generic_callback");
+	console.dir(data);
+
+	return;
 }
 
 function changeDocumentOwner(event) {
@@ -113,8 +121,8 @@ function changeDocumentOwner(event) {
 				$( this ).dialog( "close" );
 				var textarea = $('#annotate-textarea-'+unique).val();
 				//textarea = $(textarea).text();
-				console.log("TEXTAREA");
-				console.log(textarea);
+				//console.log("TEXTAREA");
+				//console.log(textarea);
 				var header = $("#"+ref).text();
 				header = header.substr(0, header.search(']') + 1);
 				var newText = '<b>'+header+'</b> '+ trimAnnotation(textarea);
@@ -163,8 +171,8 @@ function change_annotation_selection() {
 
 	annotation_option = getCookie("Drupal.visitor.annotation.option");
 	if( annotation_option != "") {
-		console.log('annotation_option is set');
-		console.log(annotation_option);
+		//console.log('annotation_option is set');
+		//console.log(annotation_option);
 		$( "#annotation_options" ).val(annotation_option);
 		change_annotation_options('fast');
 
@@ -192,21 +200,33 @@ function changedAnswer(e) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
-	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	ajax_caller('set_answer_retrieve_new_element', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	ajax_caller('set_new_answer',
+			{'document_id':getCookie("Drupal.visitor.document.id"),
+			'question_id':question_id, 'answer_id':answer_id},
+			load_current_document);
+
+	//ajax_caller('set_answer_retrieve_new_element', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+}
+
+function load_current_document() {
+//	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current");
+	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current";
+
+//	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current");
 }
 
 function set_answer_retrieve_new_element_callback(data) {
 //	alert(JSON.stringify(data));
 //	alert("set_answer_retrieve_new_element_callback completed. Send clause to madlib to add demographic info. " + current_document_id);
 	//Add madlib to clause with demographic answers.
-//	alert("about to call addMadLib");
-	console.log('data.demographic_answers');
-	console.log(data.demographic_answers);
+	alert("about to call addMadLib");
+//	console.log('data.demographic_answers');
+//	console.log(data.demographic_answers);
 
-	console.log('JSON.parse(data.demographic_answers)');
-	console.dir(JSON.parse(data.demographic_answers));
-//	alert("about to call addMadLib");
+	//console.log('JSON.parse(data.demographic_answers)');
+	//console.dir(JSON.parse(data.demographic_answers));
+	//alert("about to call addMadLib");
 	//
 	//  Perform addMadLib and send back to server
 	//
@@ -219,8 +239,8 @@ function set_answer_retrieve_new_element_callback(data) {
 }
 
 function set_answer_callback(data) {
-	console.log("set answer callback");
-	console.dir(data);
+//	console.log("set answer callback");
+//	console.dir(data);
 	alert(JSON.stringify(data));
 	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
@@ -235,7 +255,7 @@ var	toolbar = [
 	// Taking out links for now.
 	// toolbar links (not working)...	{ 'name': 'links', 'items' : ['Link','Unlink']},
 
-	console.dir(e);
+	//console.dir(e);
 	var ref = e.target.id;
 
 	my_editor = CKEDITOR.inline(
@@ -265,11 +285,11 @@ var	toolbar = [
 
 function saveClause(e) {
 	var data = [];
-	console.dir(e);
-	console.log(e.editor.getData());
-	console.log(e.editor.name);
+	//console.dir(e);
+	//console.log(e.editor.getData());
+	//console.log(e.editor.name);
 	var document_element_id = e.editor.name.substring(7) ;
-	console.log(document_element_id);
+	//console.log(document_element_id);
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
 				document_element_id: e.editor.name.substring(7),
 				column_text: e.editor.getData(),
@@ -305,8 +325,8 @@ function editAnnotation(e) {
 	var content;
 
 	var data_annotate = $("#"+ref).attr("data-annotate");
-	console.log("data_annotate");
-	console.log(data_annotate);
+	//console.log("data_annotate");
+	//console.log(data_annotate);
 
 	//
 	//Make a unique number for TEXTAREA.  The second save is causing problems because id is not unique.
@@ -345,10 +365,10 @@ function editAnnotation(e) {
 }
 
 function updateAnnotateData(ref, data) {
-	console.log("updateAnnotateData Record in database ....");
-	console.log("REF --- DATA");
-	console.log(ref);
-	console.log(data);
+	//console.log("updateAnnotateData Record in database ....");
+	//console.log("REF --- DATA");
+	//console.log(ref);
+	//console.log(data);
 }
 
 function user_changed_annotation_option() {
@@ -356,9 +376,9 @@ function user_changed_annotation_option() {
 }
 
 function change_annotation_options(speed) {
-	console.log('speed');
-	console.log(typeof speed);
-	console.log(speed);
+	//console.log('speed');
+	//console.log(typeof speed);
+	//console.log(speed);
 
 	var annotationOption = $( "#annotation_options" ).val();
 	if( annotationOption == 'off') {
@@ -381,7 +401,7 @@ function change_annotation_options(speed) {
 			$('#current_annotation_content').show();
 			$('.annotation_footnote').show();
 		}
-		console.log('Selected '+annotationOption);
+		//console.log('Selected '+annotationOption);
 		switch(annotationOption) {
 		    case "both":
 		        $('.confidential_annotation').show();
@@ -424,8 +444,8 @@ function click_load_button () {
 }
 
 function get_document_count_callback(data) {
-	console.log("get_document_count_callback");
-	console.dir(data);
+	//console.log("get_document_count_callback");
+	//console.dir(data);
 
 	if(data.count> 0) {
 		$("#load_dialog").dialog("open");
@@ -471,8 +491,8 @@ function load_document_info_into_select(data) {
 	var document_id = parseInt(getCookie("Drupal.visitor.document.id"));
 	var max_version;
 
-	console.log("load_document_info_into_select");
-	console.dir(data);
+	//console.log("load_document_info_into_select");
+	//console.dir(data);
 
 	if(isNaN(document_id)) {
 		document_id = $("#document_select").val();
@@ -511,9 +531,9 @@ function load_document_versions_into_select(max_version, selected) {
 
 	$("#document_version").empty();
 	// Put in the versions.
-	console.log("CHANGED DOCUMENT");
-	console.log("max_version "+max_version);
-	console.log("selected "+selected);
+	//console.log("CHANGED DOCUMENT");
+	//console.log("max_version "+max_version);
+	//console.log("selected "+selected);
 	for (i = 0; i <= max_version; i++) {
 
 		version = "v" + i;
@@ -538,7 +558,7 @@ function load_document_version_into_select_old(data) {
 	var documents = data.documents;
 	var version_id = parseInt(getCookie("Drupal.visitor.document.version"));
 	var document_id = $("#document_select").val();
-	console.log("document_id = "+document_id);
+	//console.log("document_id = "+document_id);
 
 	//populate select
 	var version_name;
@@ -632,7 +652,7 @@ function load_change_permission(data) {
 	// Add all groups with selectable access
 	//
 	$.each(data , function( key, value ) {
-		console.dir(value);
+		//console.dir(value);
 
 		$('#change-permission').append($('<div>').attr('id', key).addClass('form-group'));
 		//Add question LABEL
@@ -709,8 +729,8 @@ function load_change_owner(data) {
 
 	var key = "document_owner";
 
-	console.log("CHANGE_OWNER data");
-	console.dir(data);
+	//console.log("CHANGE_OWNER data");
+	//console.dir(data);
 
 		$('#change-permission')
 			.append($('<div>')
@@ -784,6 +804,8 @@ function click_change_answer_button() {
 
 function load_change_answer(data) {
 	//change_answer_questions
+	console.log("load_change_answer");
+	console.dir(data);
 
 /*
 	$('#change_answer_questions').empty().append(
@@ -831,6 +853,7 @@ function load_change_answer(data) {
 				.attr('id', 'question-'+value.question_id)
 				.attr('name', 'question-'+value.question_id)
 				.attr('question_id', value.question_id)
+				.addClass('change-answer-select')
 		);
 		//Add question OPTIONS
 		for(i=0;value.answers.length>i;i++) {
@@ -841,7 +864,7 @@ function load_change_answer(data) {
 			);
 		}
 		//Select the correct answer
-		if(value.answer == null){
+		if(value.source_answer == null){
 			$('#'+key).append(
 				$("<span>")
 					.append("answer is null")
@@ -851,11 +874,11 @@ function load_change_answer(data) {
 		} else {
 			$('#'+key).append(
 				$("<span>")
-					.append(value.answer)
+					.append(value.source_answer)
 
 			);
 			//Select correct answer
-			$("#question-"+value.question_id).val(value.answer).prop('selected', true);
+			$("#question-"+value.question_id).val(value.source_answer).prop('selected', true);
 
 		}
 		$('#'+key).append(
@@ -907,8 +930,8 @@ function create_word_file_callback(data) {
 
 //	alert("how did it go? Opening file now....");
 	drupal_goto("word/"+data.filename);
-	console.log("Look for word document on ther server under the word directory.");
-	console.dir(data);
+	//console.log("Look for word document on ther server under the word directory.");
+	//console.dir(data);
 }
 
 function click_select_document_button() {
@@ -944,7 +967,7 @@ function set_toolbar_buttons(editable) {
 
 function get_document_elements_callback(data) {
 
-	console.log("get_document_elements_callback");
+	//console.log("get_document_elements_callback");
   //alert (JSON.stringify(data, null, 2));
   //alert(data.version);
 	setCookie("Drupal.visitor.document.version", data.version, 365);
@@ -1032,10 +1055,10 @@ function get_document_elements_callback(data) {
 //	current_document_content
 	var element = document.getElementById("current_document_content");
 	var rect = element.getBoundingClientRect();
-	console.log("BIG RECTANGLE");
-	console.dir(rect);
-	console.log("MY ANNOTATE");
-	console.dir(annotate);
+	//console.log("BIG RECTANGLE");
+	//console.dir(rect);
+	//console.log("MY ANNOTATE");
+	//console.dir(annotate);
 
 	drawAnnotate(annotate, rect);
 
@@ -1075,8 +1098,8 @@ function printSurvivabilityStatement(survivable_clauses) {
 
 		var survivability_statement;
 		var label = (survivable_clauses.length == 1) ? "Paragraph" : "Paragraphs";
-		console.warn("Survivable_clauses");
-		console.dir(survivable_clauses);
+		//console.warn("Survivable_clauses");
+		//console.dir(survivable_clauses);
 
 		if(survivable_clauses.length > 0) {
 			survivability_statement = "<strong>Survivability</strong>.  ";
@@ -1153,13 +1176,13 @@ function drawAnnotate(annotate, rect) {
 	//console.log("ANNOTATION POSITION");
 	//console.dir(annotation_positions);
 
-	console.log("ANNOTATE");
-	console.dir(annotate);
+	//console.log("ANNOTATE");
+	//console.dir(annotate);
 	$.each(annotate, function(key, value) {
 			$.each(value, function(key2, value2) {
-					console.dir(value2);
-					console.log(value2.top);
-					console.log('From ('+(canvas_width-1)+','+(value2.top+ value2.annotate_offset)+') To:(0,'+value2.top+')');
+					//console.dir(value2);
+					//console.log(value2.top);
+					//console.log('From ('+(canvas_width-1)+','+(value2.top+ value2.annotate_offset)+') To:(0,'+value2.top+')');
 					conf_context.moveTo(canvas_width-1, value2.top + value2.annotate_offset);
 					conf_context.lineTo(0, value2.top);
 
@@ -1188,11 +1211,11 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 	var annotate_offset = 0;
 	var offset = 45; //ie. Height of annotate.
 
-	console.log("POSITION");
-	console.dir(position);
+//	console.log("POSITION");
+//	console.dir(position);
 
 	$.each(annotation_types, function(key, annotation_type) {
-		console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
+	//	console.info("section_reference: "+section_reference+ " top :"+position.clause.top+" annotation_type: "+annotation_type);
 		if(annotation_type == "confidential_annotation") {
 			raw_annotations = clause.confidential_annotation;
 			annotation_id = "CONF";
@@ -1227,9 +1250,9 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 
 				annotation_footnote = "Section "+section_reference+" ["+ref+"]";
 				//addAnnotationDiv(data.clauses[i].confidential_annotation, 'Confid', "current_annotation_content");
-				console.log("ADDING ANNOTATION");
+				//console.log("ADDING ANNOTATION");
 				var x = position.clause.top - position.clause.offset;
-				console.log(x);
+				//console.log(x);
 				$("#current_annotation_content")
 					.append(
 						$("<p>")
@@ -1245,7 +1268,7 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 							.css("left", "0px")
 							.css("top", x)
 				);
-				console.info("editable ="+ editable);
+				//console.info("editable ="+ editable);
 				if(editable) {
 
 					$("#"+ref)
@@ -1267,8 +1290,8 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 
 			}
 		});
-console.log("ANNOTATE");
-console.dir(annotate);
+//console.log("ANNOTATE");
+//sconsole.dir(annotate);
 /*
 		if(annotations.length > 1) {
 			console.log('annotations with \n\n');
@@ -1286,11 +1309,11 @@ console.dir(annotate);
 
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
 
-	console.info('section_number '+section_number);
-	console.info('minor_number '+minor_number);
-	console.info('clause '+clause);
-	console.info('index '+index);
-	console.info('element_id '+element_id);
+//	console.info('section_number '+section_number);
+//	console.info('minor_number '+minor_number);
+//	console.info('clause '+clause);
+//	console.info('index '+index);
+//	console.info('element_id '+element_id);
 	$("#"+element_id)
 		.append($('<div>')
 					.addClass('clause-paragraph')
@@ -1334,7 +1357,7 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	var clause_position = $('#clause-'+index).position();
 	var clause_offset = $('#clause-'+index).offset();
 	var clause_height = $('#clause-'+index).height();
-	console.log('cluase-'+index +"  Should exist now...  Go check");
+//	console.log('cluase-'+index +"  Should exist now...  Go check");
 
 	var element = document.getElementById("clause-"+index);
 
@@ -1362,14 +1385,14 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 		clause: clause_position
 	};
 
-	console.dir(position);
+//	console.dir(position);
 	return position;
 }
 
 function displaySectionHeader(section_number, current_section, element_id) {
-	console.log("section_number = " + section_number);
-	console.log("current_section = " + current_section);
-	console.log("element_id = " + element_id);
+//	console.log("section_number = " + section_number);
+//	console.log("current_section = " + current_section);
+//	console.log("element_id = " + element_id);
 
 	$("#"+element_id).append(
 		$('<h3/>', {'class': 'accordion'}).append(
