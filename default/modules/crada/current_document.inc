@@ -39,8 +39,8 @@ function crada_current_document() {
 	$data .= add_command_bar();
 	$data .= add_load_dialog();
 	$data .= "  <DIV id='current_document_content'>";
-  $data .= '    <div></div><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-2x"></i></p>';
-  $data .= "  </DIV>";
+	$data .= '    <div></div><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-2x"></i></p>';
+	$data .= "  </DIV>";
 	$data .= "  <DIV id='current_annotation_content'></DIV>";
 	$data .= "</div>";
 
@@ -85,8 +85,8 @@ function add_command_bar() {
 	$data .='<select id="annotation_options">
 				<option value="confidential">confidential</option>
   				<option value="public">public</option>
-  				<option value="both" selected>both</option>
-  				<option value="off">off</option>
+  				<option value="both">both</option>
+  				<option value="off" selected>off</option>
 			</select>';
 	$data .= "</div>";
 	$data .= add_button("load_button", "Load", "Load a new document", "fa fa-file");

@@ -221,6 +221,11 @@ button {
 	border:1px solid green;
 }
 
+.change-answer-select {
+  max-width:300px;
+  width:auto;
+}
+
 .question-label {
 	float: left;
 	width: 450px;
@@ -255,7 +260,7 @@ button {
 }
 .section-name {
   width: auto;
-  text-transform: uppercase;
+/*  text-transform: uppercase; */
   text-decoration: underline;
 }
 div.clause-paragraph {

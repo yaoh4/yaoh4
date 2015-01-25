@@ -345,59 +345,9 @@ function save_element() {
 	crada_log("*** save_element");
 	crada_log("REQUEST is ...");
 	crada_log(serialize($_REQUEST));
-	//Get current version
-	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
-	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
-	$current_document_version = db_current_document_version($document_id, $document_element_id);
-	crada_log('save_element- Does element exists?');
-	crada_log("save_element- element_exists = $element_exists");
-	crada_log("save_element- last_ element_version = $last_element_version");
 
-	crada_log("save_element- key- document_element_id = $document_element_id");
-	crada_log("save_element- key- current_document_version = $current_document_version");
-	crada_log("save_element- key- document_id = $document_id");
-	crada_log("save_element- key- alternate_text_type = $alternate_text_type");
+	$current_document_version = create_element($document_id, $document_element_id);
 
-	if(!$element_exists) {
-		crada_log("save_element- HERE IS WHERE THE TROUBLE BEGINS...");
-		//Insert a new element
-		crada_log("INSERT ELEMENT.  Make new copy of the last element version to the current document version.");
-//
-//  THIS IS THE ERROR.....
-//
-		$query = "insert ignore into crada_document_element  ";
-		$query .= "(select ";
-		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
-		$query .= "cde2.subsection, cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
-		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
-		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
-		$query .= "cde2.updated_by, cde2.updated_date ";
-		$query .= "from crada_document_element cde2, ";
-		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
-		$query .= "document_id = $document_id and document_element_id = $document_element_id) cde1 ";
-		$query .= "where cde2.document_id = $document_id and cde2.document_element_id = $document_element_id ";
-//		$query .= "and cde2.alternate_text_type = '$alternate_text_type' ";
-		$query .= "and cde2.document_version = cde1.latest_document_version);";
-		crada_log($query);
-		crada_log("Not executing above");
-		try {
-			$result=db_query($query);
-		} catch (Exception $e) {
-			//
-			// I don't know why this is throwing a general MYSQL error.  But ignoring becasue it works.
-			// This started happening after the PRIMARY KEY was expanded to include alternate_text_type
-			crada_log("save_element- Ignore this exception");
-			crada_log_sql_error($e);
-		}
-
-		/*
-		$result=db_query($query);
-		crada_log("RESULTS:");
-		//crada_log(json_encode($result));
-		$row = $result->fetchObject();
-		crada_log(json_encode($row));
-		*/
-	}
 	//Update text and remove changed_answer
   global $user;
 
@@ -565,6 +515,108 @@ function set_answer_retrieve_new_element() {
     return $output;
 }
 
+function query_get_master_clauses($master_document_id) {
+	//
+	// Rememember that document_version is always 0 on master_documents
+	//  If that changes this query will become invalid.
+	$query = "SELECT vc.*, ";
+	$query .= "cde.document_element_id, cde.document_version,  ";
+	$query .= "cde.alternate_text_type, cde.document_element_text ";
+	$query .= "FROM ";
+	$query .= "crada_valid_clause_group_by_answer vc, ";
+	$query .= "crada_clause_group_to_clause gtc, ";
+	$query .= "crada_document_element cde ";
+	$query .= "WHERE vc.clause_group_id = gtc.clause_group_id ";
+	$query .= "AND vc.document_id = gtc.document_id    ";
+	$query .= "AND vc.document_id = cde.document_id ";
+	$query .= "AND gtc.clause_id = cde.document_element_id ";
+	$query .= "AND vc.document_id = $master_document_id ";
+	return $query;
+}
+
+function create_element($document_id, $document_element_id) {
+	//Returns $current_document_version
+	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
+	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
+	$current_document_version = db_current_document_version($document_id, $document_element_id);
+	crada_log('save_element- Does element exists?');
+	crada_log("save_element- element_exists = $element_exists");
+	crada_log("save_element- last_ element_version = $last_element_version");
+
+	crada_log("save_element- key- document_element_id = $document_element_id");
+	crada_log("save_element- key- current_document_version = $current_document_version");
+	crada_log("save_element- key- document_id = $document_id");
+
+	if(!$element_exists) {
+		copy_element($document_id, $document_element_id);
+	}
+
+	return $current_document_version;
+}
+
+function copy_element($document_id, $document_element_id) {
+		// Get current_document_version
+		//
+		$current_document_version = db_current_document_version($document_id, $document_element_id);
+
+		crada_log("save_element- HERE IS WHERE THE TROUBLE BEGINS...");
+		//Insert a new element
+		crada_log("INSERT ELEMENT.  Make new copy of the last element version to the current document version.");
+		$query = "insert ignore into crada_document_element  ";
+		$query .= "(select ";
+		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
+		$query .= "cde2.subsection, cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
+		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
+		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
+		$query .= "cde2.updated_by, cde2.updated_date ";
+		$query .= "from crada_document_element cde2, ";
+		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
+		$query .= "document_id = $document_id and document_element_id = $document_element_id) cde1 ";
+		$query .= "where cde2.document_id = $document_id and cde2.document_element_id = $document_element_id ";
+//		$query .= "and cde2.alternate_text_type = '$alternate_text_type' ";
+		$query .= "and cde2.document_version = cde1.latest_document_version);";
+		crada_log($query);
+		crada_log("Not executing above");
+		try {
+			$result=db_query($query);
+		} catch (Exception $e) {
+			//
+			// I don't know why this is throwing a general MYSQL error.  But ignoring becasue it works.
+			// This started happening after the PRIMARY KEY was expanded to include alternate_text_type
+			crada_log("save_element- Ignore this exception");
+			crada_log_sql_error($e);
+		}
+
+}
+
+function add_demographics($document_id, $text) {
+// Get demographic answers from crada_document
+	$query = "select demographic_answers from crada_document where document_id = $document_id";
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log("add Mad Lib Demographics.");
+
+	// Convert json to php array
+	crada_log($row->demographic_answers);
+
+	$demo = json_decode($row->demographic_answers, true);
+	crada_log(print_r($demo, true));
+
+	//Walk through and perform search and replace
+	foreach ($demo as $key => $value) {
+		crada_log($key ." : " . $value);
+		$search = "{".$key."}";
+		if($value != "") {
+			$text = str_replace($search, "<strong>".$value."</strong>", $text);
+		} else {
+			//Otherwise bold missing demographics
+			$text = str_replace($search, "<strong>".$search."</strong>", $text);
+		}
+	}
+
+return $text;
+}
+
 function set_new_answer() {
 	global $user;
 
@@ -572,58 +624,124 @@ function set_new_answer() {
 	$question_id = $_REQUEST['question_id'];
 	$answer_id = $_REQUEST['answer_id'];
 
-	$statement = "document_id: $document_id, question_id: $question_id, answer_id: $answer_id, user: {$user->uid}";
 	crada_log("SET_NEW_ANSWER");
+	$statement = "document_id: $document_id, question_id: $question_id, answer_id: $answer_id, user: {$user->uid}";
 	crada_log($statement);
-
-	//GET Exact Row
+	//
+	//GET element Row
+	// This query will retrieve current version row from
+	// crada_document_element table.
 	$query = "select document_element_id, max_version, master_document_id, alternate_text_type from ( ";
 	$query .= document_current_question_answer_sql($document_id);
 	$query .= ") lca WHERE question_id = $question_id ";
-  crada_log("Row info");
-	crada_log($query);
-
 	$result=db_query($query);
 	$row = $result->fetchObject();
-	crada_log(print_r($row, true));
 	$document_element_id = $row->document_element_id;
 	$max_version = $row->max_version;
 	$master_document_id = $row->master_document_id;
-
 	$alternate_text_type = $row->alternate_text_type;
 
-	$statement = "document_element_id: $document_element_id;
+	$statement = "
+	document_element_id: $document_element_id;
 	max_version: $max_version;
 	master_document_id: $master_document_id;
 	alternate_text_type: $alternate_text_type;";
-
+	crada_log("WHAT IS THE ALTERNATE TEXT");
 	crada_log($statement);
 
+	//
+	//Check to see if we need to make a copy of current element
+	//
+	$current_document_version = create_element($document_id, $document_element_id);
 	//GET alternate text type.
 	crada_log("Get alternate_text_type");
+	crada_log("STEP 1:");
 
-	//GET element text
-	crada_log("Get clause");
+	$query = "select * from ( ";
+	$query .= query_get_master_clauses($master_document_id);
+	$query .= ") master ";
+	$query .= "WHERE question_id = $question_id ";
+	$query .= "AND answer_id = $answer_id ";
+	$query .= "AND alternate_text_type = '$alternate_text_type' ";
+
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log("MASTER CLAUSE RESULTS");
+	crada_log(print_r($row, true));
+	crada_log($row->document_element_text);
+
+	$new_document_element_text = add_demographics($document_id, $row->document_element_text);
+
+	if($new_document_element_text == NULL) {
+		crada_log("GET DEFAULT TEXT");
+		$query = "select * from ( ";
+		$query .= query_get_master_clauses($master_document_id);
+		$query .= ") master ";
+		$query .= "WHERE question_id = $question_id ";
+		$query .= "AND answer_id = $answer_id ";
+		$query .= "AND alternate_text_type = 'default' ";
+		$result=db_query($query);
+		$row = $result->fetchObject();
+		$new_document_element_text = $row->document_element_text;
+	}
+
+	crada_log("JUST GOT DONE WITH GET CLAUSE WHICH I DO NOT UNDERSTAND.");
 
 	//ADD Demographics
-	crada_log("add Mad Lib Demographics.");
+	crada_log($new_document_element_text);
+	$new_document_element_text = add_demographics($document_id, $new_document_element_text);
 
+	crada_log("Here is the new text before question change.");
 	//replace in crada_document_element
 	//Use this statement to update source_answer, answer_changed, updated_by, document_element_text
 	$query = "select * from crada_document_element
 					where document_id = $document_id
 					and source_question = $question_id
-					and document_version = $max_version";
+					and document_version = $current_document_version";
 	crada_log("document_element_text BEFORE: ");
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log(print_r($row, true));
 
 	crada_log("Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
+
+	$query = "UPDATE ignore crada_document_element
+							SET
+							document_element_text = '$new_document_element_text',
+							source_answer = $answer_id,
+							answer_changed = 1,
+							updated_by = $user->uid
+					WHERE document_id = $document_id
+					and source_question = $question_id
+					and document_version = $current_document_version	";
+	crada_log($query);
+	try {
+		$result = db_query($query);
+	} catch (Exception $e) {
+    crada_log($e->getMessage());
+    crada_log(print_r($e, true));
+	}
+
+/* CHECK AFTER */
+	$query = "select * from crada_document_element
+					where document_id = $document_id
+					and source_question = $question_id
+					and document_version = $current_document_version";
+
 	crada_log("document_element_text AFTER: ");
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log(print_r($row, true));
+
+	//Increment modified.
+  $query = 'UPDATE crada_document ';
+  $query .= 'SET modified = modified+1, ';
+  $query .= 'updated = now() ';
+  $query .= "WHERE document_id = $document_id ";
+  crada_log("UPDATE CRADA_DOCUMENT  ");
+  crada_log($query);
+
+  $result=db_query($query);
 
 	//DATABASE Unique KEY: document_id, document_element_id, version
 
@@ -765,13 +883,16 @@ function document_current_question_answer_sql($document_id) {
 	$query .= "group by cde.document_element_id ";
 */
 
+//Attach the right source_answer
+	$query = "select a.*, b.source_answer FROM ( ";
 /*Linking current document elements to questions and answers. */
-	$query = "select cde_b.*, cq.question_id, cq.section, cq.subsection, cq.predecessor, cq.question_text FROM ( ";
+	$query .= "select cde_b.*, cq.question_id, cq.section, cq.subsection, cq.predecessor, cq.question_text FROM ( ";
 
 /* Link to master_document_id*/
+
 	$query .= "select cde_a.*, cd.master_document_id FROM ( ";
 /* Base Select with maxversion */
-	$query .= "SELECT cde.document_id, cde.document_element_id, max(cde.document_version) as max_version, cde.source_question, cde.source_answer, cde.alternate_text_type ";
+	$query .= "SELECT cde.document_id, cde.document_element_id, max(cde.document_version) as max_version, cde.source_question, cde.alternate_text_type ";
 	$query .= "FROM crada_document_element cde ";
 	$query .= "where cde.document_id = {$document_id} ";
 	$query .= "and cde.source_question is not null ";
@@ -785,6 +906,11 @@ function document_current_question_answer_sql($document_id) {
 	$query .= "AND cde_b.source_question = cq.question_id ";
 	$query .= "AND cq.question_text <> 'REQUIRED' ";
 	$query .= "ORDER BY cde_b.source_question ";
+
+	$query .= ") a, crada_document_element b
+							where a.document_id = b.document_id
+							and a.document_element_id = b.document_element_id
+							and a.max_version = b.document_version ";
 
 	crada_log('document_current_question_answer_sql(document_id)');
 	crada_log($query);
@@ -826,6 +952,9 @@ function get_answers() {
 // Part 2
 
 	$query = document_current_question_answer_sql($document_id);
+
+	crada_log('current_question_answer_sql');
+
 	$result = db_query($query);
 
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -862,10 +991,10 @@ function get_answers() {
 	$output["status"] = "Ok";
 	$output["questions"] =$list;
 	$output["count"] = $count;
-	crada_log("get_answers 0 thru 2 output");
-	crada_log(print_r($output["questions"][0], true));
-	crada_log(print_r($output["questions"][1], true));
-	crada_log(print_r($output["questions"][2], true));
+//	crada_log("get_answers 0 thru 2 output");
+//	crada_log(print_r($output["questions"][0], true));
+//	crada_log(print_r($output["questions"][1], true));
+//	crada_log(print_r($output["questions"][2], true));
 	return $output;
 }
 
@@ -902,7 +1031,7 @@ function get_clauses_from_answers() {
 		$clauses = db_get_clause_ids_from_clause_group($master_document_id, $cg, $version);
 		foreach ($clauses as $clause) {
 			//
-			// get ORIGINAL clause information from for an ALTERNATE_TEXT
+			// get ORIGINAL clause information from an ALTERNATE_TEXT
 			//
 			$full_clause = db_get_clause_information($master_document_id, $version, $clause, $alternate_text);
 			if ($full_clause == NULL) {
@@ -1671,3 +1800,37 @@ function echo_stream() {
 
 function echo_data() {
 }
+
+/*
+	$query = "select clause_group_id ";
+	$query .= "FROM  crada_valid_clause_group_by_answer ";
+	$query .= "WHERE document_id = $master_document_id  ";
+	$query .= "and question_id = $question_id  ";
+	$query .= "and answer_id = $answer_id; ";
+
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(print_r($row, true));
+	$clause_group_id = $row->clause_group_id;
+
+	//GET element text
+	crada_log("Get clause");
+	crada_log("STEP 2:");
+	$clauses = db_get_clause_ids_from_clause_group(
+				$master_document_id, $clause_group_id, 0);
+
+	crada_log("CLAUSES RESULTS");
+	crada_log(json_encode($clauses));
+
+
+	foreach ($clauses as $clause) {
+		//
+		// get ORIGINAL clause information from for an ALTERNATE_TEXT
+		//
+		$full_clause = db_get_clause_information($master_document_id, $version, $clause, $alternate_text);
+		if ($full_clause == NULL) {
+				//		get ORIGINAL caluse information for "default"
+				$full_clause = db_get_clause_information($master_document_id, $version, $clause, "default");
+		}
+	}
+*/

@@ -72,6 +72,13 @@ $(document).ready(function () {
 
 	}
 
+  change_annotation_options('fast');
+  /*
+  if(getCookie("Drupal.visitor.annotation.option") == "") {
+    setCookie("Drupal.visitor.annotation.option", 'off', 365);
+    change_annotation_selection();
+  }
+  */
 	set_footer();
 });
 
@@ -200,7 +207,8 @@ function changedAnswer(e) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+  $("#"+ref).parent().find('span').fadeIn();
 	ajax_caller('set_new_answer',
 			{'document_id':getCookie("Drupal.visitor.document.id"),
 			'question_id':question_id, 'answer_id':answer_id},
@@ -406,17 +414,17 @@ function change_annotation_options(speed) {
 		    case "both":
 		        $('.confidential_annotation').show();
 		        $('.public_annotation').show();
-		        console.log('both should be showing');
+		        //console.log('both should be showing');
 		        break;
 		    case "confidential":
 		        $('.confidential_annotation').show();
 		        $('.public_annotation').hide();
-		        console.log('confidential should be showing');
+		        //console.log('confidential should be showing');
 		        break;
 		    case "public":
 		        $('.confidential_annotation').hide();
 		        $('.public_annotation').show();
-		        console.log('public should be showing');
+		        //console.log('public should be showing');
 		        break;
 		}
 	}
@@ -874,7 +882,8 @@ function load_change_answer(data) {
 		} else {
 			$('#'+key).append(
 				$("<span>")
-					.append(value.source_answer)
+          .css('display','none')
+					.append('<i class="fa fa-spinner fa-spin fa-2x" style="font-size:1.5em;margin-left:15px;margin-right: 10px;"></i><b>Changing Answer</b>')
 
 			);
 			//Select correct answer
@@ -959,9 +968,9 @@ function set_toolbar_buttons(editable) {
 		$('#change_permission_button').show();
 		$('#archive_version_button').show();
 	} else {
-		$('#change_answer_button').remove();
-		$('#change_permission_button').remove();
-		$('#archive_version_button').remove();
+		$('#change_answer_button').hide();
+		$('#change_permission_button').hide();
+		$('#archive_version_button').hide();
 	}
 }
 
