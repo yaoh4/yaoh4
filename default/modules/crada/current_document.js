@@ -207,7 +207,15 @@ function changedAnswer(e) {
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
 
+
 	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+  //
+  //  Disable all other change answer drop downs and the back button.
+  //  This will help avoid confusion when change answer rest call is occuring.
+  //
+  $("#change-answer").find('select').attr('disabled', 'disabled');
+  $("#back_button_answer").attr('disabled', 'disabled');
+
   $("#"+ref).parent().find('span').fadeIn();
 	ajax_caller('set_new_answer',
 			{'document_id':getCookie("Drupal.visitor.document.id"),
