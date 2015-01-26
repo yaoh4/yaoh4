@@ -165,6 +165,8 @@ function get_subsections_callback(data) {
 				$("#demographic-form")
 					.append($('<div>')
 						.addClass('form-group')
+						.addClass('subsections')
+						.attr('name', data.subsections[i])
 						.append("<LABEL class='demographic-label' for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL>")
 						.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT>")
 						.append("<div style='clear:both;'></div>")
@@ -192,10 +194,16 @@ function get_subsections_callback(data) {
 
 // Called when the demograhics advanced button is clicked
 function identify_subsections() {
+
 	chosen_subsections = new Object();
-	$("#subsection_table").find("TR").each( function () {
+
+	$(".subsections").each( function () {
 		chosen_subsections[$(this).attr("name")] = $(this).find("SELECT").val();
 	});
+
+	console.log("The chosen subsetions");
+	console.dir(chosen_subsections);
+
 }
 
 function create_demographic_pulldown(demographic) {
@@ -301,8 +309,10 @@ function setup_questions_for_section_callback(data) {
 
 
 	var number_of_questions_asked = 0;
+	console.log('q')
 	for (i=0;i<q.length; i++) {
 		if (q[i].subsection != "" && chosen_subsections[q[i].subsection] == "No") continue;  // If the subsection is No skip question
+		console.log(">>>>" + q[i].subsection + ":" + chosen_subsections[q[i].subsection]);
 		if (q[i].text == 'REQUIRED') {
 			answers[q[i].question_id] = 0;  //If the question is == "REQUIRED", skip and set answer to 0
 		} else {
@@ -390,7 +400,7 @@ function setup_document() {
 	console.log("OH MY GOODNESS.  THIS IS IT.  WHAT THE HECK IS answers_encoded.");
 	console.dir(answers);
 	console.log(answers_encoded);
-	alert(answers_encoded);
+	//alert(answers_encoded);
 
 	var alternate_text_type = $("#alternate_text_type").val();
 	console.log("Alternate Text Type: " + alternate_text_type);
@@ -406,7 +416,7 @@ function setup_document_callback(data) {
 	console.log("data");
 	console.dir(data);
 	var alternate_text = data.alternate_text;
-	alert('check the data in console');
+	//alert('check the data in console');
 
 // What to do with definitions?
 //	for (i=0;i<used_terms.length; i++) {
@@ -488,7 +498,7 @@ function setup_document_callback(data) {
 }
 
 function create_new_document_callback(data) {
-	alert (JSON.stringify(data, null, 2));
+	//alert (JSON.stringify(data, null, 2));
 	if(data.status == "Error") {
 		console.error("Server Error");
 		console.log(data.message);

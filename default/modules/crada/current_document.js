@@ -6,6 +6,7 @@ var conf_total = 0;
 var pub_total = 0;
 
 $(document).ready(function () {
+
 	create_dialogs();
 
 	$("#current_annotation_content").tooltip({show: {delay: 350}}); /*Adding jQuery tooltip for annotations*/
@@ -28,7 +29,6 @@ $(document).ready(function () {
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
   	editClause(event);
 	});
-
 	$("#current_document_content").on( "blur", "p.clause", function(event) {
 		updateClauseParagraph();
 	});
@@ -51,6 +51,7 @@ $(document).ready(function () {
 		changeDocumentPermissions(event);
 	});
 	$("#second_page").on( "change", "select.current-owner-select", function(event) {
+    alert("get this done")
 		changeDocumentOwner(event);
 	});
 
@@ -71,15 +72,9 @@ $(document).ready(function () {
 		click_load_button();
 
 	}
-
   change_annotation_options('fast');
-  /*
-  if(getCookie("Drupal.visitor.annotation.option") == "") {
-    setCookie("Drupal.visitor.annotation.option", 'off', 365);
-    change_annotation_selection();
-  }
-  */
 	set_footer();
+
 });
 
 function changeDocumentPermissions(event) {
