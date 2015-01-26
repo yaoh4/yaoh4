@@ -1354,17 +1354,24 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 
 	//console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
-		$('#clause-'+index).addClass('clause-changed');
+		$('#clause-'+index).addClass('clause-changed')
+      .attr('alt','This clause has changed from original version.')
+      .attr('title','This clause has changed from original version.');
 	}
 	//console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
 	if(parseInt(clause.answer_changed) == 1) {
-		$('#clause-'+index).addClass('answer-changed');
+		$('#clause-'+index).addClass('answer-changed')
+      .attr('alt', 'This clause has changed because of a changed answer.')
+      .attr('title', 'This clause has changed because of a changed answer.')
+      ;
 	}
 
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
 	} else {
-		$('#clause-'+index).removeClass('clause').addClass('clause-locked');
+		$('#clause-'+index).removeClass('clause')
+      .addClass('clause-locked')
+      .attr('alt', 'This clause is locked and not editable.');
 	}
 
 	var section_position = $('#'+element_id).position();
