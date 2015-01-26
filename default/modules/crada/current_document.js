@@ -104,37 +104,11 @@ function changeDocumentOwner(event) {
 	var answer_id = $("#"+ref).val();
 	alert(answer_id);
 
-	var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
-	content = '<textarea id="annotate-textarea-'+unique+'" rows="5" cols="70" class="edit_annotation_textarea">';
-	content += data_annotate;
-	content += '</textarea>';
-
-	$(content).dialog({
-		resizable: false,
-		height:430,
-		width:550,
-		modal: true,
-		title: $("#"+ref).attr("dialog-title"),
-		buttons: {
-			Cancel: function() {
-				$( this ).dialog( "close" );
-			},
-			Save: function() {
-				$( this ).dialog( "close" );
-				var textarea = $('#annotate-textarea-'+unique).val();
-				//textarea = $(textarea).text();
-				//console.log("TEXTAREA");
-				//console.log(textarea);
-				var header = $("#"+ref).text();
-				header = header.substr(0, header.search(']') + 1);
-				var newText = '<b>'+header+'</b> '+ trimAnnotation(textarea);
-				$("#"+ref).html(newText);
-				$("#"+ref).attr("data-annotate", textarea);
-				$("#"+ref).attr("title", textarea);
-				updateAnnotateData(ref, textarea);
-			}
-		}
-	});
+var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
+var content = '<div id="dialog" title="Basic dialog">
+  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+</div>';
+alert(content);
 
 	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
 	ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);

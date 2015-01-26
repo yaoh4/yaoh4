@@ -1770,7 +1770,9 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= "		GROUP BY document_element_id ) cde1 ";
 	$query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
 	$query .= " and cde2.document_version = cde1.ver ";
-	$query .= " and cde2.document_id = $document_id;";
+	$query .= " and cde2.document_id = $document_id ";
+	$query .= " and document_element_text not like 'silent'; ";
+
 	crada_log("GET LATEST DOCUMENT BASED on a version number");
 	crada_log($query);
 	$result=db_query($query);
