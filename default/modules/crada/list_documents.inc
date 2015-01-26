@@ -1,16 +1,23 @@
 <?php
 require_once 'crada_utilities.inc';
+//require_once 'includes/password.inc';
 
   crada_include();  //
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
 
 function crada_list_documents() {
+
+  //
+  //crada_log(user_hash_password('test'));
+  //
+
   //
   //This query indexes on updated decending but if updated
   //is null it replaces the updated date with the created date.
   //That is what the IFNULL function performs wrapped around the select.
   //
+
   global $user;
   crada_log("CRADA_LIST_DOCUMENTS");
 
@@ -18,7 +25,7 @@ function crada_list_documents() {
   $query .= "(SELECT doc_owner.name, doc_owner.mail, cdr.document_id, cd.title, cd.status,  ";
   $query .= "unix_timestamp(cd.created) as created, unix_timestamp(cd.updated) as updated, ";
   $query .= "r.name as role_name, cdr.access ";
-  $query .= "FROM users u, users_roles ur, crada_document_role cdr , crada_document cd, role r, users doc_owner ";
+  $query .= "FROM users u, users_roles ur, crada_document_role cdr, crada_document cd, role r, users doc_owner ";
   $query .= "WHERE u.uid = $user->uid ";
   $query .= "and u.uid = ur.uid and ur.rid = cdr.rid and cdr.access <> '' ";
   $query .= "and cdr.document_id = cd.document_id and cd.is_master = 0 ";
