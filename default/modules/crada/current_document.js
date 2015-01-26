@@ -105,13 +105,37 @@ function changeDocumentOwner(event) {
 	alert(answer_id);
 
 var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
-var content = '<div id="dialog" title="Basic dialog">
-  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+/*
+var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the "x" icon.</p>
 </div>';
-alert(content);
+*/
+	var content;
+	content = "<p><b>Warning:</b> You are about to lose ownership of this doucment and may not be able to edit this document after confirmation.";
+	content += "<br><br>Are you sure you want to change <b>Document Owner</b>?</p>";
+
+	$(function() {
+		$(content).dialog({
+			resizable: false,
+			width:450,
+			height:250,
+			modal: true,
+			title: 'Change Document Owner',
+			buttons: {
+				"Change Document Owner": function() {
+					$( this ).dialog( "close" );
+				},
+				Cancel: function() {
+				$( this ).dialog( "close" );
+				}
+			}
+		});
+	});
+
+
+
 
 	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+	//ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 
 }
 
