@@ -174,21 +174,6 @@ function get_subsections_callback(data) {
 		}
 	}
 
-
-/*
-
-	var subsection_table = $("<TABLE id='subsection_table' style='width:auto;border-collapse:separate;'>");
-	for (i=0;i<data.subsections.length;i++) {
-		if (data.subsections[i] != "") {
-			subsection_table.append($("<TR name='"+data.subsections[i]+"'>")
-				.append("<TD><LABEL for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL></TD>")
-				.append("<TD><SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT></TD>"));
-		}
-	}
-
-	$("#demographic-form").append("<P>Select subsections that are applicable to this document:</P>")
-		.append(subsection_table);
-*/
 		stop_spinner('spinner', 'demographics');
 }
 
