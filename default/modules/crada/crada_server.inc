@@ -595,26 +595,28 @@ function add_demographics($document_id, $text) {
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log("add Mad Lib Demographics.");
-
 	// Convert json to php array
 	crada_log($row->demographic_answers);
 
-	$demo = json_decode($row->demographic_answers, true);
-	crada_log(print_r($demo, true));
+	$demographics = json_decode($row->demographic_answers, true);
+	crada_log(print_r($demographics, true));
 
 	//Walk through and perform search and replace
-	foreach ($demo as $key => $value) {
+	foreach ($demographics as $key => $value) {
 		crada_log($key ." : " . $value);
 		$search = "{".$key."}";
-		if($value != "") {
-			$text = str_replace($search, "<strong>".$value."</strong>", $text);
+		if($value == "") {
+			//Highlight brackets to show
+			$text = str_replace($search, "<strong>[".$search."]</strong>", $text);
+
 		} else {
 			//Otherwise bold missing demographics
-			$text = str_replace($search, "<strong>".$search."</strong>", $text);
+			$text = str_replace($search, "<i><strong>".$value."</strong></i>", $text);
 		}
 	}
 
-return $text;
+	return $text;
+
 }
 
 function set_new_answer() {
