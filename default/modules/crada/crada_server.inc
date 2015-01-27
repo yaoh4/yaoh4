@@ -187,6 +187,18 @@ function get_document_owners() {
 	return $list;
 }
 
+function set_document_owner() {
+
+	$document_id = $_REQUEST['document_id'];
+	$user_id = $_REQUEST['user_id'];
+
+	$query = "UPDATE crada_document SET uid = $user_id WHERE document_id = $document_id ";
+	$result = db_query($query);
+
+	return;
+
+}
+
 function get_alternate_text_types() {
 	$document_id = $_REQUEST['document_id'];
 

@@ -70,7 +70,6 @@ $(document).ready(function () {
 		$("#current_document_container").hide();
 		$("#document_footer").hide();
 		click_load_button();
-
 	}
 	change_annotation_options('fast');
 	set_footer();
@@ -114,7 +113,7 @@ var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dia
 	content = "<div id='change-document-owner'><span id='change-document-owner-message'>";
 	content += "<i class='fa fa-exclamation-triangle icon-warn'></i>";
 	content += "<b>Warning:</b>  ";
-	content += "You are about to transfer ownership of this doucment and you may not be able to edit this document after confirmation.";
+	content += "You are about to transfer ownership of this document and you may not be able to edit this document after confirmation.";
 	content += "<br><br>Are you sure you want to assign <b>"+selected_user+"</b> as the new <b>Document Owner</b>?";
 	content += "<br></span>";
 	content += "<span class='change-document-owner-spinner' style='display:none;'>";
@@ -130,56 +129,17 @@ var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dia
 			title: "Change Document Owner",
 			buttons: {
 				"Change Document Owner": function() {
-
 					$(this).dialog( "close" );
-
-					//change_owner(user_id, selected_user);
+					load_current_document();
+					ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"),'user_id':user_id});
 				},
 				Cancel: function() {
-					$( this ).dialog( "close" );
+					//alert('Reselect Original without kicking off on change.');
+					$(this).dialog( "close" );
 				}
 			}
 		});
 	});
-
-//	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-//	ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
-
-}
-
-function change_owner(user_id, selected_user) {
-	console.log('dialog?');
-	console.dir(dialog);
-
-//	$("#change-document-owner-message").hide();
-//	$("#change-document-owner-spinner").show();
-	alert("This is to close the thing.");
-
-$("#div2").dialog({
-   closeOnEscape: false,
-   open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog || ui).hide(); }
-});
-
-/*
-	$(function() {
-		$( "#dialog" ).dialog({
-			autoOpen: true,
-			show: {
-				effect: "blind",
-				duration: 500
-			},
-			hide: {
-				effect: "explode",
-				duration: 1000
-			}
-		});
-
-		$( "#opener" ).click(function() {
-			$( "#dialog" ).dialog( "open" );
-		});
-
-	});
-*/
 
 }
 
@@ -263,10 +223,7 @@ function changedAnswer(e) {
 }
 
 function load_current_document() {
-//	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current");
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current";
-
-//	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current");
 }
 
 function set_answer_retrieve_new_element_callback(data) {
