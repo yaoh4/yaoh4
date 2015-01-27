@@ -50,8 +50,8 @@ $(document).ready(function () {
 	$("#second_page").on( "change", "select.permission-select", function(event) {
 		changeDocumentPermissions(event);
 	});
+
 	$("#second_page").on( "change", "select.current-owner-select", function(event) {
-    alert("get this done")
 		changeDocumentOwner(event);
 	});
 
@@ -72,7 +72,7 @@ $(document).ready(function () {
 		click_load_button();
 
 	}
-  change_annotation_options('fast');
+	change_annotation_options('fast');
 	set_footer();
 
 });
@@ -98,20 +98,28 @@ function generic_callback(data) {
 }
 
 function changeDocumentOwner(event) {
-	alert('changeDoucmentOwner open a dialog box to confirm');
 
 	var ref = event.target.id;
-	var answer_id = $("#"+ref).val();
-	alert(answer_id);
+	var user_id = $("#"+ref).val();
+	var selected_user = $("#"+ref+" option:selected").text();
 
-var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
+	//alert(answer_id + selected_user);
+
+	var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
 /*
 var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the "x" icon.</p>
 </div>';
 */
 	var content;
-	content = "<p><b>Warning:</b> You are about to lose ownership of this doucment and may not be able to edit this document after confirmation.";
-	content += "<br><br>Are you sure you want to change <b>Document Owner</b>?</p>";
+	content = "<div id='change-document-owner'><span id='change-document-owner-message'>";
+	content += "<i class='fa fa-exclamation-triangle icon-warn'></i>";
+	content += "<b>Warning:</b>  ";
+	content += "You are about to transfer ownership of this doucment and you may not be able to edit this document after confirmation.";
+	content += "<br><br>Are you sure you want to assign <b>"+selected_user+"</b> as the new <b>Document Owner</b>?";
+	content += "<br></span>";
+	content += "<span class='change-document-owner-spinner' style='display:none;'>";
+	content += "<i class='fa fa-spinner fa-spin small-spinner'></i> ";
+	content += "Changing Document Owner</span></div>";
 
 	$(function() {
 		$(content).dialog({
@@ -119,23 +127,59 @@ var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dia
 			width:450,
 			height:250,
 			modal: true,
-			title: 'Change Document Owner',
+			title: "Change Document Owner",
 			buttons: {
 				"Change Document Owner": function() {
-					$( this ).dialog( "close" );
+
+					$(this).dialog( "close" );
+
+					//change_owner(user_id, selected_user);
 				},
 				Cancel: function() {
-				$( this ).dialog( "close" );
+					$( this ).dialog( "close" );
 				}
 			}
 		});
 	});
 
+//	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+//	ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 
+}
 
+function change_owner(user_id, selected_user) {
+	console.log('dialog?');
+	console.dir(dialog);
 
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
-	//ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
+//	$("#change-document-owner-message").hide();
+//	$("#change-document-owner-spinner").show();
+	alert("This is to close the thing.");
+
+$("#div2").dialog({
+   closeOnEscape: false,
+   open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog || ui).hide(); }
+});
+
+/*
+	$(function() {
+		$( "#dialog" ).dialog({
+			autoOpen: true,
+			show: {
+				effect: "blind",
+				duration: 500
+			},
+			hide: {
+				effect: "explode",
+				duration: 1000
+			}
+		});
+
+		$( "#opener" ).click(function() {
+			$( "#dialog" ).dialog( "open" );
+		});
+
+	});
+*/
 
 }
 
@@ -351,10 +395,7 @@ function editAnnotation(e) {
 		width:550,
 		modal: true,
 		title: $("#"+ref).attr("dialog-title"),
-		buttons: {
-			Cancel: function() {
-				$( this ).dialog( "close" );
-			},
+		buttons:{
 			Save: function() {
 				$( this ).dialog( "close" );
 				var textarea = $('#annotate-textarea-'+unique).val();
@@ -368,6 +409,10 @@ function editAnnotation(e) {
 				$("#"+ref).attr("data-annotate", textarea);
 				$("#"+ref).attr("title", textarea);
 				updateAnnotateData(ref, textarea);
+			},
+
+			Cancel: function() {
+				$( this ).dialog( "close" );
 			}
 		}
 	});
@@ -434,6 +479,7 @@ function change_annotation_options(speed) {
 }
 
 function create_dialogs() {
+
 	$("#load_dialog").dialog({
 		title:"Load Document",
 		position:['middle',100],
@@ -442,6 +488,8 @@ function create_dialogs() {
 		width:[350],
 		modal: true
 	});
+
+
 }
 
 function click_load_button () {
@@ -732,76 +780,58 @@ function load_change_owner(data) {
 			.append('Document Owner')
 			.addClass('current_question')
 	);
+
 	$('#change-permission').append(
 		$("<hr>")
 	);
 
 	var key = "document_owner";
 
-	//console.log("CHANGE_OWNER data");
-	//console.dir(data);
+	console.log("CHANGE_OWNER data");
+	console.dir(data);
 
-		$('#change-permission')
-			.append($('<div>')
-			.attr('id', key)
-			.addClass('form-group')
-			.attr('style', 'padding-top:25px;padding-bottom:150px;')
+	$('#change-permission')
+		.append($('<div>')
+		.attr('id', key)
+		.addClass('form-group')
+		.attr('style', 'padding-top:25px;padding-bottom:150px;')
 
+	);
+	//Add question LABEL
+	$('#'+key).append(
+		$("<label>")
+			.append("Current Document Owner")
+			.addClass('question-label')
+			.attr('style', 'width:200px;')
+			.attr('for', 'current-owner')
 		);
-		//Add question LABEL
-		$('#'+key).append(
-			$("<label>")
-				.append("Current Document Owner")
-				.addClass('question-label')
-				.attr('style', 'width:200px;')
-				.attr('for', 'current-owner')
-			);
-		//Add question SELECT
-		$('#'+key).append(
-			$("<select>")
-				.attr('id', 'current-owner-select')
-				.attr('name', 'current-owner')
-				.attr('class', 'current-owner-select')
+	//Add question SELECT
+	$('#'+key).append(
+		$("<select>")
+			.attr('id', 'current-owner-select')
+			.attr('name', 'current-owner')
+			.attr('class', 'current-owner-select')
+			.attr('original_owner', data.current_document_owner_uid)
+	);
+	//Add question OPTIONS
+
+	for(i=0;data.users.length>i;i++) {
+		$('#current-owner-select').append(
+			$('<option>')
+				.append(data.users[i].name+' ('+data.users[i].mail+')'
+					)
+				.attr('value', data.users[i].uid)
 		);
-		//Add question OPTIONS
+	}
+	//select current owner
+	if(data.current_document_owner_uid != null) {
+		$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
+	}
 
-		for(i=0;data.users.length>i;i++) {
-			$('#current-owner-select').append(
-				$('<option>')
-					.append(data.users[i].name+' ('+data.users[i].mail+')'
-						)
-					.attr('value', data.users[i].uid)
-			);
-		}
-		//
-		//Display answer
-		//
-		/*
-		if(data.current_document_owner_uid == null){
-			$('#'+key).append(
-				$("<span>")
-					.append("answer is null")
-					.css('color', 'red')
-			);
-		} else {
-			$('#'+key).append(
-				$("<span>")
-					.append(data.current_document_owner_uid)
-			);
-			//Select correct answer
-			$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
-
-		}
-		*/
-
-		if(data.current_document_owner_uid != null) {
-			$('#current-owner-select').val(data.current_document_owner_uid).prop('selected', true);
-		}
-
-		$('#'+key).append(
-			$("<div>")
-				.addClass('both')
-		);
+	$('#'+key).append(
+		$("<div>")
+			.addClass('both')
+	);
 
 }
 

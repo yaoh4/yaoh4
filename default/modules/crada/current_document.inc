@@ -131,13 +131,11 @@ function add_button($id, $name, $title="", $class="") {
 
 // Dialogs
 function add_load_dialog() {
-	//
-	//TODO: Need to add a list of documents and versions per document.
-	//  When selecting a document an new list of version needs to be shown.
+
 	$data = "<DIV id='load_dialog'>";
   $data .= '<div id="load_dialog_spinner"><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-2x"></i></p></div>';
 	$data .= "<TABLE id='load_dialog_select' style='display:none;'>";
-	$data .= "<TR><TD>Document:</TD><TD> <SELECT id='document_select'>";
+	$data .= "<TR><TD>Document:</TD><TD><SELECT id='document_select'>";
 	$data .= "</SELECT></TD></TR>";
 	$data .= "<TR><TD>Version:</TD><TD><SELECT id='document_version'>";
 	$data .= "<OPTION> Current </OPTION>";
@@ -148,6 +146,7 @@ function add_load_dialog() {
 	$data .= "</TD></TR>";
 	$data .= "</TABLE>";
 	$data .= "</DIV>";
+
 	return $data;
 }
 
