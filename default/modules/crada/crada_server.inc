@@ -1,5 +1,5 @@
 <?php
-require_once 'crada_utilities.inc';
+	require_once 'crada_utilities.inc';
 
 //Create new document steps:
 //Step 1: get_clauses_from_answers()
@@ -865,7 +865,7 @@ function get_document_permissions() {
 	$query .= "LEFT JOIN (select * from crada_document_role where document_id =$document_id) as cdr ";
 	$query .= "ON r.rid = cdr.rid ";
 	$query .= "WHERE r.rid > 3 ";
-	$query .= "order by r.rid; ";
+	$query .= "order by r.weight; ";
 
 	$result = db_query($query);
 	$list = $result->fetchAll();

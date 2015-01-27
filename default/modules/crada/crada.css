@@ -487,3 +487,14 @@ input.form-control {
     -webkit-user-drag: none; /* Prevents dragging of images/divs etc */
     user-drag: none;
 }
+
+.icon-warn {
+  color: #222222;
+  font-size: 1.5em;
+  margin-right: 10px;
+}
+.small-spinner {
+  font-size:1.5em;
+  margin-left:15px;
+  margin-right: 10px;
+}
