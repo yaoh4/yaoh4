@@ -89,26 +89,12 @@ function changeDocumentPermissions(event) {
 			generic_callback);
 }
 
-function generic_callback(data) {
-	console.info("generic_callback");
-	console.dir(data);
-
-	return;
-}
-
 function changeDocumentOwner(event) {
 
 	var ref = event.target.id;
 	var user_id = $("#"+ref).val();
 	var selected_user = $("#"+ref+" option:selected").text();
 
-	//alert(answer_id + selected_user);
-
-	var unique = Math.floor(Math.random() * (99999 - 10000 + 1));
-/*
-var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the "x" icon.</p>
-</div>';
-*/
 	var content;
 	content = "<div id='change-document-owner'><span id='change-document-owner-message'>";
 	content += "<i class='fa fa-exclamation-triangle icon-warn'></i>";
@@ -116,9 +102,7 @@ var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dia
 	content += "You are about to transfer ownership of this document and you may not be able to edit this document after confirmation.";
 	content += "<br><br>Are you sure you want to assign <b>"+selected_user+"</b> as the new <b>Document Owner</b>?";
 	content += "<br></span>";
-	content += "<span class='change-document-owner-spinner' style='display:none;'>";
-	content += "<i class='fa fa-spinner fa-spin small-spinner'></i> ";
-	content += "Changing Document Owner</span></div>";
+	content += "</div>";
 
 	$(function() {
 		$(content).dialog({
@@ -131,7 +115,7 @@ var content = '<div id="dialog" title="Basic dialog"> <p>This is the default dia
 				"Change Document Owner": function() {
 					$(this).dialog( "close" );
 					load_current_document();
-					ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"),'user_id':user_id});
+					ajax_caller('set_document_owner', {'document_id':getCookie("Drupal.visitor.document.id"),'user_id':user_id}, generic_callback);
 				},
 				Cancel: function() {
 					//alert('Reselect Original without kicking off on change.');

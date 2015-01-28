@@ -55,6 +55,8 @@ function crada_include() {
   //
   // Base include files
   //
+  drupal_add_http_header('X-UA-Compatible', 'IE=edge');
+
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_library('system','ui.dialog');
   drupal_add_css($module_path . '/crada.css');

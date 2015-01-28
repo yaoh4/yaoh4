@@ -1,7 +1,8 @@
 <?php
 require_once 'crada_utilities.inc';
+//
 //require_once 'includes/password.inc';
-
+//
   crada_include();  //
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
@@ -58,6 +59,7 @@ if(function_exists('openssl_encrypt')) {
 
 $html = '<div class="input-group margin-bottom-sm pull-right">
   <span class="input-group-addon" title="Search archived documents, current documents, and document titles"><i class="fa fa-search fa-fw"></i></span>
+  <label for="search-term" style="margin-bottom:0px;display:none;">Search</label>
   <input id="search-term" class="form-control" type="text" placeholder="Search">
 </div>';
 
