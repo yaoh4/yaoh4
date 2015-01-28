@@ -165,8 +165,8 @@ function change_annotation_selection() {
 		change_annotation_options('fast');
 
 	} else {
-		console.log('annotation_option is NOT set');
-		console.log(annotation_option);
+//		console.log('annotation_option is NOT set');
+//		console.log(annotation_option);
 	}
 
 }
@@ -948,7 +948,8 @@ function set_toolbar_buttons(editable) {
 
 function get_document_elements_callback(data) {
 
-	//console.log("get_document_elements_callback");
+	console.log("get_document_elements_callback");
+	console.log(data);
   //alert (JSON.stringify(data, null, 2));
   //alert(data.version);
 	setCookie("Drupal.visitor.document.version", data.version, 365);

@@ -623,7 +623,7 @@ function add_demographics($document_id, $text) {
 
 		} else {
 			//Otherwise bold missing demographics
-			$text = str_replace($search, "<i><strong>".$value."</strong></i>", $text);
+			$text = str_replace($search, $value, $text);
 		}
 	}
 
@@ -1052,9 +1052,7 @@ function get_clauses_from_answers() {
 					//		get ORIGINAL caluse information for "default"
 					$full_clause = db_get_clause_information($master_document_id, $version, $clause, "default");
 			}
-			//put
-			$full_clause['terms'] = db_get_definitions_for_clause($document_id, $clause);
-			//Attach $question_id
+			$full_clause['terms'] = db_get_definitions_for_clause($master_document_id, $clause);
 			$full_clause['question_id'] = $question_id;
 			$full_clause['answer_id'] = $answer_id;
 
@@ -1698,10 +1696,10 @@ function db_get_document_access($document_id, $uid) {
 	//  Get max_access user has any for this document
 	//
 	$query = "select max(cdr.access) as max_access from crada_document_role cdr, users_roles ur
-where cdr.rid = ur.rid
-and cdr.access <> ''
-and ur.uid = $uid
-and cdr.document_id = $document_id;";
+							where cdr.rid = ur.rid
+							and cdr.access <> ''
+							and ur.uid = $uid
+							and cdr.document_id = $document_id;";
 	$result = db_query($query);
 	$row = $result->fetchObject();
 	if ($row->max_access != null) {
@@ -1786,6 +1784,7 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= " and document_element_text not like 'silent'; ";
 
 	crada_log("GET LATEST DOCUMENT BASED on a version number");
+
 	crada_log($query);
 	$result=db_query($query);
 	$list = array();

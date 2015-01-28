@@ -20,6 +20,7 @@ function stop_spinner(spinner_id, show_id) {
   jQuery("#"+show_id).show();
 }
 
+/*
 function addMadLib(madlib, demographics) {
     //serarch and replace {} with demographic answers
     //Example search {Agency} replace with FDA
@@ -32,6 +33,16 @@ function addMadLib(madlib, demographics) {
     //Check to make sure a madlib is defined
     if (typeof madlib == 'undefined')
         return;
+
+            $.each(demographics, function(key, val) {
+                search_term = "{"+key+"}";
+                if(replace_term == "") {
+                    replace_term = "<b>["+key+"]</b>";
+                };
+//              replace_term = "<b>"+val+"</b>";
+                madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+            });
+
 
     jQuery.each(demographics, function(key, val) {
         search_term = "{"+key+"}";
@@ -48,6 +59,7 @@ function addMadLib(madlib, demographics) {
 
     return madlib;
 }
+*/
 
 function display_error(response, status, error) {
     var errorMessage = error || response.statusText;

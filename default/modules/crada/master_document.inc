@@ -129,7 +129,9 @@ function load_definitions() {
 	$xls_data = $xls_reader->load($filename);
 	$array_data = $xls_data->getActiveSheet()->toArray(null,true,true,true);
 	foreach ($array_data as $line) {
-		if ($line["A"] != 'Term' && $line["A"] != 'Defined Term' ) db_insert_definition($line["A"], $line["B"]);
+		if ($line["A"] != 'Term' && $line["A"] != 'Defined Terms' ) {
+			db_insert_definition($line["A"], $line["B"]);
+		}
 	}
 }
 
@@ -238,7 +240,7 @@ function determine_columns($line) {
 	$i = 0;
 	foreach ($column_names as $c) {
 		if (isset($line[$c])) {
-			if ($line[$c] == "Defined Term") $defined_terms_column = $c;
+			if ($line[$c] == "Defined Terms") $defined_terms_column = $c;
 			else if ($line[$c] == "Confidential Annotation") $confidential_annotation_column = $c;
 			else if ($line[$c] == "Public Annotation") $public_annotation_column = $c;
 			else if ($line[$c] == "Survivability") $survivability_column = $c;
