@@ -110,3 +110,14 @@ function explodeLegalArray(entities, bookmark) {
 
 }
 
+function generic_callback(data) {
+//  generic_callback for ajax_caller();
+    console.info("generic_callback");
+    if(data.status == "Error") {
+        console.warn(data.message);
+        console.dir(data);
+    }
+
+    return;
+}
+

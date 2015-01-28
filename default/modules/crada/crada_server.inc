@@ -175,7 +175,7 @@ function get_document_owners() {
 
 	$document_id = $_REQUEST['document_id'];
 
-	$query = "SELECT uid, name, mail FROM users WHERE uid > 1 ORDER BY mail ";
+	$query = "SELECT uid, name, mail FROM users WHERE uid > 1 ORDER BY name ";
 	$result = db_query($query);
 	$list["users"] = $result->fetchAll();
 

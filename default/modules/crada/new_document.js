@@ -310,9 +310,17 @@ function setup_questions_for_section_callback(data) {
 					.addClass("question-text")
 				);
 			for (j=0;j<q[i].answers.length; j++) {
+				var label_name = 'answer-'+q[i].question_id+"-"+j;
 				display
-					.append($("<INPUT type='radio' name='" + q[i].question_id + "' value='" + j + "'>" + q[i].answers[j] + "</INPUT><br>")
-							.attr('checked', (j==0)));
+					.append($("<label>")
+							.attr('for', label_name)
+							.css('display', 'none')
+							.append(q[i].answers[j])
+						)
+					.append($("<INPUT type='radio' name='"+q[i].question_id+"' value='"+j+"'>"+q[i].answers[j] + "</INPUT><br>")
+							.attr('checked', (j==0))
+							.attr('id', label_name)
+						);
 			}
 			display.append("<br />")
 		}
@@ -395,32 +403,18 @@ function setup_document() {
 }
 
 function setup_document_callback(data) {
-	console.log("setup_document_callback");
-	console.log("Where are the question/answers????");
-
-	console.log("data");
-	console.dir(data);
-	var alternate_text = data.alternate_text;
-	//alert('check the data in console');
-
-// What to do with definitions?
-//	for (i=0;i<used_terms.length; i++) {
-//		var definition = definitions[used_terms[i]];
-//		$("#crada_document").append("<P><B> " +add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition) + "</P>");
-//	}
-
-
 	var new_clauses = new Object();
-	//
-	//Larry said get master_document_id here
-	//
-	//new_clauses.master_id = <master>;
-	console.log("TODO: new_clauses.master_id should be here.");
+	var alternate_text = data.alternate_text;
+	var new_clauses = new Object();
 	var used_terms = get_used_terms(data.clauses);
+
+	console.log("Where are the question/answers????");
+	console.log("data");
+
 	for (i=0;i<used_terms.length; i++) {
 		var definition = definitions[used_terms[i]];
 		new_clauses[i] = new Object();
-		new_clauses[i].text = "<B> " + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
+		new_clauses[i].text = "<B>" + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
 		new_clauses[i].survivable = 0;
 	}
@@ -429,16 +423,8 @@ function setup_document_callback(data) {
 	console.log("ANSWERS");
 	console.dir(answers);
 
-// Add the values to the database all at once...
-// Substitute the demographics here
-
 	for (var i=0; i<data.clauses.length; i++) {
-		//Set answers index to 0 if user did not answer the question.
-		/*
-		if(typeof answers[i+1] === 'undefined' || answers[i+1] == null) {
-			answers[i+1] = 0;
-		}
-		*/
+
 		new_clauses[used_terms.length+i] = new Object();
 		new_clauses[used_terms.length+i].text = add_demographics(data.clauses[i].text);
 		new_clauses[used_terms.length+i].section = data.clauses[i].section;
@@ -500,16 +486,24 @@ function add_demographics(madlib) {
     var search_term;
     var replace_term;
     //Check to make sure a madlib is defined
-	if (typeof madlib == 'undefined')
-		return;
+		if (typeof madlib == 'undefined') {
+			return;
+		}
 
-    $.each(demographics, function(key, val) {
-        search_term = "{"+key+"}";
-        replace_term = val;
-        if (madlib) madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
-    });
+		if (madlib) {
+			$.each(demographics, function(key, val) {
+				search_term = "{"+key+"}";
+				if(replace_term == "") {
+					replace_term = "<b>["+key+"]</b>";
+				};
+//				replace_term = "<b>"+val+"</b>";
+				//THINK, THINK, THINK....
+				madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
+			});
+		}
 
 	return madlib;
+
 }
 
 function get_used_terms(clauses) {

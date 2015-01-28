@@ -135,9 +135,13 @@ function add_load_dialog() {
 	$data = "<DIV id='load_dialog'>";
   $data .= '<div id="load_dialog_spinner"><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-2x"></i></p></div>';
 	$data .= "<TABLE id='load_dialog_select' style='display:none;'>";
-	$data .= "<TR><TD>Document:</TD><TD><SELECT id='document_select'>";
+	$data .= "<TR><TD>";
+	$data .= "<label for='document_select'>Document:</label>";
+	$data .= "</TD><TD><SELECT id='document_select'>";
 	$data .= "</SELECT></TD></TR>";
-	$data .= "<TR><TD>Version:</TD><TD><SELECT id='document_version'>";
+	$data .= "<TR><TD>";
+	$data .= "<label for='document_version'>Version:</label>";
+	$data .= "</TD><TD><SELECT id='document_version'>";
 	$data .= "<OPTION> Current </OPTION>";
 	$data .= "<OPTION> v1 </OPTION>";
 	$data .= "</SELECT></TD></TR>";
