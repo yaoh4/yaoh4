@@ -186,8 +186,8 @@ function identify_subsections() {
 		chosen_subsections[$(this).attr("name")] = $(this).find("SELECT").val();
 	});
 
-	console.log("The chosen subsetions");
-	console.dir(chosen_subsections);
+//	console.log("The chosen subsetions");
+//	console.dir(chosen_subsections);
 
 }
 
@@ -271,12 +271,12 @@ function setup_questions_for_section(i) {
 
 function setup_questions_for_section_callback(data) {
 
-	console.log('Just got a section');
-	console.dir(data);
+//	console.log('Just got a section');
+//	console.dir(data);
 
 	var q = data.questions; //Set q to array of questions sent in
 	var section_title = q[0].section;
-	console.log('section: '+section_title);
+//	console.log('section: '+section_title);
 
 	$("#question_section").empty()
 		.append($('<h2>').append(section_title)
@@ -288,16 +288,16 @@ function setup_questions_for_section_callback(data) {
 	);
 	var display = $("#question_detail");
 
-	console.log(data);
-	console.log('Questions q for this section');
-	console.log(q);
+//	console.log(data);
+//	console.log('Questions q for this section');
+//	console.log(q);
 
 
 	var number_of_questions_asked = 0;
-	console.log('q')
+//	console.log('q')
 	for (i=0;i<q.length; i++) {
 		if (q[i].subsection != "" && chosen_subsections[q[i].subsection] == "No") continue;  // If the subsection is No skip question
-		console.log(">>>>" + q[i].subsection + ":" + chosen_subsections[q[i].subsection]);
+//		console.log(">>>>" + q[i].subsection + ":" + chosen_subsections[q[i].subsection]);
 		if (q[i].text == 'REQUIRED') {
 			answers[q[i].question_id] = 0;  //If the question is == "REQUIRED", skip and set answer to 0
 		} else {
@@ -333,9 +333,9 @@ function setup_questions_for_section_callback(data) {
 }
 
 function store_current_answers(section_number) {
-	console.log("store_current_answers");
-	console.log('section_number');
-	console.log(section_number);
+//	console.log("store_current_answers");
+//	console.log('section_number');
+//	console.log(section_number);
 
 	var question_pane = $("#question_section");
 	var str = "";
@@ -343,7 +343,7 @@ function store_current_answers(section_number) {
 		str += $(this).attr("name") + ":" + $(this).val() + "\n";
 		answers[$(this).attr("name")] = $(this).val();
 	})
-	console.dir(answers);
+//	console.dir(answers);
 	//alert (JSON.stringify(answers));
 }
 
@@ -359,8 +359,8 @@ function setup_template_chooser() {
 }
 
 function setup_template_chooser_callback(data) {
-	console.log("setup_template_chooser_callback");
-	console.log(data);
+//	console.log("setup_template_chooser_callback");
+//	console.log(data);
 
 	if(data.templates.length == 0) {
 		// Stop Progress because no templates available.
@@ -390,13 +390,12 @@ function setup_template_chooser_callback(data) {
 function setup_document() {
 //	alert (JSON.stringify(answers, null, 2));
 	var answers_encoded = JSON.stringify(answers);
-	console.log("OH MY GOODNESS.  THIS IS IT.  WHAT THE HECK IS answers_encoded.");
-	console.dir(answers);
-	console.log(answers_encoded);
+//	console.dir(answers);
+//	console.log(answers_encoded);
 	//alert(answers_encoded);
 
 	var alternate_text_type = $("#alternate_text_type").val();
-	console.log("Alternate Text Type: " + alternate_text_type);
+//	console.log("Alternate Text Type: " + alternate_text_type);
 	ajax_caller('get_clauses_from_answers',
 		{'document_id':document_id, 'answers':answers_encoded, 'alternate_text': alternate_text_type},
 		setup_document_callback, 'POST');
@@ -405,23 +404,30 @@ function setup_document() {
 function setup_document_callback(data) {
 	var new_clauses = new Object();
 	var alternate_text = data.alternate_text;
-	var new_clauses = new Object();
 	var used_terms = get_used_terms(data.clauses);
 
-	console.log("Where are the question/answers????");
-	console.log("data");
 
+//	console.log("Where are the question/answers????");
+//	console.log(used_terms);
+//	console.log(data);
+	//Adding Definition sections
 	for (i=0;i<used_terms.length; i++) {
+
+		if (used_terms[i] == "") continue;
 		var definition = definitions[used_terms[i]];
 		new_clauses[i] = new Object();
 		new_clauses[i].text = "<B>" + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
 		new_clauses[i].survivable = 0;
+//		console.log("new_clauses["+(i)+"]");
+//		console.dir(new_clauses[i]);
+
 	}
-	console.log("new_clauses");
-	console.dir(new_clauses);
-	console.log("ANSWERS");
-	console.dir(answers);
+
+//	console.log("new_clauses");
+//	console.dir(new_clauses);
+//	console.log("ANSWERS");
+//	console.dir(answers);
 
 	for (var i=0; i<data.clauses.length; i++) {
 
@@ -444,14 +450,11 @@ function setup_document_callback(data) {
 		new_clauses[used_terms.length+i].source_question = data.clauses[i].question_id;  //This works
 		new_clauses[used_terms.length+i].source_answer = data.clauses[i].answer_id;;
 
-		console.log("new_clauses["+(used_terms.length+i)+"]");
-		console.dir(new_clauses[used_terms.length+i]);
-
 	}
 
 	var new_clauses_encoded = JSON.stringify(new_clauses);
-	console.log("NEW CLAUSES");
-	console.dir(new_clauses);
+//	console.log("NEW CLAUSES");
+//	console.dir(new_clauses);
 
 	var title = $("#document_title").val();
 	if (title == null || title == "") title = "New Title";
@@ -459,9 +462,9 @@ function setup_document_callback(data) {
 	if (name == null || name == "") name = "filename";
 	var master_document_id = $("#template_chooser").val();
 	if (master_document_id == null || master_document_id == "") master_document_id = "1";
-	console.log("About to send demographic");
-	console.dir(demographics);
-	console.log(JSON.stringify(demographics));
+	//console.log("About to send demographic");
+	//console.dir(demographics);
+	//console.log(JSON.stringify(demographics));
 //	alert("About to send demographics");
 
 	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'alternate_text':alternate_text, 'title':title, 'master_document_id':master_document_id},
@@ -470,6 +473,8 @@ function setup_document_callback(data) {
 
 function create_new_document_callback(data) {
 	//alert (JSON.stringify(data, null, 2));
+	//console.log("create_new_document_callback");
+	//console.log(data);
 	if(data.status == "Error") {
 		console.error("Server Error");
 		console.log(data.message);
@@ -477,15 +482,16 @@ function create_new_document_callback(data) {
 
 	location.href = "load_document?action=Load&document_id=" + data.document_id + "&version=1";
 	//$("#crada_document").empty().append(JSON.stringify(data, null, 2));
-
 }
+
 
 function add_demographics(madlib) {
 	//serarch and replace {} with demographic answers
 	//Example search {Agency} replace with FDA
     var search_term;
-    var replace_term;
-    //Check to make sure a madlib is defined
+		var replace_term;
+
+		//Check to make sure a madlib is defined
 		if (typeof madlib == 'undefined') {
 			return;
 		}
@@ -493,11 +499,10 @@ function add_demographics(madlib) {
 		if (madlib) {
 			$.each(demographics, function(key, val) {
 				search_term = "{"+key+"}";
+				replace_term = val;
 				if(replace_term == "") {
-					replace_term = "<b>["+key+"]</b>";
+					replace_term = "<strong>["+key+"]</strong>";
 				};
-//				replace_term = "<b>"+val+"</b>";
-				//THINK, THINK, THINK....
 				madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
 			});
 		}
@@ -505,6 +510,7 @@ function add_demographics(madlib) {
 	return madlib;
 
 }
+
 
 function get_used_terms(clauses) {
 	var used_terms = {};
@@ -516,7 +522,9 @@ function get_used_terms(clauses) {
 	}
 
 	var terms = Object.keys(used_terms);
-	return Object.keys(used_terms);
+	terms.sort();
+
+	return terms;
 }
 //// Helper functions
 

@@ -23,23 +23,23 @@ function updateDocumentList() {
   //
   ajax_caller('search_clauses', {'searchterm':getCookie("Drupal.visitor.document.searchterm")}, search_clauses_callback);
 
-  console.log("Auto complete: "+search_term);
+  //console.log("Auto complete: "+search_term);
 
 }
 
 function search_clauses_callback(data) {
 
-  console.log("search_clauses_callback");
-  console.dir(data);
+//  console.log("search_clauses_callback");
+//  console.dir(data);
   var count = 0;
   $('#list-document > tbody  > tr').each(function(index) {
     var target_id = $( this ).attr('id');
-    console.log( index + ": " + target_id );
+//    console.log( index + ": " + target_id );
     if($.inArray(target_id, data.filter) == -1) {
-      console.log(target_id+" is NOT in filter");
+//      console.log(target_id+" is NOT in filter");
       $(this).hide("slow");
     } else {
-      console.log(target_id+" is in filter");
+//      console.log(target_id+" is in filter");
       $(this).removeClass();
       if(count % 2 ==0) {
         $(this).addClass('even');
