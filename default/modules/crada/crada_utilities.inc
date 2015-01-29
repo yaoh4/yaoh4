@@ -89,7 +89,6 @@ function howLongAgo($unixTimestamp) {
 
     $year_label =($year == 1 ? 'year' : 'years');
     $month_label =($month == 1 ? 'month' : 'months');
-    $month_label =($month == 1 ? 'month' : 'months');
     $day_label =($day == 1 ? 'day' : 'days');
     $hour_label =($hour == 1 ? 'hour' : 'hours');
     $min_label =($min == 1 ? 'min' : 'mins');
