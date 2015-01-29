@@ -948,10 +948,6 @@ function set_toolbar_buttons(editable) {
 
 function get_document_elements_callback(data) {
 
-	console.log("get_document_elements_callback");
-	console.log(data);
-  //alert (JSON.stringify(data, null, 2));
-  //alert(data.version);
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 
 	set_toolbar_buttons(data.editable);
@@ -966,7 +962,6 @@ function get_document_elements_callback(data) {
     );
     return;
   }
-//	console.dir(data);
 	//Clear document content
 	$("#current_document_content").empty().append($('<div>').attr('id', 'title_bar'));
 	if(data.editable) {
@@ -994,8 +989,8 @@ function get_document_elements_callback(data) {
 	var clause_number = 0;
 	var data_clause;
 	var element_id = 'current_document_content';
-	conf_total = 0;
-	pub_total = 0;
+	var conf_total = 0;
+	var pub_total = 0;
 	var annotation_positions = [];
 	var annotation_detail = [];
 	var annotate = [];
@@ -1028,13 +1023,8 @@ function get_document_elements_callback(data) {
 	}
 
 // Add survivability statement at bottom of document
-		printSurvivabilityStatement(survivable_clauses);
-//	Survivability.  The provisions of Paragraphs 3.3, 3.4, 3.8, 4.2, 4.3, 5.3, 5.4, 6.1-9.2, 10.3-10.6, 11.1, 11.2, 12.1-12.3, 13.1-13.3, 13.7, 13.10 and 13.14 will survive the expiration or early termination of this CRADA.
+	printSurvivabilityStatement(survivable_clauses);
 
-//	documentSections = data;
-//	console.info("documentSections")
-//	console.dir(documentSections);
-//	current_document_content
 	var element = document.getElementById("current_document_content");
 	var rect = element.getBoundingClientRect();
 	//console.log("BIG RECTANGLE");
@@ -1080,8 +1070,6 @@ function printSurvivabilityStatement(survivable_clauses) {
 
 		var survivability_statement;
 		var label = (survivable_clauses.length == 1) ? "Paragraph" : "Paragraphs";
-		//console.warn("Survivable_clauses");
-		//console.dir(survivable_clauses);
 
 		if(survivable_clauses.length > 0) {
 			survivability_statement = "<strong>Survivability</strong>.  ";
