@@ -523,10 +523,6 @@ function get_used_terms(clauses) {
 	}
 	var terms = Object.keys(used_terms);
 	terms.sort();
-	console.info("GET RID OF THE BLANKS");
-	console.info("get_used_terms");
-	console.dir(terms);
-	alert("LOOK at used terms in console.");
 
 	return terms;
 }
