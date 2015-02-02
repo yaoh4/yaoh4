@@ -1094,6 +1094,7 @@ function db_get_document_templates() {
 	$result = db_select('crada_document', 'c')
 		->fields('c')
 		->condition('is_master', 1, '=')
+		->orderBy('title', 'asc')
 		->execute();
 
 	$list = array();
