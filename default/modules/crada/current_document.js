@@ -1284,6 +1284,10 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 //	console.info('clause '+clause);
 //	console.info('index '+index);
 //	console.info('element_id '+element_id);
+	//var clause_text = clause.text;
+	//Search and replace \n with '<br>'
+	clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
+
 	$("#"+element_id)
 		.append($('<div>')
 					.addClass('clause-paragraph')
