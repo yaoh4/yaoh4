@@ -3,7 +3,7 @@ require_once 'crada_utilities.inc';
 //
 //require_once 'includes/password.inc';
 //
-  crada_include();  //
+  crada_include();
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
 
