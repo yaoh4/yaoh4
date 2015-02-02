@@ -358,8 +358,10 @@ function load_all_defined_terms($clause_id, $defined_terms) {
 	$list_of_terms = preg_split("/\r?\n/", $defined_terms);
 	foreach ($list_of_terms as $single_term) {
 		$all_defined_terms[$single_term] = true;
-		db_insert_crada_definition_element_crosslink($clause_id, $single_term);
-		drupal_set_message("Defined Term for Clause($clause_id): $single_term");
+		if(strlen(ltrim($single_term)) > 0) {
+			db_insert_crada_definition_element_crosslink($clause_id, $single_term);
+			drupal_set_message("Defined Term for Clause($clause_id): $single_term");
+		}
 	}
 }
 // Pure Database Functions

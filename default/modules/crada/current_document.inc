@@ -2,18 +2,25 @@
 
 require_once 'crada_utilities.inc';
 
+
 if(function_exists('openssl_encrypt')) {
   crada_log("BTW, PHP opensslq_encrypt function exists.  Yes... (current_document.inc)");
 }
 
 function crada_current_document() {
+
+	crada_include();
 	$module_path = drupal_get_path('module', 'crada');
 	drupal_add_library('system','ui.dialog');
 	drupal_add_css($module_path . '/crada.css');
 	drupal_add_js($module_path . '/crada_helper_functions.js', array('cache' => false, 'preprocess' => false));
 	drupal_add_js($module_path . '/current_document.js', array('cache' => true, 'preprocess' => false));
+	drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
+	drupal_add_js('sites/all/modules/ckeditor/ckeditor.js', array('cache' => false, 'preprocess' => false));
 		//drupal_add_js('sites/default/libraries/gibberish-aes/gibberish.aes.min.js', array('cache' => true, 'preprocess' => false));
+
 	global $user;
+
 	if (!isset($user->uid)) {
 		//user is not logged in
 		crada_log("User is not logged in");
@@ -23,17 +30,9 @@ function crada_current_document() {
 		crada_log("user->uid = ". $user->uid);
 		crada_log("user->name = ". $user->name);
 	}
-	if (in_array('editor', $user->roles)) {
-		crada_log('User is an administrator');
-	}
 
 	crada_cookie_save('user', $user_info);
-
 	//dpm($module_path, "Module Path");
-	//crada_log("Now this is cool.");
-	drupal_add_css('sites/all/libraries/fontawesome/css/font-awesome.css');
-	drupal_add_js('sites/all/modules/ckeditor/ckeditor.js', array('cache' => false, 'preprocess' => false));
-
 	$data = "";
 	$data .= "<div id='current_document_container'>";
 	$data .= add_command_bar();

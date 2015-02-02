@@ -413,7 +413,7 @@ function setup_document_callback(data) {
 	//Adding Definition sections
 	for (i=0;i<used_terms.length; i++) {
 
-		if (used_terms[i] == "") continue;
+		//if (used_terms[i] == "") continue;
 		var definition = definitions[used_terms[i]];
 		new_clauses[i] = new Object();
 		new_clauses[i].text = "<B>" + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
@@ -428,6 +428,7 @@ function setup_document_callback(data) {
 //	console.dir(new_clauses);
 //	console.log("ANSWERS");
 //	console.dir(answers);
+		console.log("New Clauses");
 
 	for (var i=0; i<data.clauses.length; i++) {
 
@@ -437,11 +438,9 @@ function setup_document_callback(data) {
 		new_clauses[used_terms.length+i].confidential_annotation = data.clauses[i].confidential_annotation;
 		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
 		new_clauses[used_terms.length+i].survivable = data.clauses[i].survivable;
-		/*
-		console.log("new clauses populate where i = "+i);
-		console.log("question  = "+i);
-		console.log("answer = "+answers[i]);
-		*/
+
+		console.log(new_clauses[used_terms.length+i].section);
+
 /*************************************************
 * DON'T STOP LOOKING AT THE NEXT 2 LINES
 **********************************************/
@@ -465,7 +464,9 @@ function setup_document_callback(data) {
 	//console.log("About to send demographic");
 	//console.dir(demographics);
 	//console.log(JSON.stringify(demographics));
-//	alert("About to send demographics");
+	console.log(new_clauses)
+	//alert("About to create document, view new_clauses in console.  Make sure section is not blank.");
+
 
 	ajax_caller('create_new_document', {'demographic_answers':JSON.stringify(demographics), 'data':new_clauses_encoded, 'alternate_text':alternate_text, 'title':title, 'master_document_id':master_document_id},
 		create_new_document_callback, 'POST');
@@ -520,9 +521,12 @@ function get_used_terms(clauses) {
 			used_terms[terms[j]] = true;
 		}
 	}
-
 	var terms = Object.keys(used_terms);
 	terms.sort();
+	console.info("GET RID OF THE BLANKS");
+	console.info("get_used_terms");
+	console.dir(terms);
+	alert("LOOK at used terms in console.");
 
 	return terms;
 }
