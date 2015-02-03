@@ -21,6 +21,7 @@ function master_document_form($form, &$form_state) {
 			'#title' => 'Document Short Name',
 			'#required' => TRUE,
 			'#description' => 'Please enter the reference-name for this document',
+ 			'#attributes' => array('maxlength' => 100),
 			'#size' => 20,
 
 	);
