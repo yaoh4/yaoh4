@@ -9,6 +9,7 @@
 // Make sure user is logged into Drupal
 // If not exit.
 //
+
 	if (!isset($user->uid)) {
 		//user is not logged in Exit()
 		crada_log("User is not logged in (crada_server)");
@@ -18,10 +19,10 @@
 		echo json_encode($output, JSON_PRETTY_PRINT);
 		exit();
 	} else {
-		crada_log("User is logged in (crada_server)");
+//		crada_log("User is logged in (crada_server)");
 		$user_info = array("id"=> $user->uid,"name"=> $user->name);
-		crada_log("user->uid = ". $user->uid);
-		crada_log("user->name = ". $user->name);
+//		crada_log("user->uid = ". $user->uid);
+//		crada_log("user->name = ". $user->name);
 	}
 
 function crada_server() {

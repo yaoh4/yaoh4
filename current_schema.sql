@@ -725,8 +725,7 @@ CREATE TABLE `crada_demographics` (
   `document_id` int(12) NOT NULL,
   `variable` varchar(50) NOT NULL,
   `question` text NOT NULL,
-  `type` varchar(10) NOT NULL,
-  PRIMARY KEY (`document_id`,`variable`)
+  `type` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
