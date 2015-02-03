@@ -684,7 +684,7 @@ function set_new_answer() {
 	crada_log(print_r($row, true));
 	crada_log($row->document_element_text);
 
-	$new_document_element_text = add_demographics($document_id, $row->document_element_text);
+	$new_document_element_text = $row->document_element_text;
 
 	if($new_document_element_text == NULL) {
 		crada_log("GET DEFAULT TEXT");
@@ -699,11 +699,14 @@ function set_new_answer() {
 		$new_document_element_text = $row->document_element_text;
 	}
 
-	crada_log("JUST GOT DONE WITH GET CLAUSE WHICH I DO NOT UNDERSTAND.");
+	crada_log("JUST GOT DONE WITH GET CLAUSE.");
 
 	//ADD Demographics
+	crada_log('ORIGINAL TEXT');
 	crada_log($new_document_element_text);
 	$new_document_element_text = add_demographics($document_id, $new_document_element_text);
+	crada_log('MODIFIIED TEXT');
+	crada_log($new_document_element_text);
 
 	crada_log("Here is the new text before question change.");
 	//replace in crada_document_element
