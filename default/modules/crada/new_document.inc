@@ -70,10 +70,11 @@ function add_choose_template_div() {
 	return "
 
 <div id='choose_template' style='display:none'>
+<form>
 <TABLE id='basic_document_info'>
 <TR><TD>
 <label for='document_title'>Document Title:</label>
-</TD><TD><INPUT id='document_title' size='40' type='text' /></TD></TR>
+</TD><TD><INPUT id='document_title' size='40' type='text' required placeholder='Document Title' /></TD></TR>
 <TR><TD>
 
 <label for='template_chooser'>
@@ -81,8 +82,9 @@ Choose Base Template:
 </label>
 
 </TD><TD><SELECT id='template_chooser'> </SELECT></TD></TR>
-<TR><TD></TD><TD><BUTTON id='template_chooser_button'>Advance to Next Section</BUTTON></TD></TR>
+<TR><TD></TD><TD><BUTTON type='submit' id='template_chooser_button'>Advance to Next Section</BUTTON></TD></TR>
 </TABLE>
+</form>
 </div>
 ";
 /*

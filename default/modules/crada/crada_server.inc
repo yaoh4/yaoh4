@@ -1507,7 +1507,7 @@ function create_new_document () {
 			//crada_log("section: {$data[$i]['section']}");
 			//crada_log("text: {$data[$i]['text']}");
 			$clause = $data[$i];
-
+/*
 			crada_log(print_r($clause, true));
 			crada_log("source_question : ".$clause['source_question']);
 			crada_log("source_answer: ".$clause['source_answer']);
@@ -1519,18 +1519,19 @@ function create_new_document () {
 			crada_log("subsection:	".$clause['subsection']);
 
 			crada_log("alternate_text: {$alternate_text}");
+*/
 			if($data[$i]['section'] == NULL) {
 				crada_log("Got a blank seciton");
 			}
 
 			$subsection = $data[$i]['subsection'];
-			crada_log("subsection: $subsection");
+//			crada_log("subsection: $subsection");
 			$subsection = ($subsection == NULL) ? "" : $subsection;
-			crada_log(print_r($clause,true));
+//			crada_log(print_r($clause,true));
 			/*******************************
 			// CAUSING ALL THE PROBLEMS HERE
 			********************************/
-			crada_log("DB_INSERT_DOCUMENT_ELEMENT");
+//			crada_log("DB_INSERT_DOCUMENT_ELEMENT");
 			db_insert_document_element($document_id, $i,
 					$data[$i]['section'],
 					$subsection,
@@ -1547,6 +1548,7 @@ function create_new_document () {
 		$output["document_id"] = $document_id;
 
 		return $output;
+
 	} catch (Exception $e) {
 		crada_log("Rolling Back db_transaction - something went wrong.");
 		crada_log($e->getMessage(), 1);
@@ -1557,6 +1559,7 @@ function create_new_document () {
 		crada_log_sql_error($e);
 		$output["status"] = "Error";
 		$output["error"] = $e->getMessage();
+
  	 	return $output;
 	}
 }
@@ -1683,6 +1686,12 @@ function get_full_document() {
   	crada_log("SETTING TO LATEST VERSION $version");
   }
   //
+  // Append version to filename if not current
+  //
+  if($version != $output['document']['current_version']) {
+  	$output['document']['filename'] .= " (version ". $version.")";
+  	$output['document']['footer_title'] .= " (version ". $version.")";
+  }
   //Check if user has access to this document.
   //
   $output['access'] = db_get_document_access($document_id, $user->uid);
@@ -1783,6 +1792,8 @@ function db_get_document_info($document_id) {
 
 	$output['title'] = $record->title;
   $output['uid'] = $record->uid;
+	$output['filename'] = preg_replace('/[^A-Za-z0-9\. -]/', '', $record->title);
+	$output['footer_title'] = $record->title;
   //
   // Get current version for this document
   //
@@ -1791,7 +1802,21 @@ function db_get_document_info($document_id) {
 
 	$row = $result->fetchObject();
 	$output['current_version'] = $row->current_version;
-	crada_log("LATEST VERSION LOOKED UP");
+//
+// Get template document_name
+//
+	$query = "SELECT cdm.document_name as base_template 	";
+	$query .= "FROM crada_document cd, crada_document cdm  ";
+	$query .= "where cd.master_document_id = cdm.document_id ";
+	$query .= "and cd.document_id = $document_id";
+
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	$output['base_template'] = $row->base_template;
+//
+
+
+
 	crada_log(json_encode($output));
 
   return $output;

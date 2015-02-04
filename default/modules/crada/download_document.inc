@@ -9,195 +9,14 @@ require_once 'sites/default/libraries/tcpdf/tcpdf.php';
 
 function download_document() {
 
-	crada_log("Awesome sauce.  PDF or Word, You choose...");
-
+	$doc = get_full_document();
 	if($_REQUEST['document_type'] == "PDF") {
-		create_pdf_file(get_full_document());
+		crada_log('Creating PDF file');
+		create_pdf_file($doc);
 	} else {
-		create_rtf_file(get_full_document());
+		crada_log('Creating RTF file');
+		create_rtf_file($doc);
 	}
-}
-
-// Extend the TCPDF class to create custom Header and Footer
-class CradaPdf extends TCPDF {
-
-	function __construct() {
-		parent::__construct();
-		crada_log("In CradaRtf SubClass constructor");
-		$this->SetFont('times', '', 12);
-
-		$this->SetMargins(25.4, 25.4, 25.4); //PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT
-		$this->SetHeaderMargin(25.4); //PDF_MARGIN_HEADER
-		$this->SetFooterMargin(25.4); //PDF_MARGIN_FOOTER
-
-		// set auto page breaks
-		$this->SetAutoPageBreak(TRUE, 25.4);
-		$this->AddPage();  //Create document
-	}
-
-
-    //Page header
-    public function Header() {
-
-    }
-
-    // Page footer
-    public function Footer() {
-        $this->SetFont('times', '', 10);
-        // Position at 20 mm from bottom
-        $this->SetY(-18);
-        $content = 'NIH ICT-CRADA'.str_repeat(" ", 37);
-        $content .= 'Ref. No.  ADA2014'.str_repeat(" ", 30);
-        $content .= 'MODEL ADOPTED June 18, 2009';
-        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
-        // 2nd line
-        $this->SetY(-15);
-        $content = 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages().str_repeat(" ", 55);
-        $content .= 'Confidential'.str_repeat(" ", 50);
-        $content .= 'Revised August 14, 2013';
-        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
-    }
-    function setDocumentInfo() {
-    	$this->SetCreator('CRADA Builder');
-			$this->SetAuthor($_REQUEST['user']);
-			$this->SetTitle('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-NIH CLINICAL RESEARCH');
-			$this->SetSubject('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT');
-			$this->SetKeywords('CRADA, contract, agreement');
-    }
-
-    function setCoversheet() {
-$html = <<<EOD
-<div style="text-align:center;">PUBLIC HEALTH SERVICE</div>
-<br>
-<div style="text-align:center;">COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-NIH CLINICAL RESEARCH</div>
-<br>
-<br>
-<div>This Agreement is based on the model Cooperative Research and Development Agreement ("CRADA”) adopted by the U.S. Public Health Service (“PHS”) Technology Transfer Policy Board for use by components of the National Institutes of Health (“NIH”), the Centers for Disease Control and Prevention (“CDC”), and the Food and Drug Administration (“FDA”), which are agencies of the PHS within the Department of Health and Human Services (“HHS”).</div>
-<br>
-
-<div>This Cover Page identifies the Parties to this CRADA:</div>
-<br>
-<span align="center">The U.S. Department of Health and Human Services, as represented by</span>
-<br>
-<span style="text-align:center;"><b>Nation Institute of Health</b></span>
-<br>
-<span style="text-align:center;">an Institute, Center, or Division (hereinafter referred to as the “IC”) of the</span><br>
-<span style="text-align:center;text-align:center"><b>NIH</b></span>
-<br><br>
-<span style="text-align:center;">and</span>
-<br><br>
-<span style="text-align:center;font-weight:bold;">Leidos, Sprint, and Genesis Genetics</span>,
-<br>
-<span style="text-align:center;">hereinafter referred to as the “Collaborators”,</span><br>
-<span style="text-align:center;">having offices at <b>210 Market St, Frederick, MD 20840; 1000 Elm Ave, Sterling, VA 30320; and 10234 SW Manhattan Ave, New York, NY 76540</b>,</span><br>
-<span style="text-align:center;">created and operating under the laws of <b>Maryland, Virginia, and New York</span></b>
-EOD;
-			$this->_writeHTML( $html);
-			$this->AddPage();
-
-    }
-
-    function setBody($doc) {
-$html = <<<EOD
-<b>Article 1.  INTRODUCTION</b><br>
-<br>
-This CRADA between IC and Collaborator will be effective when signed by the Parties, which are identified on both the Cover Page and the Signature Page.  The official contacts for the Parties are identified on the Contacts Information Page.  Publicly available information regarding this CRADA appears on the Summary Page.  The research and development activities that will be undertaken by IC and Collaborator in the course of this CRADA are detailed in the Research Plan, attached as Appendix A.  The staffing, funding, and materials contributions of the Parties are set forth in Appendix B.  Any changes to the model CRADA are set forth in Appendix C<br>
-<br>
-<b>Article 2.  DEFINITIONS</b><br>
-<br>
-The terms listed in this Article will carry the meanings indicated throughout the CRADA.  To the extent a definition of a term as provided in this Article is inconsistent with a corresponding definition in the applicable sections of either the United States Code (U.S.C.) or the Code of Federal Regulations (C.F.R.), the definition in the U.S.C. or C.F.R. will control.<br>
-<br>
-EOD;
-		$this->_writeHTML($html);
-		/* Print Definitions */
-		for($i=0;$i<count($doc['clauses']);$i++) {
-			if($doc['clauses'][$i]['section'] == "Definitions") {
-				$this->_writeHTML($doc['clauses'][$i]['text']."<br>");
-			}
-		}
-		/* Print Clauses */
-		$section_number = 2;
-		$current_section = "Definitions";
-		for($i=0;$i<count($doc['clauses']);$i++) {
-
-			if($doc['clauses'][$i]['section'] != "Definitions") {
-				if($doc['clauses'][$i]['section'] != $current_section) {
-					//Add Section
-					$section_number++;
-					$current_section = $doc['clauses'][$i]['section'];
-					$this->_writeHTML("<b>Article ".$section_number.".  ".strtoupper($current_section)."</b><br>");
-					$current_subsection = 1;
-				}
-
-				//Add annotation if exists
-				$public_annotation = $doc['clauses'][$i]['public_annotation'];
-				if(strlen($public_annotation) > 0) {
-					$x = $this->x;
-					$y = $this->y;
-					$this->Annotation(190, $y, 5, 5, $public_annotation,
-							array('Subtype'=>'Text',
-								'Name' => 'Comment',
-								'T' =>  "Public Comment[".$section_number."-".$current_subsection."]",
-								'Subj' => 'example',
-								'C' => array(255, 255, 0)));
-					//$this->_writeHTML("<b>***</b>".$public_annotation);
-				}
-
-				$this->_writeHTML($section_number.".".$current_subsection."   ".$doc['clauses'][$i]['text']."<br>");
-				$current_subsection++;
-			}
-		}
-
-		$this->_writeHTML('<br><br><br><span style="text-align:center;">SIGNATURES BEGIN ON THE NEXT PAGE</span>');
-		$this->AddPage();
-
-		$this->_setSignature();
-
-	}
-
-	private function _writeHTML($html) {
-		$this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
-	}
-
-	private function _setSignature() {
-		$content ='
-<br>
-<span style="text-align:center;">SIGNATURE PAGE</span><br>
-<br>
-<br>
-<span style="text-align:center;"><b>ACCEPTED AND AGREED</b></span><br>
-<br>
-BY EXECUTING THIS AGREEMENT, EACH PARTY REPRESENTS THAT ALL STATEMENTS MADE HEREIN ARE TRUE, COMPLETE, AND ACCURATE TO THE BEST OF ITS KNOWLEDGE. COLLABORATOR ACKNOWLEDGES THAT IT MAY BE SUBJECT TO CRIMINAL, CIVIL, OR ADMINISTRATIVE PENALTIES FOR KNOWINGLY MAKING A FALSE, FICTITIOUS, OR FRAUDULENT STATEMENT OR CLAIM.<br>
-<br>
-<br>
-FOR IC:<br>
-<br>
-<br>
-<br>
-____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
-Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
-<br>
-Typed Name:<br>
-Title:<br>
-<br>
-<br>
-<br>
-<br>
-FOR COLLABORATOR:<br>
-<br>
-<br>
-<br>
-____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
-Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
-<br>
-<br>
-Typed Name:<br>
-Title:<br>
-';
-		$this->_writeHTML($content);
-
-	}
-
 
 }
 
@@ -226,19 +45,17 @@ function create_pdf_file($doc) {
 	 * @author Nicola Asuni
 	 * @since 2008-03-04
 	 */
-
-
-	//$doc = get_full_document();
+	$filename = $doc['document']['filename'].'.pdf';
 
 	// create new PDF document
 	$pdf = new CradaPdf(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 	// set document information
-	$pdf->setDocumentInfo();
-	$pdf->setCoversheet();
+	$pdf->setDocumentInfo($doc);
+	$pdf->setCoversheet($doc);
 	$pdf->setBody($doc);
 	// Close and output PDF document
 	// This method has several options, check the source code documentation for more information.
-	$pdf->Output('example_001.pdf', 'I');
+	$pdf->Output($filename, 'I');
 
 
 }
@@ -272,6 +89,194 @@ function create_rtf_file($doc) {
 	$rtf->setBody($doc, $document_title);
 	$rtf->setFooter($template_name, $ref_number, $adopted_date, $revised_date);
 	$rtf->send($filename);
+
+}
+
+
+// Extend the TCPDF class to create custom Header and Footer
+class CradaPdf extends TCPDF {
+
+	private $footer_title = "Footer Title";
+
+	function __construct() {
+		parent::__construct();
+		crada_log("In CradaPdf Class constructor");
+		$this->SetFont('times', '', 12);
+
+		$this->SetMargins(25.4, 25.4, 25.4); //PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT
+		$this->SetHeaderMargin(25.4); //PDF_MARGIN_HEADER
+		$this->SetFooterMargin(25.4); //PDF_MARGIN_FOOTER
+
+		// set auto page breaks
+		$this->SetAutoPageBreak(TRUE, 25.4);
+		$this->AddPage();  //Create document
+	}
+
+		public function Header () {
+
+		}
+    // Page footer
+    public function Footer() {
+        $this->SetFont('times', '', 10);
+        // Position at 20 mm from bottom
+        $this->SetY(-18);
+        //$content = $doc['document']['title'];
+        $content = $this->footer_title;
+        //$content .= 'Ref. No.  ADA2014'.str_repeat(" ", 30);
+        //$content .= 'MODEL ADOPTED June 18, 2009';
+        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
+        // 2nd line
+        $this->SetY(-15);
+        $content = 'Page '.$this->getAliasNumPage().' of '.$this->getAliasNbPages();
+        //$content .= 'Confidential'.str_repeat(" ", 50);
+        //$content .= 'Revised August 14, 2013';
+        $this->Cell(0, 10, $content, 0, false, 'L', 0, '', 0, false, 'T', 'M');
+    }
+
+    function setDocumentInfo($doc) {
+			global $user;
+
+			$this->footer_title = $doc['document']['footer_title'];
+
+			$this->SetCreator('Agreement Builder');
+			$this->SetAuthor($user->name);
+			$this->SetTitle($doc['document']['title']);
+			$this->SetSubject('COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT');
+			$this->SetKeywords('Aggreement Builder, CRADA, contract, agreement');
+    }
+
+    function setCoversheet($doc) {
+		$this->Bookmark("Coversheet", 0, 0, '', '', array(0,0,0));
+
+$html = <<<EOD
+<div style="text-align:center;">PUBLIC HEALTH SERVICE</div>
+<br>
+EOD;
+$html .='<div style="text-align:center;">';
+$html .= strtoupper($doc['document']['title']);
+$html .= "</div>";
+$html .= <<<EOD
+
+<br>
+<br>
+<div>This Agreement is based on the model Cooperative Research and Development Agreement ("CRADA”) adopted by the U.S. Public Health Service (“PHS”) Technology Transfer Policy Board for use by components of the National Institutes of Health (“NIH”), the Centers for Disease Control and Prevention (“CDC”), and the Food and Drug Administration (“FDA”), which are agencies of the PHS within the Department of Health and Human Services (“HHS”).</div>
+<br>
+EOD;
+			$this->_writeHTML($html);
+			$this->AddPage();
+
+    }
+
+    function setBody($doc) {
+
+		//$this->_writeHTML($html);
+
+		/* Print Definitions */
+		/*
+		for($i=0;$i<count($doc['clauses']);$i++) {
+			if($doc['clauses'][$i]['section'] == "Definitions") {
+				$this->_writeHTML($doc['clauses'][$i]['text']."<br>");
+			}
+		}
+		*/
+		/* Print Clauses */
+		$section_number = 0;
+		$current_section = "";
+		for($i=0;$i<count($doc['clauses']);$i++) {
+
+			//if($doc['clauses'][$i]['section']) {
+				if($doc['clauses'][$i]['section'] != $current_section) {
+					//Add Section
+					$section_number++;
+					$current_section = $doc['clauses'][$i]['section'];
+
+					$this->_writeHTML("<b>$section_number.  $current_section</b><br>");
+					$y = $this->y;
+					crada_log("$section_number  -  $current_section");
+					crada_log("y is $y");
+
+					$this->Bookmark("$section_number.  $current_section", 0, $y-15, '', '', array(0,0,0));
+					$current_subsection = 1;
+				}
+
+				//Add annotation if exists
+				$public_annotation = $doc['clauses'][$i]['public_annotation'];
+				if(strlen($public_annotation) > 0) {
+					$x = $this->x;
+					$y = $this->y;
+					$this->Annotation(190, $y, 5, 5, $public_annotation,
+							array('Subtype'=>'Text',
+								'Name' => 'Comment',
+								'T' =>  "Public Comment[".$section_number."-".$current_subsection."]",
+								'Subj' => 'example',
+								'C' => array(255, 255, 0)));
+					//$this->_writeHTML("<b>***</b>".$public_annotation);
+				}
+
+				$clause = nl2br($doc['clauses'][$i]['text']);
+				if($doc['clauses'][$i]['section'] != "Definitions") {
+						$clause = $section_number.".".$current_subsection."   ".$clause;
+				} else {
+					crada_log($clause);
+				}
+				$this->_writeHTML($clause."<br>");
+
+				$current_subsection++;
+
+		}
+
+		$this->_writeHTML('<br><br><br><span style="text-align:center;">SIGNATURES BEGIN ON THE NEXT PAGE</span>');
+		$this->AddPage();
+
+		$this->_setSignature();
+
+	}
+
+	private function _writeHTML($html) {
+		$this->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+	}
+
+	private function _setSignature() {
+		$this->Bookmark("Signature Page", 0, 0, '', '', array(0,0,0));
+
+		$content ='
+<br>
+<span style="text-align:center;">SIGNATURE PAGE</span><br>
+<br>
+<br>
+<span style="text-align:center;"><b>ACCEPTED AND AGREED</b></span><br>
+<br>
+BY EXECUTING THIS AGREEMENT, EACH PARTY REPRESENTS THAT ALL STATEMENTS MADE HEREIN ARE TRUE, COMPLETE, AND ACCURATE TO THE BEST OF ITS KNOWLEDGE. COLLABORATOR ACKNOWLEDGES THAT IT MAY BE SUBJECT TO CRIMINAL, CIVIL, OR ADMINISTRATIVE PENALTIES FOR KNOWINGLY MAKING A FALSE, FICTITIOUS, OR FRAUDULENT STATEMENT OR CLAIM.<br>
+<br>
+<br>
+<b>[FOR IC:]</b><br>
+<br>
+<br>
+<br>
+____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
+Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
+<br>
+Typed Name:<br>
+Title:<br>
+<br>
+<br>
+<br>
+<br>
+<b>[FOR COLLABORATOR:]</b><br>
+<br>
+<br>
+<br>
+____________________________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________<br>
+Signature&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date<br>
+<br>
+<br>
+Typed Name:<br>
+Title:<br>
+';
+		$this->_writeHTML($content);
+
+	}
+
 
 }
 

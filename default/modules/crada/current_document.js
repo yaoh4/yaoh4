@@ -130,10 +130,18 @@ function changeDocumentOwner(event) {
 function downloadDocument(document_type) {
 //	console.dir(e);
 //	e.preventDefault();  //stop the browser from following
-    location.href = "download_document?document_id=" + getCookie('Drupal.visitor.document.id')
+
+    var link = "download_document?document_id=" + getCookie('Drupal.visitor.document.id')
     	+"&version="+getCookie('Drupal.visitor.document.version')
     	+"&user="+getCookie('Drupal.visitor.user.name')
     	+"&document_type="+document_type;
+
+    if(document_type == "PDF") {
+			window.open(link);
+    } else {
+			location.href = link;
+    }
+
 }
 
 function updateClauseParagraph() {
