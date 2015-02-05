@@ -953,8 +953,14 @@ function set_toolbar_buttons(editable) {
 function get_document_elements_callback(data) {
 
 	setCookie("Drupal.visitor.document.version", data.version, 365);
-
+	console.log('data');
+	console.dir(data);
 	set_toolbar_buttons(data.editable);
+	//Hide set Permisson
+	if(parseInt(data.document.set_permission) == 0) {
+		$('#change_permission_button').hide();
+	}
+
   if(data.access == 'none') {
     // No document access.
     $("#current_document_content")

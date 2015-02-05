@@ -145,23 +145,10 @@ EOD;
     }
 
     function setBody($doc) {
-
-		//$this->_writeHTML($html);
-
-		/* Print Definitions */
-		/*
-		for($i=0;$i<count($doc['clauses']);$i++) {
-			if($doc['clauses'][$i]['section'] == "Definitions") {
-				$this->_writeHTML($doc['clauses'][$i]['text']."<br>");
-			}
-		}
-		*/
 		/* Print Clauses */
 		$section_number = 0;
 		$current_section = "";
 		for($i=0;$i<count($doc['clauses']);$i++) {
-
-			//if($doc['clauses'][$i]['section']) {
 				if($doc['clauses'][$i]['section'] != $current_section) {
 					//Add Section
 					$section_number++;
@@ -169,8 +156,6 @@ EOD;
 
 					$this->_writeHTML("<b>$section_number.  $current_section</b><br>");
 					$y = $this->y;
-					crada_log("$section_number  -  $current_section");
-					crada_log("y is $y");
 
 					$this->Bookmark("$section_number.  $current_section", 0, $y-15, '', '', array(0,0,0));
 					$current_subsection = 1;
