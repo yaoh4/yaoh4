@@ -200,7 +200,9 @@ EOD;
 
 		}
 
-		$this->_writeHTML('<br><br>'.getSurvivabilityStatement($doc));
+		if(($survivability_statement = getSurvivabilityStatement($doc)) != "") {
+			$this->_writeHTML('<br><br>'.$survivability_statement);
+		}
 
 		$this->_writeHTML('<br><br><br><span style="text-align:center;">SIGNATURES BEGIN ON THE NEXT PAGE</span>');
 		$this->AddPage();
