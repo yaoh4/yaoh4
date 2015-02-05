@@ -296,7 +296,7 @@ function load_line($section, $line) {
 		$answer_number_for_question++;
 	}
 	// We need to deal with the followon question later (line['D'])
-	$default_text = $line["E"]; //This can be hard coded to letter E
+	$default_text = nl2br($line["E"]); //This can be hard coded to letter E
 
 
 	$alternate_text_array = array();
@@ -341,8 +341,8 @@ function load_line($section, $line) {
 		//
 		foreach ($alternate_text_array as $a) {
 			if($a['text'] && $a['text'] != "") {
-				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . $a['text'] ."]");
-				db_insert_crada_document_element($clause_id, $section, $subsection, $a['name'], $a['text'], $default_confidential_annotation, $default_public_annotation, $default_survivability);
+				drupal_set_message("******* Alternate Text[" . $clause_id . "," . $a['name'] . "]:[" . nl2br($a['text']) ."]");
+				db_insert_crada_document_element($clause_id, $section, $subsection, $a['name'], nl2br($a['text']), $default_confidential_annotation, $default_public_annotation, $default_survivability);
 			}
 		}
 		db_insert_crada_clause_group_to_clause ($clause_group_id, $clause_id);
@@ -360,7 +360,7 @@ function load_all_defined_terms($clause_id, $defined_terms) {
 	foreach ($list_of_terms as $single_term) {
 		$all_defined_terms[$single_term] = true;
 		if(strlen(ltrim($single_term)) > 0) {
-			db_insert_crada_definition_element_crosslink($clause_id, $single_term);
+			db_insert_crada_definition_element_crosslink($clause_id, nl2br($single_term));
 			drupal_set_message("Defined Term for Clause($clause_id): $single_term");
 		}
 	}

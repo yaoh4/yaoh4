@@ -70,7 +70,7 @@ function add_choose_template_div() {
 	return "
 
 <div id='choose_template' style='display:none'>
-<form>
+<form id='choose_template_form'>
 <TABLE id='basic_document_info'>
 <TR><TD>
 <label for='document_title'>Document Title:</label>
@@ -96,8 +96,8 @@ Choose Base Template:
 function add_demographics_div() {
 	return "
 <div id='demographics' style='display:none'>
-	<form id='demographic-form'></form>
-	<BUTTON id='demographics_button'>Advance to Next Section</BUTTON>
+	<form id='demographic-form'>
+	</form>
 </div>
 ";
 

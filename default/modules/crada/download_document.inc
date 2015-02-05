@@ -10,6 +10,7 @@ require_once 'sites/default/libraries/tcpdf/tcpdf.php';
 function download_document() {
 
 	$doc = get_full_document();
+
 	if($_REQUEST['document_type'] == "PDF") {
 		crada_log('Creating PDF file');
 		create_pdf_file($doc);
@@ -189,7 +190,7 @@ EOD;
 					//$this->_writeHTML("<b>***</b>".$public_annotation);
 				}
 
-				$clause = nl2br($doc['clauses'][$i]['text']);
+				$clause = $doc['clauses'][$i]['text'];
 				if($doc['clauses'][$i]['section'] != "Definitions") {
 						$clause = $section_number.".".$current_subsection."   ".$clause;
 				}
@@ -198,6 +199,8 @@ EOD;
 				$current_subsection++;
 
 		}
+
+		$this->_writeHTML('<br><br>'.getSurvivabilityStatement($doc));
 
 		$this->_writeHTML('<br><br><br><span style="text-align:center;">SIGNATURES BEGIN ON THE NEXT PAGE</span>');
 		$this->AddPage();
@@ -658,4 +661,33 @@ $content = 'This Agreement is based on the model Cooperative Research and Develo
 		crada_log(serialize($e));
 		return $error;
 	}
+}
+
+function getSurvivabilityStatement($doc) {
+	$output = array();
+
+	$section_number = 0;
+	$current_section = "";
+	for($i=0;$i<count($doc['clauses']);$i++) {
+			if($doc['clauses'][$i]['section'] != $current_section) {
+				//Add Section
+				$section_number++;
+				$current_subsection = 1;
+			}
+			if($doc['clauses'][$i]['survivable']) {
+					$output[] = $section_number."-".$current_subsection;
+			}
+	}
+	$survivability_statement = "";
+
+	if(count($output) > 0) {
+		$label = (count($output) == 1) ? "Paragraph" : "Paragraphs";
+
+		$survivability_statement = "<strong>Survivability</strong>.  ";
+		$survivability_statement .= "The provisions of ".$label." ";
+		//$survivability_statement += explodeLegalArray(survivable_clauses, "clause");
+		$survivability_statement .= " will survive the expiration or early termination of this CRADA.";
+	}
+
+	return $survivability_statement;
 }
