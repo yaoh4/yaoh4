@@ -500,3 +500,9 @@ input.form-control {
   margin-left:15px;
   margin-right: 10px;
 }
+
+
+.error-message {
+    color: #b94a48;
+    margin-top: 0.2em;
+}

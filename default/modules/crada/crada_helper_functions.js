@@ -122,6 +122,104 @@ function explodeLegalArray(entities, bookmark) {
 
 }
 
+function replaceValidationUI2( form ) {
+    // Suppress the default bubbles
+    console.log("adding evenet listener for invalid");
+    form.addEventListener( "invalid", function( event ) {
+        event.preventDefault();
+    }, true );
+
+    // Support Safari, iOS Safari, and the Android browser—each of which do not prevent
+    // form submissions by default
+    console.log("adding Event Listener for submit");
+    form.addEventListener( "submit", function( event ) {
+        if ( !this.checkValidity() ) {
+            event.preventDefault();
+        }
+    });
+
+    // Add a container to hold error messages
+    form.insertAdjacentHTML( "afterbegin", "<ul class='error-messages'></ul>" );
+
+    var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
+    submitButton.addEventListener( "click", function( event ) {
+        var invalidFields = form.querySelectorAll( ":invalid" ),
+            listHtml = "",
+            errorMessages = form.querySelector( ".error-messages" ),
+            label;
+
+        for ( var i = 0; i < invalidFields.length; i++ ) {
+            label = form.querySelector( "label[for=" + invalidFields[ i ].id + "]" );
+            listHtml += "<li>" +
+                label.innerHTML +
+                " " +
+                invalidFields[ i ].validationMessage +
+                "</li>";
+        }
+
+        // Update the list with the new error messages
+        errorMessages.innerHTML = listHtml;
+
+        // If there are errors, give focus to the first invalid field and show
+        // the error messages container
+        if ( invalidFields.length > 0 ) {
+            invalidFields[ 0 ].focus();
+            errorMessages.style.display = "block";
+        }
+    });
+}
+function initFormValidator(parent) {
+    // Replace the validation UI for all forms
+    console.log("initFormValidator");
+    //jQuery('#'+parent).hide();
+    //alert('Should be hidden');
+    var forms = document.getElementById(parent).querySelectorAll( "form" );
+    console.dir(forms);
+    for ( var i = 0; i < forms.length; i++ ) {
+        console.dir(forms[i]);
+        replaceValidationUI( forms[ i ] );
+    }
+}
+
+function replaceValidationUI( form ) {
+    // Suppress the default bubbles
+    form.addEventListener( "invalid", function( event ) {
+        event.preventDefault();
+    }, true );
+
+    // Support Safari, iOS Safari, and the Android browser—each of which do not prevent
+    // form submissions by default
+    form.addEventListener( "submit", function( event ) {
+        if ( !this.checkValidity() ) {
+            event.preventDefault();
+        }
+    });
+
+    var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
+    submitButton.addEventListener( "click", function( event ) {
+        var invalidFields = form.querySelectorAll( ":invalid" ),
+            errorMessages = form.querySelectorAll( ".error-message" ),
+            parent;
+
+        // Remove any existing messages
+        for ( var i = 0; i < errorMessages.length; i++ ) {
+            errorMessages[ i ].parentNode.removeChild( errorMessages[ i ] );
+        }
+
+        for ( var i = 0; i < invalidFields.length; i++ ) {
+            parent = invalidFields[ i ].parentNode;
+            parent.insertAdjacentHTML( "beforeend", "<div class='error-message'>" +
+                invalidFields[ i ].validationMessage +
+                "</div>" );
+        }
+
+        // If there are errors, give focus to the first invalid field
+        if ( invalidFields.length > 0 ) {
+            invalidFields[ 0 ].focus();
+        }
+    });
+}
+
 function generic_callback(data) {
 //  generic_callback for ajax_caller();
     console.info("generic_callback");

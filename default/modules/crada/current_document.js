@@ -60,8 +60,6 @@ $(document).ready(function () {
 		setCookie("Drupal.visitor.document.id", querystring["document_id"], 365);
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
-//		setCookie("Drupal.visitor.document.id", "", 365);
-//		setCookie("Drupal.visitor.document.version", "", 365);
 	if(getCookie('Drupal.visitor.document.id') != "") {
 		change_annotation_selection();
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
@@ -210,8 +208,6 @@ function changedAnswer(e) {
 			{'document_id':getCookie("Drupal.visitor.document.id"),
 			'question_id':question_id, 'answer_id':answer_id},
 			load_current_document);
-
-	//ajax_caller('set_answer_retrieve_new_element', {'document_id':getCookie("Drupal.visitor.document.id"), 'question_id':question_id, 'answer_id':answer_id}, set_answer_retrieve_new_element_callback);
 }
 
 function load_current_document() {
@@ -1294,7 +1290,9 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 //	console.info('element_id '+element_id);
 	//var clause_text = clause.text;
 	//Search and replace \n with '<br>'
-	clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
+	// WEIRD. This causes too many returns...
+
+	//clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
 
 	$("#"+element_id)
 		.append($('<div>')

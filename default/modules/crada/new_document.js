@@ -16,6 +16,7 @@ $(document).ready(function ($) {
 		$("#instructions").hide ();
 		setup_template_chooser();
 	});
+	/*
 	$("#template_chooser_button").click(function() {
 		$("#spinner").show();
 		$("#choose_template").hide();
@@ -23,6 +24,7 @@ $(document).ready(function ($) {
 		advance_progress_bar("demographics");
 		setup_demographics();
 	});
+*/
 
 	$("#demographics_button").click(function() {
 		//Save demographic answers
@@ -84,10 +86,7 @@ function advance_progress_bar(step) {
 }
 
 function setup_demographics() {
-	ajax_caller('get_demographics', {'document_id': document_id}, get_demographics_callback);
-}
-function get_demographics_callback(data) {
-	display_demographic_questions(data);
+	ajax_caller('get_demographics', {'document_id': document_id}, display_demographic_questions);
 }
 
 function display_demographic_questions(data) {
@@ -354,7 +353,7 @@ function setup_template_chooser() {
 		.prepend($('<h2>').append("Base Template")
 	);
 
-	$("#document_title").focus();
+	//$("#document_title").focus();
 	advance_progress_bar("template");
 }
 
@@ -382,9 +381,8 @@ function setup_template_chooser_callback(data) {
 			$("#template_chooser").append($("<OPTION>").attr('value', data.templates[i].id).append(name));
 		}
 	}
-
-//	alert (JSON.stringify(data, null, 2));
 	stop_spinner('spinner', 'choose_template');
+	initFormValidator('choose_template');
 }
 
 function setup_document() {
@@ -392,7 +390,7 @@ function setup_document() {
 	var answers_encoded = JSON.stringify(answers);
 //	console.dir(answers);
 //	console.log(answers_encoded);
-	//alert(answers_encoded);
+//	alert(answers_encoded);
 
 	var alternate_text_type = $("#alternate_text_type").val();
 //	console.log("Alternate Text Type: " + alternate_text_type);
