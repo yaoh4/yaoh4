@@ -16,7 +16,7 @@ $(document).ready(function ($) {
 		$("#instructions").hide ();
 		setup_template_chooser();
 	});
-	/*
+/*
 	$("#template_chooser_button").click(function() {
 		$("#spinner").show();
 		$("#choose_template").hide();
@@ -25,7 +25,7 @@ $(document).ready(function ($) {
 		setup_demographics();
 	});
 */
-
+/*
 	$("#demographics_button").click(function() {
 		//Save demographic answers
 		demographics = $('#demographic-form').serializeObject();
@@ -36,6 +36,7 @@ $(document).ready(function ($) {
 		identify_subsections();
 		setup_sections();
 	});
+*/
 	$("#questions_button").click(function() {
 		store_current_answers(current_section_number);
 		if (current_section_number == sections.length-1) {
@@ -64,6 +65,31 @@ function add_spinner(id) {
 	$('#'+id).empty().append('<div></dir><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>Why is this not working....');
 }
 */
+
+function saveTemplate() {
+
+	//alert('valid');
+	console.log('Valid Input');
+	//console.dir(event);
+	$("#spinner").show();
+	$("#choose_template").hide();
+	document_id = parseInt($("#template_chooser").val());
+	advance_progress_bar("demographics");
+	setup_demographics();
+
+}
+
+function saveDemographics(){
+			//Save demographic answers
+		demographics = $('#demographic-form').serializeObject();
+		$("#spinner").show();
+		$("#demographics").hide();
+		get_all_definitions(document_id);
+		advance_progress_bar("questions");
+		identify_subsections();
+		setup_sections();
+
+}
 
 function advance_progress_bar(step) {
 	switch (step) {
@@ -172,8 +198,18 @@ function get_subsections_callback(data) {
 					);
 		}
 	}
+	stop_spinner('spinner', 'demographics');
 
-		stop_spinner('spinner', 'demographics');
+	//Add a submit button to this form.
+
+	$("#demographic-form")
+			.append($('<button>')
+				.attr('id', 'demographics_button')
+				.attr('type', 'submit')
+				.append('Advance to Next Section')
+			);
+	initFormValidator('demographics');
+
 }
 
 // Called when the demograhics advanced button is clicked
@@ -192,10 +228,16 @@ function identify_subsections() {
 
 function create_demographic_pulldown(demographic) {
 	var row;
+	//Check to see if question starts with a *
+	 var required = (demographic.question.substr(0, 1) =="*");
 	//Add the label
 	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
 	//Add the pulldown box
-	row += '<select id="'+demographic.variable+'" name="'+demographic.variable+'">';
+	if(required == true) {
+		row += '<select id="'+demographic.variable+'" name="'+demographic.variable+'" required>';
+	} else {
+		row += '<select id="'+demographic.variable+'" name="'+demographic.variable+'">';
+	}
 	row += '<option value="" selected></option>';
 	$.each(demographic.pulldown_options, function( i, pulldown_option) {
 		row += '<option value="'+pulldown_option+'">'+pulldown_option+'</option>';
@@ -524,7 +566,69 @@ function get_used_terms(clauses) {
 
 	return terms;
 }
-//// Helper functions
+
+function replaceValidationUI( form ) {
+    // Suppress the default bubbles
+    form.addEventListener( "invalid", function( event ) {
+        event.preventDefault();
+    }, true );
+
+    // Support Safari, iOS Safari, and the Android browser—each of which do not prevent
+    // form submissions by default
+    form.addEventListener( "submit", function( event ) {
+        event.preventDefault();
+        if (this.checkValidity()) {
+        		if(event.target.id == 'choose_template_form') {
+        			saveTemplate();
+        		}
+        		if(event.target.id == 'demographic-form') {
+        			saveDemographics();
+        		}
+        }
+    });
+
+    var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
+    submitButton.addEventListener( "click", function( event ) {
+    	console.info('Here is the event');
+    	console.dir(event);
+        var invalidFields = form.querySelectorAll( ":invalid" ),
+            errorMessages = form.querySelectorAll( ".error-message" ),
+            parent;
+
+        // Remove any existing messages
+        for ( var i = 0; i < errorMessages.length; i++ ) {
+            errorMessages[ i ].parentNode.removeChild( errorMessages[ i ] );
+        }
+
+        for ( var i = 0; i < invalidFields.length; i++ ) {
+            parent = invalidFields[ i ].parentNode;
+        		if(event.target.id == 'demographics_button') {
+							parent.insertAdjacentHTML( "beforeend", "<div class='error-message error-message-demographic'>" +invalidFields[ i ].validationMessage +"</div>" );
+        		} else {
+							parent.insertAdjacentHTML( "beforeend", "<div class='error-message'>" +invalidFields[ i ].validationMessage +"</div>" );
+        		}
+        }
+
+        // If there are errors, give focus to the first invalid field
+        if ( invalidFields.length > 0 ) {
+            invalidFields[ 0 ].focus();
+        }
+    });
+}
+
+function initFormValidator(parent) {
+    // Replace the validation UI for all forms
+    console.log("initFormValidator");
+    //jQuery('#'+parent).hide();
+    //alert('Should be hidden');
+    var forms = document.getElementById(parent).querySelectorAll( "form" );
+    //console.dir(forms);
+    for ( var i = 0; i < forms.length; i++ ) {
+        //console.dir(forms[i]);
+        replaceValidationUI( forms[ i ] );
+    }
+}
+
 
 
 ////  End Code

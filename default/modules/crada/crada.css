@@ -506,3 +506,9 @@ input.form-control {
     color: #b94a48;
     margin-top: 0.2em;
 }
+
+.error-message-demographic {
+    margin-top: 0.1em;
+    margin-bottom: 0.3em;
+    margin-left: 410px;
+}
