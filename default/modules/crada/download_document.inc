@@ -669,15 +669,21 @@ function getSurvivabilityStatement($doc) {
 	$section_number = 0;
 	$current_section = "";
 	for($i=0;$i<count($doc['clauses']);$i++) {
+			//crada_log("Current Section: $current_section");
 			if($doc['clauses'][$i]['section'] != $current_section) {
+				//crada_log("New Section: {$doc['clauses'][$i]['section']}");
+				$current_section = $doc['clauses'][$i]['section'];
 				//Add Section
 				$section_number++;
 				$current_subsection = 1;
 			}
 			if($doc['clauses'][$i]['survivable']) {
+					//crada_log(print_r($doc['clauses'][$i], true));
 					$output[] = $section_number."-".$current_subsection;
 			}
+			$current_subsection++;
 	}
+
 	$survivability_statement = "";
 
 	if(count($output) > 0) {
@@ -685,9 +691,31 @@ function getSurvivabilityStatement($doc) {
 
 		$survivability_statement = "<strong>Survivability</strong>.  ";
 		$survivability_statement .= "The provisions of ".$label." ";
-		//$survivability_statement += explodeLegalArray(survivable_clauses, "clause");
+		$survivability_statement .= explodeLegalArray($output);
 		$survivability_statement .= " will survive the expiration or early termination of this CRADA.";
 	}
 
 	return $survivability_statement;
 }
+
+function explodeLegalArray($arrayOfEntities, $delimiter=",") {
+	$i = 0;
+	$legal ="";
+
+	if(count($arrayOfEntities) == 1){
+		$legal = $arrayOfEntities[0];
+	} else {
+		foreach($arrayOfEntities as $value) {
+			$i++;
+			if($i == 1) {
+				$legal = $value;
+			} elseif($i == count($arrayOfEntities)) {
+				$legal .= $delimiter." and ".$value;
+			} else {
+				$legal .= $delimiter." ".$value;
+			}
+		}
+	}
+	return $legal;
+}
+
