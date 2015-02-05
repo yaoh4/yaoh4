@@ -1813,11 +1813,23 @@ function db_get_document_info($document_id) {
 	$result = db_query($query);
 	$row = $result->fetchObject();
 	$output['base_template'] = $row->base_template;
-//
+
+// Determine if user can set permission for this document
+	global $user;
+	$admin_rid = 3;
+	$query = "select if(admin.count + doc_owner.count>0, TRUE, FALSE) as set_permission from ( ";
+	$query .= "select count(*) as count  ";
+	$query .= "from users_roles where uid = {$user->uid} and rid = $admin_rid ";
+	$query .= ") admin,  ";
+	$query .= "(select count(*) as count  ";
+	$query .= "from crada_document where uid = {$user->uid} and document_id = $document_id) doc_owner ";
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	$output['set_permission'] = $row->set_permission;
 
 
 
-	crada_log(json_encode($output));
+	crada_log(print_r($output, true));
 
   return $output;
 }
