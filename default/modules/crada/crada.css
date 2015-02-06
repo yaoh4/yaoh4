@@ -275,6 +275,7 @@ div.clause-paragraph {
 p.clause {
 	margin:0px;
 	padding: 0px 15px;
+  min-height: 20px;
 }
 p.clause-locked {
 	margin:0px;
