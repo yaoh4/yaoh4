@@ -283,6 +283,9 @@ var	toolbar = [
 
 function saveClause(e) {
 	var data = [];
+
+  console.log('Hello, save clause');
+  console.log(e.editor.getData());
 	//console.dir(e);
 	//console.log(e.editor.getData());
 	//console.log(e.editor.name);
@@ -290,13 +293,12 @@ function saveClause(e) {
 	//console.log(document_element_id);
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
 				document_element_id: e.editor.name.substring(7),
-				column_text: e.editor.getData(),
+				column_text: encodeURIComponent(e.editor.getData()),
 				update_column: "document_element_text",
 				answer_changed: 0,
 				updated_by: getCookie('Drupal.visitor.user.name')
 			};
 	//alert(JSON.stringify(data));
-	//var data['document_id'] =
 	ajax_caller("save_element", data, check_ajax);
 
 	/*

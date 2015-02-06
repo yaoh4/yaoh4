@@ -1,9 +1,5 @@
 <?php
 
-function crada_list_documents() {
-  return "Hello";
-}
-
 function crada_search_documents() {
 
  $html = '<table class="sticky-enabled table-select-processed tableheader-processed sticky-table">

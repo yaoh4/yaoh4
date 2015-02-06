@@ -1,8 +1,5 @@
 <?php
-require_once 'crada_utilities.inc';
-//
-//require_once 'includes/password.inc';
-//
+  require_once 'crada_utilities.inc';
   crada_include();
   $module_path = drupal_get_path('module', 'crada');
   drupal_add_js($module_path . '/list_documents.js', array('cache' => false, 'preprocess' => false));
@@ -10,16 +7,17 @@ require_once 'crada_utilities.inc';
 function crada_list_documents() {
 
   //
-  //crada_log(user_hash_password('test'));
-  //
-
-  //
-  //This query indexes on updated decending but if updated
+  //This query indexes on updated decending but if the updated date
   //is null it replaces the updated date with the created date.
-  //That is what the IFNULL function performs wrapped around the select.
+  // Let me repeat that: The index is indexed first on updated but if updated  is null then
+  // it is replaced by the created date.
+  //
+  //The IFNULL() function returns created date if updated date is null
+  // which is exactly what we want.
   //
 
   global $user;
+
   crada_log("CRADA_LIST_DOCUMENTS");
 
   $query = "select IFNULL(t.updated, t.created) as last_date, t.* FROM ";
@@ -41,9 +39,7 @@ function crada_list_documents() {
   $query .= "WHERE cd.uid = {$user->uid} and u.uid = cd.uid and cd.is_master = 0) as t ";
   $query .= "order by last_date desc; ";
 
-  crada_log("HERE IS THE QUERY");
-
-  crada_log($query);
+//  crada_log($query);
   $result = db_query($query);
 
 // Add a search input
@@ -53,11 +49,12 @@ function crada_list_documents() {
           <input type="text" placeholder="Email address" class="form-control">
         </div>
 */
-if(function_exists('openssl_encrypt')) {
-  crada_log("BTW, PHP opensslq_encrypt function exists.  Yes...");
-}
-
-$html = '<div class="input-group margin-bottom-sm pull-right">
+  /*
+  if(function_exists('openssl_encrypt')) {
+    crada_log("BTW, PHP opensslq_encrypt function exists.  Yes...");
+  }
+*/
+  $html = '<div class="input-group margin-bottom-sm pull-right">
   <span class="input-group-addon" title="Search archived documents, current documents, and document titles"><i class="fa fa-search fa-fw"></i></span>
   <label for="search-term" style="margin-bottom:0px;display:none;">Search</label>
   <input id="search-term" class="form-control" type="text" placeholder="Search">

@@ -80,8 +80,10 @@ function crada_server() {
 }
 function search_clauses() {
 	$searchterm = $_REQUEST['searchterm'];
-	crada_log("SEARCH CLAUSE");
+	//crada_log("SEARCH CLAUSE");
 	crada_log("searchterm: $searchterm");
+  crada_log("converted: ".rawurldecode($searchterm));
+  crada_log("");
 
 /* OLD Search searches all clauses (faster) */
 
@@ -112,8 +114,8 @@ function search_clauses() {
 	$query .= "and cde2.document_element_text like '%{$searchterm}%' or maxelements.title like '%{$searchterm}%'  ";
 	$query .= ") as finallist ";
 */
-	crada_log ("Start here.  Get only the current clauses.");
-	crada_log($query);
+	//crada_log ("Start here.  Get only the current clauses.");
+	//crada_log($query);
 
 	$result = db_query($query);
 
@@ -126,25 +128,19 @@ function search_clauses() {
   $output["status"] = "Ok";
   $output["searchterm"] = $searchterm;
   $output["filter"] = $list;
-  crada_log(print_r($output,true));
+  //crada_log(print_r($output,true));
 
 	return $output;
 
 }
 
+/*
 function search_clauses_old_faster() {
 
 	$searchterm = $_REQUEST['searchterm'];
 	crada_log("SEARCH CLAUSE");
 	crada_log("searchterm: $searchterm");
-/* SQL: Example
-select distinct(user_document.document_id) as document_id  from
-	(select * from ( select docs.*, cdv.version FROM crada_document_version cdv,  (SELECT distinct(cd.document_id), cd.title, cd.is_master FROM users_roles ur, crada_document_role cdr, crada_document cd where ur.uid = 1  and ur.rid = cdr.rid and cdr.document_id = cd.document_id and cdr.access <> '' and cd.uid <> 1 UNION SELECT document_id, title, is_master from crada_document where uid = 1 ) as docs  where  docs.is_master = 0 and docs.document_id = cdv.document_id order by docs.title, cdv.version desc ) as doc_version group by document_id )
-as user_document,
-crada_document_element cde
-WHERE user_document.document_id = cde.document_id
-AND cde.document_element_text like '%entity%';
-*/
+
 	$query = "select distinct(user_document.document_id) as document_id from (";
 	$query .= base_access_query();
 	$query .= ") as user_document, ";
@@ -171,7 +167,7 @@ AND cde.document_element_text like '%entity%';
 	return $output;
 
 }
-
+*/
 function get_document_owners() {
 
 	$document_id = $_REQUEST['document_id'];
@@ -347,6 +343,8 @@ function archive_version() {
 }
 
 function save_element() {
+  //DO NOT LEAVE THIS FUNCTION ENCODE IT>>>>>>>>>
+  //
 	crada_log('save_element- Starting to save crada_document_element');
 	crada_log("Alternate Text Type needs to be 'current' for DOCUMENTS ");
 	crada_log('save_element- PRIMARY KEY (`document_element_id`,`document_version`,`document_id`,`alternate_text_type`),');
@@ -363,10 +361,10 @@ function save_element() {
 
 	//Update text and remove changed_answer
   global $user;
-
+  $newtext = rawurldecode($_REQUEST['column_text']);
 	$query = "update crada_document_element ";
 	$query .= "set ";
-	$query .= "{$_REQUEST['update_column']} = '{$_REQUEST['column_text']}',  ";
+	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
 	$query .= "answer_changed = {$_REQUEST['answer_changed']}, ";
 	$query .= "updated_by= '{$user->uid}', ";
 	$query .= "updated_date = '".date('Y-m-d H:i:s', time())."' ";
@@ -552,6 +550,7 @@ function create_element($document_id, $document_element_id) {
 	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
 	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
 	$current_document_version = db_current_document_version($document_id, $document_element_id);
+/*  
 	crada_log('save_element- Does element exists?');
 	crada_log("save_element- element_exists = $element_exists");
 	crada_log("save_element- last_ element_version = $last_element_version");
@@ -559,7 +558,7 @@ function create_element($document_id, $document_element_id) {
 	crada_log("save_element- key- document_element_id = $document_element_id");
 	crada_log("save_element- key- current_document_version = $current_document_version");
 	crada_log("save_element- key- document_id = $document_id");
-
+*/
 	if(!$element_exists) {
 		copy_element($document_id, $document_element_id);
 	}
@@ -1402,8 +1401,8 @@ function base_access_query() {
 	$query .= "order by docs.title, cdv.version desc ";
 	$query .= ") as doc_version ";
 	$query .= "group by document_id ";
-	crada_log("BASE QUERY");
-	crada_log($query);
+//	crada_log("BASE QUERY");
+//	crada_log($query);
 	return $query;
 }
 
