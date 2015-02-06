@@ -340,7 +340,7 @@ class CradaPdf extends TCPDF {
     public function Footer() {
         $this->SetFont($this->_font, '', $this->_fontSize_footer);
         // Position at 20 mm from bottom
-        $this->SetY(-18);
+        $this->SetY(-20);
         //$content = $doc['document']['title'];
         $content = $this->footer_title;
         //$content .= 'Ref. No.  ADA2014'.str_repeat(" ", 30);
