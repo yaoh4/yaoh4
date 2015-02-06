@@ -59,8 +59,8 @@ class CradaRtf extends PHPRtfLite {
   //public $filename = 'CRADA-'.$random.'.rtf';
   //crada_log("Creating ".$filename);
   protected $_font = 'Times New Roman';
-  protected $_fontSize = 12;
-  protected $_fontSize_footer = 10;
+  protected $_fontSize = 15;
+  protected $_fontSize_footer = 12;
 
   private $fontColor = '#000000';
   private $fontBody;
@@ -229,12 +229,11 @@ FOR IC:
 
 
 
-_______________________________________________      ________________________
-Signature                                              Date
+_______________________________________      _________________
+Signature                                      Date
 
 Typed Name: <b>[IC]</b>
 Title: <b>[IC Title]</b>
-
 
 
 
@@ -242,8 +241,8 @@ FOR COLLABORATOR:
 
 
 
-_______________________________________________      ________________________
-Signature                                              Date
+_______________________________________      _________________
+Signature                                      Date
 
 
 Typed Name: <b>[Collaborator]</b>
@@ -316,8 +315,8 @@ class CradaPdf extends TCPDF {
 
 	private $footer_title = "Footer Title";
   private $_font = 'times';
-  private $_fontSize = 12;
-  private $_fontSize_footer = 10;
+  private $_fontSize = 15;
+  private $_fontSize_footer = 12;
 
 	function __construct() {
 		parent::__construct();
@@ -486,150 +485,6 @@ Title:&nbsp;&nbsp;<b>[Collaborator Title]</b><br>
 
 	}
 
-
-}
-
-function create_rtf_file_old($doc) {
-
-	$random = rand ( 11111 , 32000 );
-	$filename = 'CRADA-'.$random.'.rtf';
-
-	PHPRtfLite::registerAutoloader();
-	PHPRtfLite_Unit::setGlobalUnit(PHPRtfLite_Unit::UNIT_INCH);  // inputs used as inches
-
-	try {
-
-		crada_log("Creating ".$filename);
-		$font = 'Times New Roman';
-		$fontColor = '#000000';
-
-		// Set page properties
-		$rtf = new PHPRtfLite();
-
-
-		$rtf->setMargins(1, 1, 1, 1);
-		$rtf->setPaperFormat(PHPRtfLite::PAPER_LETTER);
-		// FONTS Defined
-	  $fontHeader = new PHPRtfLite_Font(14, $font, $fontColor);
-	  $fontHeaderBold = new PHPRtfLite_Font(14, $font, $fontColor);
-	  $fontHeaderBold->setBold();
-	  $fontBody = new PHPRtfLite_Font(12, $font, $fontColor);
-	  $fontBodyBold = new PHPRtfLite_Font(12, $font, $fontColor);
-	  $fontBodyBold->setBold();
-	  $fontFooter = new PHPRtfLite_Font(10, $font, $fontColor);
-
-	  // FORMAT Defined
-	  $formatPara = new PHPRtfLite_ParFormat();
-	  $formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
-		$formatFooter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_JUSTIFY);
-
-/*
-// section
-$section = $rtf->addSection();
-// add left header
-$header = $section->addHeader(PHPRtfLite_Container_Header::TYPE_LEFT);
-$header->writeText('left header');
-// add right header
-$header = $section->addHeader(PHPRtfLite_Container_Header::TYPE_RIGHT);
-$header->writeText('right header');
-*/
-
-
-		// Add footer
-		$footer = $rtf->addFooter();
-		$content = 'PHS ICT-CRADA                  Ref. No.<u>  ADA2014  </u>             MODEL ADOPTED June 18, 2009';
-		$footer->writeText($content, $fontFooter, $formatFooter);
-		$content = 'Page <pagenum> of <pagetotal>                          <i>Confidential</i>                         Revised August 14, 2013';
-		$footer->writeText($content, $fontFooter, $formatFooter);
-/*
-PHS ICT-CRADA	Agreement Ref. No. _______	MODEL ADOPTED June 18, 2009
-Page   of 26	Confidential	Revised August 14, 2013
-*/
-	/* Add Cover Page */
-		$section = $rtf->addSection();
-		$content = 'PUBLIC HEALTH SERVICE<br>';
-		$section->writeText($content, $fontHeaderBold, $formatParaCenter);
-		$section->writeText('<br>');
-		$content = 'COOPERATIVE RESEARCH AND DEVELOPMENT AGREEMENT FOR INTRAMURAL-PHS CLINICAL RESEARCH';
-		$section->writeText($content, $fontHeaderBold, $formatParaCenter);
-		$section->writeText('<br>');
-		$section->writeText('<br>');
-		$section->writeText('<br>');
-
-$content = 'This Agreement is based on the model Cooperative Research and Development Agreement ("CRADA”) adopted by the U.S. Public Health Service (“PHS”) Technology Transfer Policy Board for use by components of the National Institutes of Health (“NIH”), the Centers for Disease Control and Prevention (“CDC”), and the Food and Drug Administration (“FDA”), which are agencies of the PHS within the Department of Health and Human Services (“HHS”).';
-	$section->writeText($content, $fontBody, $formatPara);
-	$section->writeText('<br>');
-	$content = 'This Cover Page identifies the Parties to this CRADA:';
-	$section->writeText($content, $fontBody, $formatPara);
-	$section->writeText('<br>');
-	$content = 'The U.S. Department of Health and Human Services, as represented by';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$content = 'National Institute of Health';
-	$section->writeText($content, $fontBodyBold, $formatParaCenter);
-	$content = 'an Institute, Center, or Division (hereinafter referred to as the “IC”) of the';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$content = 'NIH';
-	$section->writeText($content, $fontBodyBold, $formatParaCenter);
-	$section->writeText('<br>');
-	$content = 'and';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$section->writeText('<br>');
-	$content = '<b>LEIDOS</b>,';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$content = 'hereinafter referred to as the “Collaborator”,';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$content = 'having offices at 110 Main St., Rockville, MD 20850,';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$content = 'created and operating under the laws of <b>United States of America</b>.';
-	$section->writeText($content, $fontBody, $formatParaCenter);
-	$section->insertPageBreak();
-
-
-//		$section->insertPageBreak();
-
-
-		//Define fonts
-		$fontH1 = new PHPRtfLite_Font(16, 'Arial', '#000000');
-		$fontH2 = new PHPRtfLite_Font(14, 'Arial', '#000000');
-		$fontP = new PHPRtfLite_Font(12, 'Helvetica', '#000000');
-
-		// Vertical space
-		$formatH1 = new PHPRtfLite_ParFormat();
-		$formatH1->setSpaceAfter(8);
-		$formatH2 = new PHPRtfLite_ParFormat();
-		$formatH2->setSpaceAfter(6);
-		$formatP = new PHPRtfLite_ParFormat();
-		$formatP->setSpaceAfter(3);
-
-		// Page content
-		/*
-		$section = $rtf->addSection();
-		$section->writeText($doc['title'], $fontBody, $formatH1);
-		*/
-		/*
-		foreach ($doc['clauses'] as $key => $value) {
-			$section->writeText($key." ".$doc['clauses'][$value]['text'], $fontP, $formatP);
-		}
-		*/
-		for($i=0;$i<count($doc['clauses']);$i++) {
-			$section->insertHangingIndent();
-			$section->writeText($doc['clauses'][$i]['text'], $fontBody, $formatPara);
-		}
-		//while()
-		//$section->writeText('Here is your new document.....', $fontH2, $formatH2);
-		//$section->setNoBreak();
-
-		//$section->writeText('<i>Add <u>your <strong>clause</strong> <b>here</b></u></i>', $fontP, $formatP);
-		//end while()
-
-		$rtf->sendRtf($filename);
-
-	} catch(Exception $e) {
-		$error = $e->getMessage();
-		crada_log("RTF Document Error: ".$error);
-		crada_log(serialize($e));
-		return $error;
-	}
 }
 
 function getSurvivabilityStatement($doc) {
