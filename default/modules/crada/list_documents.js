@@ -17,11 +17,12 @@ $(document).ready(function ($) {
 function updateDocumentList() {
 
   var search_term = $("#search-term").val();
+  console.log("search term: "+search_term);
   setCookie("Drupal.visitor.document.searchterm", search_term, 1);
   //
   //Send the searchtem to server to get a list of document_id to show.
   //
-  ajax_caller('search_clauses', {'searchterm':getCookie("Drupal.visitor.document.searchterm")}, search_clauses_callback);
+  ajax_caller('search_clauses', {'searchterm':encodeURIComponent(getCookie("Drupal.visitor.document.searchterm"))}, search_clauses_callback);
 
   //console.log("Auto complete: "+search_term);
 
