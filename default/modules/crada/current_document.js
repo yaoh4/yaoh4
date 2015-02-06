@@ -1308,7 +1308,7 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	// WEIRD. This causes too many returns...
 
 	//clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
-
+if(parseInt(section_number) == 1) {
 	$("#"+element_id)
 		.append($('<div>')
 					.addClass('clause-paragraph')
@@ -1317,7 +1317,7 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 						)
 					.append($('<div>')
 								.addClass('minor-version')
-								.append(section_number+"-"+minor_number)
+								.append("")
 					)
 
 		.append(
@@ -1329,7 +1329,28 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 		    )
 		)
 	);
+} else {
+  $("#"+element_id)
+    .append($('<div>')
+          .addClass('clause-paragraph')
+          .append($('<a>')
+              .attr('name', '#clause-'+section_number+"-"+minor_number)
+            )
+          .append($('<div>')
+                .addClass('minor-version')
+                .append(section_number+"-"+minor_number)
+          )
 
+    .append(
+        $('<div>', {'class': 'clause-container'}).append(
+          $('<p>', {'class':'clause'}).append(
+              clause.text
+            )
+            .attr('id', 'clause-'+index)
+        )
+    )
+  );
+}
 	//console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed')
