@@ -291,9 +291,16 @@ function saveClause(e) {
 	//console.log(e.editor.name);
 	var document_element_id = e.editor.name.substring(7) ;
 	//console.log(document_element_id);
+  //Make sure text always has at least one character.  Otherwise the clause goes away.
+  //We don't have a method to delete a clause.
+  //
+  var current_clause = e.editor.getData();
+  if(current_clause.length == 0) {
+    current_clause = "&nbsp;";
+  }
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
 				document_element_id: e.editor.name.substring(7),
-				column_text: encodeURIComponent(e.editor.getData()),
+				column_text: encodeURIComponent(current_clause),
 				update_column: "document_element_text",
 				answer_changed: 0,
 				updated_by: getCookie('Drupal.visitor.user.name')
