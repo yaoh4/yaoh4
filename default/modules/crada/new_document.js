@@ -229,7 +229,7 @@ function identify_subsections() {
 function create_demographic_pulldown(demographic) {
 	var row;
 	//Check to see if question starts with a *
-	 var required = (demographic.question.substr(0, 1) =="*");
+	var required = (demographic.question.substr(0, 1) =="*");
 	//Add the label
 	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
 	//Add the pulldown box
@@ -249,8 +249,14 @@ function create_demographic_pulldown(demographic) {
 
 function create_demographic_input(demographic) {
 	var row;
-	row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
-	row += "<input type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>";
+  //Check to see if question starts with a *
+  var required = (demographic.question.substr(0, 1) =="*");
+    row = "<label for='"+demographic.variable+"' class='demographic-label'>"+demographic.question+"</label>";
+  if(required == true) {
+    row += "<input required type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>";
+  } else {
+    row += "<input type='text' class='demographic-input'  id='"+demographic.variable+"' name='"+demographic.variable+"'>";
+  }
 	row += '<div style="clear:both;"></div>'
 	return row;
 }

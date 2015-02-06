@@ -72,9 +72,14 @@ function add_choose_template_div() {
 <div id='choose_template' style='display:none'>
 <form id='choose_template_form'>
 <TABLE id='basic_document_info'>
-<TR><TD>
-<label for='document_title'>Document Title:</label>
-</TD><TD><INPUT id='document_title' size='40' type='text' required placeholder='Document Title' /></TD></TR>
+<TR>
+<TD>
+  <label for='document_title'>Document Title:</label>
+</TD>
+<TD>
+  <INPUT id='document_title' size='40' type='text' required placeholder='Document Title'  title='Please enter a Document Title' />
+</TD>
+</TR>
 <TR><TD>
 
 <label for='template_chooser'>
@@ -87,9 +92,6 @@ Choose Base Template:
 </form>
 </div>
 ";
-/*
-<span class='form-required' title='This field is required.'>*</span>
-*/
 
 }
 
