@@ -4,6 +4,7 @@ var clause_editor = [];
 var my_editor;
 var conf_total = 0;
 var pub_total = 0;
+var annotation_positions = []; //Used by canvas
 
 $(document).ready(function () {
 
@@ -62,6 +63,7 @@ $(document).ready(function () {
 	}
 	if(getCookie('Drupal.visitor.document.id') != "") {
 		change_annotation_selection();
+		//change_annotation_selection('both');
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
 	} else {
 
@@ -126,9 +128,6 @@ function changeDocumentOwner(event) {
 }
 
 function downloadDocument(document_type) {
-//	console.dir(e);
-//	e.preventDefault();  //stop the browser from following
-
     var link = "download_document?document_id=" + getCookie('Drupal.visitor.document.id')
     	+"&version="+getCookie('Drupal.visitor.document.version')
     	+"&user="+getCookie('Drupal.visitor.user.name')
@@ -139,7 +138,6 @@ function downloadDocument(document_type) {
     } else {
 			location.href = link;
     }
-
 }
 
 function updateClauseParagraph() {
@@ -161,14 +159,17 @@ function updateClauseParagraph() {
 	my_editor.destroy();
 }
 
-function change_annotation_selection() {
-
-	annotation_option = getCookie("Drupal.visitor.annotation.option");
+function change_annotation_selection(option) {
+	if(option != null) {
+		annotation_option = option;
+	} else {
+		annotation_option = getCookie("Drupal.visitor.annotation.option");
+	}
 	if( annotation_option != "") {
 		//console.log('annotation_option is set');
 		//console.log(annotation_option);
 		$( "#annotation_options" ).val(annotation_option);
-		change_annotation_options('fast');
+		change_annotation_options('fast', false);
 
 	} else {
 //		console.log('annotation_option is NOT set');
@@ -373,31 +374,43 @@ function editAnnotation(e) {
 }
 
 function updateAnnotateData(ref, data) {
-	//console.log("updateAnnotateData Record in database ....");
-	//console.log("REF --- DATA");
-	//console.log(ref);
-	//console.log(data);
+	console.log("updateAnnotateData Record in database ....");
+	console.log("REF --- DATA");
+	console.log(ref);
+	console.log(data);
 }
 
 function user_changed_annotation_option() {
 	change_annotation_options('slow');
 }
 
-function change_annotation_options(speed) {
+function change_annotation_for_load() {
+	//
+	//Due to annotations needing to be next to clause on load
+	// We have to view both on load so we know where to put the annotations.
+	//
+	$('#current_document_content').css('width', '700px');
+	$('#current_annotation_content').show();
+  $('.confidential_annotation').show();
+  $('.public_annotation').show();
+
+}
+
+function change_annotation_options(speed, annotationOption) {
 	//console.log('speed');
 	//console.log(typeof speed);
 	//console.log(speed);
-
-	var annotationOption = $( "#annotation_options" ).val();
+	if(annotationOption == null) {
+		annotationOption = $( "#annotation_options" ).val();
+	}
 	if( annotationOption == 'off') {
 		$('#current_annotation_content').hide();
-		if(speed == 'slow')
+		if(speed == 'slow') {
 			$('#current_document_content').animate({width:'960px'});
-		else
+		} else {
 			$('#current_document_content').css('width','960px');
-
+		}
 		$('.annotation_footnote').hide();
-
 	} else {
 		if(speed == 'slow') {
 			$('#current_document_content').animate({width: '700px'}, "normal", function(){
@@ -960,10 +973,7 @@ function set_toolbar_buttons(editable) {
 }
 
 function get_document_elements_callback(data) {
-
 	setCookie("Drupal.visitor.document.version", data.version, 365);
-	console.log('data');
-	console.dir(data);
 	set_toolbar_buttons(data.editable);
 	//Hide set Permisson
 	if(parseInt(data.document.set_permission) == 0) {
@@ -1016,6 +1026,7 @@ function get_document_elements_callback(data) {
 	var survivable_clauses = [];
 
 	//Walk through each clause
+	var min_position = 0;
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent')) {
 			if (data.clauses[i].section != current_section) {
@@ -1027,22 +1038,78 @@ function get_document_elements_callback(data) {
 			}
 			clause_number++;
 			section_reference = section_number+"-"+clause_number;
-			//if(section_number == 5) { // For testing only
-			var position = displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
-			var annotate_detail = addAnnotationDiv(data.clauses[i], section_reference, position, data.editable, "clause-"+i);
+			//if(section_number == 3) { // For testing only
+
+			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+			min_position = addAnnotationDiv(data.clauses[i], section_reference, data.editable, i, min_position);
+			console.log("On the outside, min_position: "+min_position);
+			/*
 			if(annotate_detail.length > 0) {
 				annotate.push(annotate_detail);
 			}
 			annotation_positions.push(position);
+			*/
 			//} //For testing only
 			if(data.clauses[i].survivable == 1){
 				survivable_clauses.push(section_reference);
 			}
 		}
 	}
-
 // Add survivability statement at bottom of document
 	printSurvivabilityStatement(survivable_clauses);
+	//
+	// Extend the length of current_annotation_content if necessary
+	//
+	var document_height = $('#current_document_content').outerHeight();
+	if(min_position > document_height) {
+		$('#current_annotation_content').css('height', min_position);
+	} else {
+		$('#current_annotation_content').css('height', document_height);
+	}
+	console.warn("THIS IS IT.  Get your esale out.....");
+	console.log('annotation_positions');
+	console.dir(annotation_positions);
+	//drawAnnotations();
+	//drawAnnotate();
+/*
+var clause = '<p id="PUB1" class="contract_clause annotation public_annotation"
+data-annotate="The purpose of the clause is to clarify ownership, which is defined by conception."
+title="The purpose of the clause is to clarify ownership, which is defined by conception."
+dialog-title="Section 3-1 [PUB1]"
+style="position: absolute; left: 0px; top: 1786.17px;"
+annotate-editable="true">';
+*/
+/*
+var position = $('#clause-36').position();
+var topofcontent = $('#current_document_content').position();
+topofcontent.top += 23; //Another filler
+
+console.info('position');
+console.dir(position);
+console.info('topofcontent');
+console.dir(topofcontent);
+$( "#document_footer" ).text( "left: " + position.left + ", top: " + position.top );
+
+var x = (position.top - topofcontent.top)+"px";
+				$("#current_annotation_content")
+					.append(
+						$("<p>")
+							.addClass("contract_clause")
+							.append( "<b>" + "PUB1[2-1]" + "</b> ")
+							.append("The purpose of the clause is to clarify ownership, which is defined by conception.")
+							.addClass('annotation')
+							.addClass("public_annotation")
+							.attr("id", 'PUB1')
+							.attr("data-annotate", "The purpose of the clause is to clarify ownership, which is defined by conception.")
+							.attr("title", "The purpose of the clause is to clarify ownership, which is defined by conception.")
+							.attr("dialog-title", "Section 3-1 [PUB1]")
+							.css("position", "absolute")
+							.css("left", "0px")
+							.css("top", x)
+				);
+alert($('#PUB1').outerHeight());
+
+*/
 
 	var element = document.getElementById("current_document_content");
 	var rect = element.getBoundingClientRect();
@@ -1051,7 +1118,7 @@ function get_document_elements_callback(data) {
 	//console.log("MY ANNOTATE");
 	//console.dir(annotate);
 
-	drawAnnotate(annotate, rect);
+	//drawAnnotate(annotate, rect);
 
 	/*
  	<canvas id="myCanvas" width="200" height="100"
@@ -1112,9 +1179,35 @@ function scrollToAnchor(aid){
 		$('html,body').animate({scrollTop: aTag.offset().top},'slow');
 }
 
+function drawAnnotations() {
+	//
+  //Make two seperate canvases to link public (PUB) and confidential (CONF) annotations
+  // Too their clauses
+  //Canvases can be turned on and off when viewing one or the other or both.
+
+	var canvas_height = $("#current_annotation_content").height();
+	var canvas_width = 50;
+	//Create two canvases.  One for confidential and one for public
+	var annotate_canvas = '<canvas id="conf_canvas" width="'+canvas_width+'" height="'+canvas_height+'" style="margin-left:-40px;border:1px solid #000000;">Canvas</canvas>';
+	$("#current_annotation_content").append(annotate_canvas);
+	var conf_canvas = document.getElementById("conf_canvas");
+/*
+	for (var y = 0.5; y < canvas_height; y += 10) {
+	  conf_context.moveTo(0, y);
+	  conf_context.lineTo(canvas_width, y);
+	  pub_context.moveTo(0, y);
+	  pub_context.lineTo(canvas_width, y);
+	}
+	conf_context.strokeStyle = "#eee";
+	conf_context.stroke();
+	pub_context.strokeStyle = "#eee";
+	pub_context.stroke();
+*/
+}
+
 function drawAnnotate(annotate, rect) {
 
-	var canvas_height = rect.height;
+	var canvas_height = $("#current_annotation_content").outerHeight();
 	var canvas_width = 60;
 	//Create two canvases.  One for confidential and one for public
 	var annotate_canvas = '<canvas id="conf_canvas" width="'+canvas_width+'" height="'+canvas_height+'" style="margin-left:-50px;">Canvas</canvas>';
@@ -1183,15 +1276,31 @@ function drawAnnotate(annotate, rect) {
 
 }
 
+function addAnnotationDiv(clause, section_reference, editable, clause_id, min_position) {
 
-function addAnnotationDiv(clause, section_reference, position, editable, clause_id) {
-	//console.log('clause');
-	//console.dir(clause);
-	//console.log('section_reference');
-	//console.info(section_reference);
-	//console.log('position');
-	//console.info(position);
-// Set div editable value
+	console.log('clause_id: '+clause_id);
+	console.info(section_reference);
+
+	var current_annotation_content_position = $('#current_annotation_content').position();
+	var current_annotation_content_top_margin = $('#current_annotation_content').css('margin-top');
+	var padding_between_annotations = 5;
+	//
+	//  Get the clause postion and subtract the offset from
+	//    where the current_annotation_content div is located.
+	//    Also subtract the top margin from the current_annotation_content;
+	//		This took several hours to figure out how all this works.
+	//		Everything is relative to the Drupal <div class='left-corner'>
+	//
+	var current_clause_position = $('#clause-'+clause_id).position();
+	var clause_position = current_clause_position.top - current_annotation_content_position.top - parseInt(current_annotation_content_top_margin);
+	var next_postion;
+
+	console.log("clause_position: " +clause_position);
+	console.log("current_annotation_content_position");
+
+	console.log('min_position: '+min_position);
+	// Set div editable value
+	//var position = $('#clause-'+clause_id).position();
 
 	var annotation_index = 0;
 	var annotation_types = ["confidential_annotation", "public_annotation"];
@@ -1218,9 +1327,27 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 	//split the annotation data on excel double return ie \n\n
 		annotations = raw_annotations.split('\n\n');
 		//console.info(annotations.length);
-		var r = 0; //annotation revision number for paragraph
-		$.each(annotations, function(key, annotation) {
-			r++;
+		var ref_number = 0; //annotation revision number for paragraph
+		$.each(annotations, function(key2, annotation) {
+
+/*
+			var position = $('#clause-5').position();
+			var topofcontent = $('#current_document_content').position();
+			topofcontent.top += 23; //Another filler
+
+			console.info('position');
+			console.dir(position);
+			console.info('topofcontent');
+			console.dir(topofcontent);
+			$( "#document_footer" ).text( "left: " + position.left + ", top: " + position.top );
+
+			var x = (position.top - topofcontent.top)+"px";
+
+*/
+			//This is done just like in WORD
+			// Additional annotations to the same clause need R<num> appended
+			// to the annotation reference.
+			ref_number++;
 			if( JSON.stringify(annotation).length > 2) {
 				annotate_div = $("<div/>").html(annotation).text();
 				annotation_short = trimAnnotation(JSON.stringify(annotation));
@@ -1232,39 +1359,60 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 					annotation_index = pub_total;
 				}
 				ref = annotation_id+""+annotation_index;
-				if(r>1) {
+				if(ref_number>1) {
 					//append Revsion
-					ref += "R"+r;
+					ref += "R"+ref_number;
 				}
 
-				annotation_footnote = "Section "+section_reference+" ["+ref+"]";
+				annotation_title = "Section "+section_reference+" ["+ref+"]";
 				//addAnnotationDiv(data.clauses[i].confidential_annotation, 'Confid', "current_annotation_content");
 				//console.log("ADDING ANNOTATION");
-				var x = position.clause.top - position.clause.offset;
+
+				//
+				// Determine the next position for this clause
+				//
+				console.log('Determine next postion');
+				console.log('min_position:'+min_position+' clause_position '+clause_position);
+				if(min_position > clause_position) {
+					next_position = min_position;
+				} else {
+					next_position = clause_position;
+					//Reset the min_position if the first one in the clause and it is less than clause_position
+					if(ref_number == 1) {
+						min_position = clause_position;
+					}
+				}
+				console.log("next_postion: "+next_position);
 				//console.log(x);
 				$("#current_annotation_content")
 					.append(
 						$("<p>")
 							.addClass("contract_clause")
-							.append( "<b>" + annotation_footnote + "</b> " + annotation_short)
+							.append( "<b>" + annotation_title + "</b> " + annotation_short)
 							.addClass('annotation')
 							.addClass(annotation_type)
 							.attr("id", ref)
 							.attr("data-annotate", annotate_div)
 							.attr("title", annotation)
-							.attr("dialog-title", annotation_footnote)
+							.attr("dialog-title", annotation_title)
+							.attr("document_element_id", clause.document_element_id)
 							.css("position", "absolute")
 							.css("left", "0px")
-							.css("top", x)
+							.css("top", next_position)
 				);
-				//console.info("editable ="+ editable);
 				if(editable) {
-
 					$("#"+ref)
 						.attr("annotate-editable", "true");
 				}
+				// Get the size of the clause and add to min_position
+				var annotation_height = $('#'+ref).outerHeight();
+				//alert(annotation_height);
+				//alert(padding_between_annotations);
+				min_position += annotation_height + padding_between_annotations;
+				console.log('new min_postion: '+min_position);
 
 			// add
+			/*
 				var annotate_position = {
 					ref : ref,
 					height: 30,
@@ -1276,7 +1424,7 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 				};
 				annotate.push(annotate_position);
 				annotate_offset += offset;
-
+			*/
 			}
 		});
 //console.log("ANNOTATE");
@@ -1290,7 +1438,8 @@ function addAnnotationDiv(clause, section_reference, position, editable, clause_
 
 
 	});
-	return annotate;
+	// Keep track of the min_position for the next clause
+	return min_position;
 	//annotations = JSON.stringify(annotation_data);
 	//console.log("section_reference: ");
 	//console.dir(annotation_data);
@@ -1308,61 +1457,64 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 	// WEIRD. This causes too many returns...
 
 	//clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
-if(parseInt(section_number) == 1) {
-	$("#"+element_id)
-		.append($('<div>')
-					.addClass('clause-paragraph')
-					.append($('<a>')
-							.attr('name', '#clause-'+section_number+"-"+minor_number)
+	var document_element_id = clause['document_element_id'];
+
+	if(parseInt(section_number) == 1) {
+		$("#"+element_id)
+			.append($('<div>')
+						.addClass('clause-paragraph')
+						.append($('<a>')
+								.attr('name', '#clause-'+section_number+"-"+minor_number)
+							)
+						.append($('<div>')
+									.addClass('minor-version')
+									.append("")
 						)
-					.append($('<div>')
-								.addClass('minor-version')
-								.append("")
-					)
 
-		.append(
-		    $('<div>', {'class': 'clause-container'}).append(
-		    	$('<p>', {'class':'clause'}).append(
-		        	clause.text
-		        )
-		        .attr('id', 'clause-'+index)
-		    )
-		)
-	);
-} else {
-  $("#"+element_id)
-    .append($('<div>')
-          .addClass('clause-paragraph')
-          .append($('<a>')
-              .attr('name', '#clause-'+section_number+"-"+minor_number)
-            )
-          .append($('<div>')
-                .addClass('minor-version')
-                .append(section_number+"-"+minor_number)
-          )
+			.append(
+			    $('<div>', {'class': 'clause-container'}).append(
+			    	$('<p>', {'class':'clause'}).append(
+			        	clause.text
+			        )
+			        .attr('id', 'clause-'+index)
+			    )
+			)
+		);
+	} else {
+	  $("#"+element_id)
+	    .append($('<div>')
+	          .addClass('clause-paragraph')
+	          .append($('<a>')
+	              .attr('name', '#clause-'+section_number+"-"+minor_number)
+	            )
+	          .append($('<div>')
+	                .addClass('minor-version')
+	                .append(section_number+"-"+minor_number)
+	          )
 
-    .append(
-        $('<div>', {'class': 'clause-container'}).append(
-          $('<p>', {'class':'clause'}).append(
-              clause.text
-            )
-            .attr('id', 'clause-'+index)
-        )
-    )
-  );
-}
+	    .append(
+	        $('<div>', {'class': 'clause-container'}).append(
+	          $('<p>', {'class':'clause'}).append(
+	              clause.text
+	            )
+	            .attr('id', 'clause-'+index)
+	        )
+	    )
+	  );
+	}
 	//console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed')
+			.attr('document_element_id', document_element_id)
       .attr('alt','This clause has changed from original version.')
       .attr('title','This clause has changed from original version.');
 	}
 	//console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
 	if(parseInt(clause.answer_changed) == 1) {
 		$('#clause-'+index).addClass('answer-changed')
+			.attr('document_element_id', document_element_id)
       .attr('alt', 'This clause has changed because of a changed answer.')
-      .attr('title', 'This clause has changed because of a changed answer.')
-      ;
+      .attr('title', 'This clause has changed because of a changed answer.');
 	}
 
 	if(editable) {
@@ -1373,19 +1525,19 @@ if(parseInt(section_number) == 1) {
       .attr('alt', 'This clause is locked and not editable.');
 	}
 
-	var section_position = $('#'+element_id).position();
-	var section_offset = $('#'+element_id).offset();
-	var section_height = $('#'+element_id).height();
+	//var section_position = $('#'+element_id).position();
+	//var section_offset = $('#'+element_id).offset();
+	//var section_height = $('#'+element_id).height();
 
-	var clause_position = $('#clause-'+index).position();
-	var clause_offset = $('#clause-'+index).offset();
-	var clause_height = $('#clause-'+index).height();
+//	var clause_position = $('#clause-'+index).position();
+	//var clause_offset = $('#clause-'+index).offset();
+	//var clause_height = $('#clause-'+index).height();
 //	console.log('cluase-'+index +"  Should exist now...  Go check");
 
-	var element = document.getElementById("clause-"+index);
+	//var element = document.getElementById("clause-"+index);
 
-	var clause_xPosition = (element.offsetLeft - element.scrollLeft + element.clientLeft);
-	var clause_yPosition = (element.offsetTop - element.scrollTop + element.clientTop);
+	//var clause_xPosition = (element.offsetLeft - element.scrollLeft + element.clientLeft);
+	//var clause_yPosition = (element.offsetTop - element.scrollTop + element.clientTop);
 
 	/*
 	console.log('position');
@@ -1395,6 +1547,7 @@ if(parseInt(section_number) == 1) {
 	console.log('height');
 	console.log(height);
 */
+/*
 	section_position['height'] = section_height;
 	section_position['offset'] = section_height;
 
@@ -1407,9 +1560,9 @@ if(parseInt(section_number) == 1) {
 		section: section_position,
 		clause: clause_position
 	};
-
+*/
 //	console.dir(position);
-	return position;
+	return;
 }
 
 function displaySectionHeader(section_number, current_section, element_id) {

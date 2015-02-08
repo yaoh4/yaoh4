@@ -64,11 +64,11 @@ body {
 	float:right;
 	width:225px;
 	border:1px solid grey;
-    padding:5px;
-    font-family:"calibri", "Garamond", "Comic Sans";
-    margin-top:15px;
-    margin-right:-20px;
-    font-size: 1.2em;
+  padding:0 5px;
+  font-family:"calibri", "Garamond", "Comic Sans";
+  margin-top:15px;
+  margin-right:-20px;
+  font-size: 1.2em;
 }
 .doc {
 	background-color: #EEE;
@@ -77,25 +77,23 @@ body {
     box-shadow: 10px 10px 5px #888888;
 }
 .annotation {
-	width:200px;
+	  width:200px;
     padding: 3px 5px;
- 	line-height: 80%;
+    line-height: 80%;
     border-radius: 12px;
     font-size: 0.9em;
-    margin-top:5px;
-    margin-bottom:5px;
- 	overflow: hidden;
+    margin-top:0px;
+  	overflow: hidden;
+    margin:0 16px;
 }
 .confidential_annotation {
 	border:2px solid #E1DAC1; /*off white*/
     background: #FFFFCC; /*light off white*/
-    margin-left:15px;
 }
 
 .public_annotation{
     border: 2px solid blue; /*blue*/
     background: #CCFFFF; /*light blue*/
-    margin-left:15px;
 }
 .edit_annotation_textarea {
   background:'#E0E0E0';
