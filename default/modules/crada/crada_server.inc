@@ -550,7 +550,7 @@ function create_element($document_id, $document_element_id) {
 	$element_exists = db_document_element_version_exist($document_id, $document_element_id);
 	$last_element_version = db_document_last_element_version($document_id, $document_element_id);
 	$current_document_version = db_current_document_version($document_id, $document_element_id);
-/*  
+/*
 	crada_log('save_element- Does element exists?');
 	crada_log("save_element- element_exists = $element_exists");
 	crada_log("save_element- last_ element_version = $last_element_version");
@@ -1851,6 +1851,7 @@ function db_get_document_elements ($document_id, $version) {
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$obj = array();
+		$obj['document_element_id'] = $row->document_element_id;
 		$obj['text'] = $row->document_element_text;
 		$obj['section'] = $row->section;
 		$obj['confidential_annotation'] = trim($row->confidential_annotation);
