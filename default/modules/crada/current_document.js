@@ -335,6 +335,11 @@ function editAnnotation(e) {
 	var content;
 
 	var data_annotate = $("#"+ref).attr("data-annotate");
+	console.log("Before: "+data_annotate);
+	//data_annotate = br2nl(data_annotate);
+	data_annotate = data_annotate.replace(/<br\s*[\/]?>/gi, "\n")
+	console.log("After: "+data_annotate);
+	//Change <br /> to \n
 	//console.log("data_annotate");
 	//console.log(data_annotate);
 
@@ -361,7 +366,7 @@ function editAnnotation(e) {
 				console.log(textarea);
 				var header = $("#"+ref).text();
 				header = header.substr(0, header.search(']') + 1);
-				var newText = '<b>'+header+'</b> '+ trimAnnotation(textarea);
+				var newText = '<b>'+header+'</b> '+ trimAnnotation(nl2br(textarea));
 				$("#"+ref).html(newText);
 				$("#"+ref).attr("data-annotate", textarea);
 				$("#"+ref).attr("title", textarea);
@@ -388,13 +393,18 @@ annotate-editable="true">
 
 <b>Section 3-11 [CONF28]</b> Careful</p>
 */
-function updateAnnotateData(ref, data) {
+function updateAnnotateData(ref, data_text) {
+
+//	data_text = data_text.replace('/\n/g', "<br />");
+//	data_text = data_text.replace('/\r\n/g', "<br />");
+//	data_text = data_text.replace('/\r/g', "<br />");
+
 	var data = {
 		document_id:getCookie("Drupal.visitor.document.id"),
 		document_element_id: $("#"+ref).attr('document_element_id'),
 		annotation_position: $("#"+ref).attr('annotation_position'),
 		annotation_type: $("#"+ref).attr('annotation_type'),
-		new_annotation: encodeURIComponent(data)
+		new_annotation: encodeURIComponent(data_text)
 	};
 	ajax_caller('set_annotation', data, generic_callback);
 }
@@ -1368,7 +1378,7 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 			// to the annotation reference.
 			ref_number++;
 			if( JSON.stringify(annotation).length > 2) {
-				annotate_div = $("<div/>").html(annotation).text();
+				//annotate_div = $("<div/>").html(annotation).text();
 				annotation_short = trimAnnotation(JSON.stringify(annotation));
 				if(annotation_type == "confidential_annotation") {
 					conf_total++;
@@ -1411,8 +1421,8 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 							.addClass('annotation')
 							.addClass(annotation_type)
 							.attr("id", ref)
-							.attr("data-annotate", annotate_div)
-							.attr("title", annotation)
+							.attr("data-annotate", br2nl(annotation))
+							.attr("title", br2sp(annotation))
 							.attr("dialog-title", annotation_title)
 							.attr("document_element_id", clause.document_element_id)
 							.attr("annotation_type", annotation_type)

@@ -488,7 +488,22 @@ function set_annotation() {
 
 	crada_log(print_r($_REQUEST, true));
 	extract($_REQUEST);
-	$new_annotation = mysql_real_escape_string(trim(rawurldecode($new_annotation)));
+	crada_log("new_annotation from _REQUEST");
+	crada_log($_REQUEST['document_element_id']);
+	$new_annotation = mysql_escape_string(trim(rawurldecode($new_annotation)));
+	//Remove all \n\n+ series and replace with just one \n
+	crada_log("BEFORE preg_replace of new line");
+	crada_log($new_annotation);
+	//$new_annotation = preg_replace('/\n\n+/', '<br />', $new_annotation);
+	//$new_annotation = trim(preg_replace('/\n\n+/', ' ', $new_annotation));
+	//$new_annotation = preg_replace("/\r\n|\r|\n/", ' ', $new_annotation);
+	$new_annotation = str_replace("\\n", '<br />', $new_annotation);
+	//$new_annotation = nl2br($new_annotation);
+	crada_log("AFTER preg_replace of new line");
+	crada_log($new_annotation);
+
+	crada_log("new_annotation after urldecode and escape_string");
+	crada_log($new_annotation);
 	crada_log("set_annotation");
 	crada_log("document_id = $document_id document_element_id = $document_element_id annotation_position = $annotation_position");
 	//
@@ -503,13 +518,13 @@ function set_annotation() {
 
 	$result = db_query($query);
 	$row = $result->fetchObject();
-	crada_log("annotation");
+	crada_log("OLD annotation array");
 	crada_log($row->annotation);
 
 	// explode based on \n\n,
 	$annotations = explode("\n\n", rtrim($row->annotation));
 	//Remove the last element if it is empty
-	crada_log(count($annotations));
+	crada_log("Annotation Count: " .count($annotations));
 	crada_log($annotations[count($annotations)-1]);
 
 
@@ -518,7 +533,15 @@ function set_annotation() {
 	crada_log("new_annotation");
 	crada_log($new_annotation);
 	$annotations[$annotation_position-1] = rtrim($new_annotation);
+	//Remove blank annotations
+	foreach ($annotations as $key => $annotation) {
+		if(trim($annotation) == "" ) {
+			unset($annotations[$key]);
+		}
+	}
 	// Save new annotation in database
+	crada_log("NEW annotation array");
+	crada_log(print_r($annotations, true));
 	$annotation = implode('\n\n', $annotations);
 	crada_log("Put this back into the database");
 	crada_log($annotation);
