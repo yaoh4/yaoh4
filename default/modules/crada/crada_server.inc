@@ -488,6 +488,7 @@ function set_annotation() {
 
 	crada_log(print_r($_REQUEST, true));
 	extract($_REQUEST);
+	$new_annotation = mysql_real_escape_string(trim(rawurldecode($new_annotation)));
 	crada_log("set_annotation");
 	crada_log("document_id = $document_id document_element_id = $document_element_id annotation_position = $annotation_position");
 	//
