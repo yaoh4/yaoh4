@@ -180,3 +180,12 @@ function generic_callback(data) {
     return;
 }
 
+function nl2br(varTest) {
+    return varTest.replace(/(\r\n|\n\r|\r|\n)/g, "<br />");
+};
+function br2nl(varTest){
+    return varTest.replace(/<br \/>/g, "\n");
+};
+function br2sp(varTest){
+    return varTest.replace(/<br \/>/g, " ");
+};
