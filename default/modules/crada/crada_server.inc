@@ -45,6 +45,8 @@ function crada_server() {
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'get_document_permissions') $output = get_document_permissions();
 		else if ($action == 'set_document_permissions') $output = set_document_permissions();
+		else if ($action == 'set_annotation') $output = set_annotation();
+
 		else if ($action == 'get_document_owners') $output = get_document_owners();
 		else if ($action == 'set_document_owner') $output = set_document_owner();
 		//else if ($action == 'set_answer_retrieve_new_element') $output = set_answer_retrieve_new_element();
@@ -476,6 +478,63 @@ function set_document_permissions() {
 	crada_log(json_encode($output));
 
 
+	return $output;
+
+}
+
+function set_annotation() {
+	crada_log("*************************** COUNTDOWN  ");
+	crada_log("FINAL STRAW === SET ANNOTATION");
+
+	crada_log(print_r($_REQUEST, true));
+	extract($_REQUEST);
+	crada_log("set_annotation");
+	crada_log("document_id = $document_id document_element_id = $document_element_id annotation_position = $annotation_position");
+	//
+	// Get current annotation.
+	//
+	$query = "select $annotation_type as annotation from ";
+	$query .= "(SELECT max(document_version) as max_version FROM crada_document_element where ";
+	$query .= "document_id = $document_id and document_element_id = $document_element_id ";
+	$query .= ") mcde, crada_document_element cde ";
+	$query .= "where mcde.max_version = cde.document_version ";
+	$query .= "and cde.document_id = $document_id and cde.document_element_id = $document_element_id ";
+
+	$result = db_query($query);
+	$row = $result->fetchObject();
+	crada_log("annotation");
+	crada_log($row->annotation);
+
+	// explode based on \n\n,
+	$annotations = explode("\n\n", rtrim($row->annotation));
+	//Remove the last element if it is empty
+	crada_log(count($annotations));
+	crada_log($annotations[count($annotations)-1]);
+
+
+	// Replace new annotation in the right position
+	crada_log(print_r($annotations, true));
+	crada_log("new_annotation");
+	crada_log($new_annotation);
+	$annotations[$annotation_position-1] = rtrim($new_annotation);
+	// Save new annotation in database
+	$annotation = implode('\n\n', $annotations);
+	crada_log("Put this back into the database");
+	crada_log($annotation);
+
+	$query = "UPDATE crada_document_element cde, ";
+	$query .= "(SELECT max(document_version) as max_version FROM crada_document_element where  ";
+	$query .= "document_id = $document_id and document_element_id = $document_element_id ";
+	$query .= ") mcde ";
+	$query .= "SET cde.$annotation_type  = '{$annotation}' ";
+	$query .= "where mcde.max_version = cde.document_version ";
+	$query .= "and cde.document_id = $document_id and cde.document_element_id = $document_element_id ";
+
+	crada_log($query);
+	$result = db_query($query);
+
+	$output = array();
+	$output["status"] = "Ok";
 	return $output;
 
 }

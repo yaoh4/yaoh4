@@ -285,7 +285,7 @@ var	toolbar = [
 function saveClause(e) {
 	var data = [];
 
-  console.log('Hello, save clause');
+//  console.log('Hello, save clause');
   console.log(e.editor.getData());
 	//console.dir(e);
 	//console.log(e.editor.getData());
@@ -295,6 +295,8 @@ function saveClause(e) {
   //Make sure text always has at least one character.  Otherwise the clause goes away.
   //We don't have a method to delete a clause.
   //
+  console.log("YOU HIT ANNOTATE SAVE");
+  console.dir(e);
   var current_clause = e.editor.getData();
   if(current_clause.length == 0) {
     current_clause = "&nbsp;";
@@ -373,11 +375,28 @@ function editAnnotation(e) {
 	});
 }
 
+/*
+<p class="contract_clause annotation confidential_annotation"
+
+id="CONF28"
+data-annotate="Careful"
+title="Careful"
+dialog-title="Section 3-11 [CONF28]"
+document_element_id="53"
+style="position: absolute; left: 0px; top: 6576.15px;"
+annotate-editable="true">
+
+<b>Section 3-11 [CONF28]</b> Careful</p>
+*/
 function updateAnnotateData(ref, data) {
-	console.log("updateAnnotateData Record in database ....");
-	console.log("REF --- DATA");
-	console.log(ref);
-	console.log(data);
+	var data = {
+		document_id:getCookie("Drupal.visitor.document.id"),
+		document_element_id: $("#"+ref).attr('document_element_id'),
+		annotation_position: $("#"+ref).attr('annotation_position'),
+		annotation_type: $("#"+ref).attr('annotation_type'),
+		new_annotation: data
+	};
+	ajax_caller('set_annotation', data, generic_callback);
 }
 
 function user_changed_annotation_option() {
@@ -1066,7 +1085,7 @@ function get_document_elements_callback(data) {
 	} else {
 		$('#current_annotation_content').css('height', document_height);
 	}
-	console.warn("THIS IS IT.  Get your esale out.....");
+	console.warn("THIS IS IT.  Get your paint oils out.....");
 	console.log('annotation_positions');
 	console.dir(annotation_positions);
 	//drawAnnotations();
@@ -1396,6 +1415,8 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 							.attr("title", annotation)
 							.attr("dialog-title", annotation_title)
 							.attr("document_element_id", clause.document_element_id)
+							.attr("annotation_type", annotation_type)
+							.attr("annotation_position", ref_number)
 							.css("position", "absolute")
 							.css("left", "0px")
 							.css("top", next_position)
