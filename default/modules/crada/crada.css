@@ -80,21 +80,27 @@ body {
 	  width:200px;
     padding: 3px 5px;
     line-height: 80%;
-    border-radius: 12px;
+    border-radius: 8px;
     font-size: 0.9em;
     margin-top:0px;
   	overflow: hidden;
     margin:0 16px;
 }
-.confidential_annotation {
-	border:2px solid #E1DAC1; /*off white*/
-    background: #FFFFCC; /*light off white*/
+.public_annotation {
+	border:2px solid LightBlue; /*Very light blue*/
+  background: #CFF; /*light blue*/
 }
 
-.public_annotation{
-    border: 2px solid blue; /*blue*/
-    background: #CCFFFF; /*light blue*/
+/* .confidential_annotation{*/
+/*    border: 2px solid lightblue; *//*lightblue*/
+/*    background: #CCFFFF;*/ /*light blue*/
+/*}*/
+
+.confidential_annotation{
+    border: 2px solid LightPink; /*LightPink*/
+    background: MistyRose; /*MistyRose  FFD5D5*/
 }
+
 .edit_annotation_textarea {
   background:'#E0E0E0';
 	resize: none;
