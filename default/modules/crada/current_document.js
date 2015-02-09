@@ -394,7 +394,7 @@ function updateAnnotateData(ref, data) {
 		document_element_id: $("#"+ref).attr('document_element_id'),
 		annotation_position: $("#"+ref).attr('annotation_position'),
 		annotation_type: $("#"+ref).attr('annotation_type'),
-		new_annotation: data
+		new_annotation: encodeURIComponent(data)
 	};
 	ajax_caller('set_annotation', data, generic_callback);
 }
@@ -1085,9 +1085,9 @@ function get_document_elements_callback(data) {
 	} else {
 		$('#current_annotation_content').css('height', document_height);
 	}
-	console.warn("THIS IS IT.  Get your paint oils out.....");
-	console.log('annotation_positions');
-	console.dir(annotation_positions);
+	//console.warn("THIS IS IT.  Get your paint oils out.....");
+	//console.log('annotation_positions');
+	//console.dir(annotation_positions);
 	//drawAnnotations();
 	//drawAnnotate();
 /*
