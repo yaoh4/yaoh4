@@ -149,7 +149,7 @@ function updateClauseParagraph() {
 		$('#'+my_editor.name).animate({
 				backgroundColor: "#FAFAD2",
 				borderColor: "#A0981D"
-			}, 1000, function() {
+			}, 800, function() {
 				// Animation complete.
 				$('#'+my_editor.name).addClass('clause-changed')
 			}
@@ -253,8 +253,6 @@ var	toolbar = [
 		];
 	// Taking out links for now.
 	// toolbar links (not working)...	{ 'name': 'links', 'items' : ['Link','Unlink']},
-
-	//console.dir(e);
 	var ref = e.target.id;
 
 	my_editor = CKEDITOR.inline(
@@ -295,15 +293,13 @@ function saveClause(e) {
   //Make sure text always has at least one character.  Otherwise the clause goes away.
   //We don't have a method to delete a clause.
   //
-  console.log("YOU HIT ANNOTATE SAVE");
-  console.dir(e);
   var current_clause = e.editor.getData();
   if(current_clause.length == 0) {
     current_clause = "&nbsp;";
   }
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
 				document_element_id: e.editor.name.substring(7),
-				column_text: encodeURIComponent(current_clause),
+				column_text: btoa(current_clause),
 				update_column: "document_element_text",
 				answer_changed: 0,
 				updated_by: getCookie('Drupal.visitor.user.name')
@@ -361,9 +357,6 @@ function editAnnotation(e) {
 			Save: function() {
 				$( this ).dialog( "close" );
 				var textarea = $('#annotate-textarea-'+unique).val();
-				//textarea = $(textarea).text();
-				console.log("TEXTAREA");
-				console.log(textarea);
 				var header = $("#"+ref).text();
 				header = header.substr(0, header.search(']') + 1);
 				var newText = '<b>'+header+'</b> '+ trimAnnotation(nl2br(textarea));
@@ -380,31 +373,17 @@ function editAnnotation(e) {
 	});
 }
 
-/*
-<p class="contract_clause annotation confidential_annotation"
-
-id="CONF28"
-data-annotate="Careful"
-title="Careful"
-dialog-title="Section 3-11 [CONF28]"
-document_element_id="53"
-style="position: absolute; left: 0px; top: 6576.15px;"
-annotate-editable="true">
-
-<b>Section 3-11 [CONF28]</b> Careful</p>
-*/
 function updateAnnotateData(ref, data_text) {
 
 //	data_text = data_text.replace('/\n/g', "<br />");
 //	data_text = data_text.replace('/\r\n/g', "<br />");
 //	data_text = data_text.replace('/\r/g', "<br />");
-
 	var data = {
 		document_id:getCookie("Drupal.visitor.document.id"),
 		document_element_id: $("#"+ref).attr('document_element_id'),
 		annotation_position: $("#"+ref).attr('annotation_position'),
 		annotation_type: $("#"+ref).attr('annotation_type'),
-		new_annotation: encodeURIComponent(data_text)
+		new_annotation: btoa(data_text)
 	};
 	ajax_caller('set_annotation', data, generic_callback);
 }

@@ -363,7 +363,7 @@ function save_element() {
 
 	//Update text and remove changed_answer
   global $user;
-  $newtext = rawurldecode($_REQUEST['column_text']);
+  $newtext = base64_decode($_REQUEST['column_text']);
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
@@ -490,7 +490,7 @@ function set_annotation() {
 	extract($_REQUEST);
 	crada_log("new_annotation from _REQUEST");
 	crada_log($_REQUEST['document_element_id']);
-	$new_annotation = mysql_escape_string(trim(rawurldecode($new_annotation)));
+	$new_annotation = mysql_escape_string(trim(base64_decode($new_annotation)));
 	//Remove all \n\n+ series and replace with just one \n
 	crada_log("BEFORE preg_replace of new line");
 	crada_log($new_annotation);
