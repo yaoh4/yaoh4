@@ -765,6 +765,8 @@ function set_new_answer() {
 	crada_log($row->document_element_text);
 
 	$new_document_element_text = $row->document_element_text;
+	$new_confidential_annotation = $row->confidential_annotation;
+	$new_public_annotation = $row->public_annotation;
 
 	if($new_document_element_text == NULL) {
 		crada_log("GET DEFAULT TEXT");
@@ -777,6 +779,8 @@ function set_new_answer() {
 		$result=db_query($query);
 		$row = $result->fetchObject();
 		$new_document_element_text = $row->document_element_text;
+		$new_confidential_annotation = $row->confidential_annotation;
+		$new_public_annotation = $row->public_annotation;
 	}
 
 	crada_log("JUST GOT DONE WITH GET CLAUSE.");
@@ -805,13 +809,15 @@ function set_new_answer() {
 	$query = "UPDATE ignore crada_document_element
 							SET
 							document_element_text = '$new_document_element_text',
+							confidential_annotation = '$new_confidential_annotation',
+							public_annotation = '$public_annotation',
 							source_answer = $answer_id,
 							answer_changed = 1,
 							updated_by = $user->uid
 					WHERE document_id = $document_id
 					and source_question = $question_id
-					and document_version = $current_document_version	";
-	crada_log($query);
+					and document_version = $current_document_version";
+			crada_log($query);
 	try {
 		$result = db_query($query);
 	} catch (Exception $e) {
