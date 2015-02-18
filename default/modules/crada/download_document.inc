@@ -277,7 +277,7 @@ Title: <b>[Collaborator Title]</b>
 
   }
 
-  function explodeLegalArray($arrayOfEntities, $delimiter=",") {
+  private function explodeLegalArray($arrayOfEntities, $delimiter=",") {
     $i = 0;
     $legal ="";
 
@@ -522,6 +522,7 @@ function getSurvivabilityStatement($doc) {
 	return $survivability_statement;
 }
 
+/*
 function explodeLegalArray($arrayOfEntities, $delimiter=",") {
 	$i = 0;
 	$legal ="";
@@ -542,4 +543,4 @@ function explodeLegalArray($arrayOfEntities, $delimiter=",") {
 	}
 	return $legal;
 }
-
+*/
