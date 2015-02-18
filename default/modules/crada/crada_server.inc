@@ -81,11 +81,9 @@ function crada_server() {
 	}
 }
 function search_clauses() {
-	$searchterm = $_REQUEST['searchterm'];
+	$searchterm = mysql_escape_string(trim(base64_decode($_REQUEST['searchterm'])));
 	//crada_log("SEARCH CLAUSE");
 	crada_log("searchterm: $searchterm");
-  crada_log("converted: ".rawurldecode($searchterm));
-  crada_log("");
 
 /* OLD Search searches all clauses (faster) */
 
@@ -363,7 +361,7 @@ function save_element() {
 
 	//Update text and remove changed_answer
   global $user;
-  $newtext = base64_decode($_REQUEST['column_text']);
+  $newtext = mysql_escape_string(trim(base64_decode($_REQUEST['column_text'])));
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
@@ -483,8 +481,7 @@ function set_document_permissions() {
 }
 
 function set_annotation() {
-	crada_log("*************************** COUNTDOWN  ");
-	crada_log("FINAL STRAW === SET ANNOTATION");
+	crada_log("SET ANNOTATION");
 
 	crada_log(print_r($_REQUEST, true));
 	extract($_REQUEST);
