@@ -51,7 +51,7 @@ function check_document_specifications() {
 	//Perform a basic excel sanity check to make sure the format is correct
 	//If basic checks are not found, inform user that basic specification fails.
 	// Message:  Excel file does not meet specification.  Please refer to Master Template Specifications.
-	//Walk through ever sheet.  Check the first line
+	//Walk through each sheet.  Check the header row (line 1) for proper header.
 	drupal_set_message("Checking basic document specifications:");
 	$document_pass = true;
 
@@ -211,7 +211,7 @@ function load_definitions() {
 	$array_data = $xls_data->getActiveSheet()->toArray(null,true,true,true);
 	foreach ($array_data as $line) {
 		if ($line["A"] != 'Term' && $line["A"] != 'Defined Terms' ) {
-			db_insert_definition($line["A"], $line["B"]);
+			db_insert_definition(trim($line["A"]), trim($line["B"]));
 		}
 	}
 }
