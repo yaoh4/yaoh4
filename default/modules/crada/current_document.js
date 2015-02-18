@@ -1050,7 +1050,7 @@ function get_document_elements_callback(data) {
 
 			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
 			min_position = addAnnotationDiv(data.clauses[i], section_reference, data.editable, i, min_position);
-			console.log("On the outside, min_position: "+min_position);
+			//console.log("On the outside, min_position: "+min_position);
 			/*
 			if(annotate_detail.length > 0) {
 				annotate.push(annotate_detail);
@@ -1286,8 +1286,8 @@ function drawAnnotate(annotate, rect) {
 
 function addAnnotationDiv(clause, section_reference, editable, clause_id, min_position) {
 
-	console.log('clause_id: '+clause_id);
-	console.info(section_reference);
+	//console.log('clause_id: '+clause_id);
+	//console.info(section_reference);
 
 	var current_annotation_content_position = $('#current_annotation_content').position();
 	var current_annotation_content_top_margin = $('#current_annotation_content').css('margin-top');
@@ -1303,10 +1303,10 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 	var clause_position = current_clause_position.top - current_annotation_content_position.top - parseInt(current_annotation_content_top_margin);
 	var next_postion;
 
-	console.log("clause_position: " +clause_position);
-	console.log("current_annotation_content_position");
+	//console.log("clause_position: " +clause_position);
+	//console.log("current_annotation_content_position");
 
-	console.log('min_position: '+min_position);
+	//console.log('min_position: '+min_position);
 	// Set div editable value
 	//var position = $('#clause-'+clause_id).position();
 
@@ -1379,8 +1379,8 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 				//
 				// Determine the next position for this clause
 				//
-				console.log('Determine next postion');
-				console.log('min_position:'+min_position+' clause_position '+clause_position);
+				//console.log('Determine next postion');
+				//console.log('min_position:'+min_position+' clause_position '+clause_position);
 				if(min_position > clause_position) {
 					next_position = min_position;
 				} else {
@@ -1390,7 +1390,7 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 						min_position = clause_position;
 					}
 				}
-				console.log("next_postion: "+next_position);
+				//console.log("next_postion: "+next_position);
 				//console.log(x);
 				$("#current_annotation_content")
 					.append(
@@ -1419,7 +1419,7 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 				//alert(annotation_height);
 				//alert(padding_between_annotations);
 				min_position += annotation_height + padding_between_annotations;
-				console.log('new min_postion: '+min_position);
+				//console.log('new min_postion: '+min_position);
 
 			// add
 			/*

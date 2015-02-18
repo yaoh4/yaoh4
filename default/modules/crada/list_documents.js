@@ -22,7 +22,7 @@ function updateDocumentList() {
   //
   //Send the searchtem to server to get a list of document_id to show.
   //
-  ajax_caller('search_clauses', {'searchterm':encodeURIComponent(getCookie("Drupal.visitor.document.searchterm"))}, search_clauses_callback);
+  ajax_caller('search_clauses', {'searchterm':btoa(getCookie("Drupal.visitor.document.searchterm"))}, search_clauses_callback);
 
   //console.log("Auto complete: "+search_term);
 
@@ -31,7 +31,7 @@ function updateDocumentList() {
 function search_clauses_callback(data) {
 
 //  console.log("search_clauses_callback");
-//  console.dir(data);
+  console.dir(data);
   var count = 0;
   $('#list-document > tbody  > tr').each(function(index) {
     var target_id = $( this ).attr('id');
