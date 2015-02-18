@@ -233,3 +233,24 @@ function br2nl($string)
 {
     return preg_replace('/\<br(\s*)?\/?\>/i', "\n", $string);
 }
+
+function explodeLegalArray($arrayOfEntities, $delimiter=",") {
+  $i = 0;
+  $legal ="";
+
+  if(count($arrayOfEntities) == 1){
+    $legal = $arrayOfEntities[0];
+  } else {
+    foreach($arrayOfEntities as $value) {
+      $i++;
+      if($i == 1) {
+        $legal = $value;
+      } elseif($i == count($arrayOfEntities)) {
+        $legal .= $delimiter." and ".$value;
+      } else {
+        $legal .= $delimiter." ".$value;
+      }
+    }
+  }
+  return $legal;
+}
