@@ -3,7 +3,7 @@
 
 function crada_new_document() {
 	$module_path = drupal_get_path('module', 'crada');
-	drupal_add_css('http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css');
+	//drupal_add_css('http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/start/jquery-ui.css');
 	drupal_add_css($module_path . '/crada.css');
 	drupal_add_js($module_path . '/crada_helper_functions.js',array('cache' => false, 'preprocess' => false));
 	drupal_add_js($module_path . '/new_document.js',array('cache' => false, 'preprocess' => false));
