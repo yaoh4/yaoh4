@@ -193,7 +193,7 @@ function get_subsections_callback(data) {
 						.addClass('subsections')
 						.attr('name', data.subsections[i])
 						.append("<LABEL class='demographic-label' for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL>")
-						.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION>No</OPTION></SELECT>")
+						.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION selected>No</OPTION></SELECT>")
 						.append("<div style='clear:both;'></div>")
 					);
 		}
