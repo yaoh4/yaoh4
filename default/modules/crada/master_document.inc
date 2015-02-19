@@ -386,14 +386,13 @@ function load_line($section, $line) {
 		$current_answer = $line["C"];
 		$new_answer = true;
 		$answer_number_for_question=0;
-	} else if ($line["C"] !=  $current_answer) {
+	} else {
 		$current_answer = $line["C"];
 		$new_answer = true;
 		$answer_number_for_question++;
 	}
 	// We need to deal with the followon question later (line['D'])
 	$default_text = nl2br($line["E"]); //This can be hard coded to letter E
-
 
 	$alternate_text_array = array();
 	for ($i=0; $i<count($alternate_text_columns);$i++) {
