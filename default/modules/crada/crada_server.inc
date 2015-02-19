@@ -612,7 +612,8 @@ function query_get_master_clauses($master_document_id) {
 	//  If that changes this query will become invalid.
 	$query = "SELECT vc.*, ";
 	$query .= "cde.document_element_id, cde.document_version,  ";
-	$query .= "cde.alternate_text_type, cde.document_element_text ";
+	$query .= "cde.alternate_text_type, cde.document_element_text, ";
+	$query .= "cde.confidential_annotation, cde.public_annotation ";
 	$query .= "FROM ";
 	$query .= "crada_valid_clause_group_by_answer vc, ";
 	$query .= "crada_clause_group_to_clause gtc, ";
@@ -686,12 +687,12 @@ function add_demographics($document_id, $text) {
 	$query = "select demographic_answers from crada_document where document_id = $document_id";
 	$result=db_query($query);
 	$row = $result->fetchObject();
-	crada_log("add Mad Lib Demographics.");
+	//crada_log("add Mad Lib Demographics.");
 	// Convert json to php array
 	crada_log($row->demographic_answers);
 
 	$demographics = json_decode($row->demographic_answers, true);
-	crada_log(print_r($demographics, true));
+	//crada_log(print_r($demographics, true));
 
 	//Walk through and perform search and replace
 	foreach ($demographics as $key => $value) {
@@ -758,6 +759,9 @@ function set_new_answer() {
 	$query .= "WHERE question_id = $question_id ";
 	$query .= "AND answer_id = $answer_id ";
 	$query .= "AND alternate_text_type = '$alternate_text_type' ";
+
+	crada_log('QUERY Does it have annotations?????');
+	crada_log($query);
 
 	$result=db_query($query);
 	$row = $result->fetchObject();
