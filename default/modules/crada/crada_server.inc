@@ -712,6 +712,7 @@ function add_demographics($document_id, $text) {
 }
 
 function set_new_answer() {
+
 	global $user;
 
 	$document_id = $_REQUEST['document_id'];
@@ -787,7 +788,10 @@ function set_new_answer() {
 
 	//ADD Demographics
 	crada_log('ORIGINAL TEXT');
-	crada_log($new_document_element_text);
+	crada_log('TEXT: '.$new_document_element_text);
+	crada_log("confidential_annotation: ".$new_confidential_annotation);
+	crada_log("public_annotation: ".$new_public_annotation);
+
 	$new_document_element_text = add_demographics($document_id, $new_document_element_text);
 	crada_log('MODIFIIED TEXT');
 	crada_log($new_document_element_text);
