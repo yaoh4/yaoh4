@@ -4,6 +4,7 @@ require_once 'crada_utilities.inc';
 define("DOES_NOT_MEET_SPECIFICATIONS_MESSAGE", 'Excel file does not meet proper specifications.  Please refer to the <b><i>Master Document Template Specifications</i></b> documentation.');
 define("INVALID_TEMPLATE_UNABLE_TO_LOAD", "Unable to load master template: Document does not pass basic Master Template validation.");
 define("HEADER_ERROR", 'Section <b><i>%s</i></b> header row is incorrect:  <b>Row A</b> should read <i>%s</i>');
+define("NO_SURVIVABILITY", "Section <b><i>%s</i></b> does NOT have a <i>Survivability</i> column defined in header Row A.  Please add a column with <i>Survivability</i> in the header row.");
 define("QUESTION_ANSWER_REPEAT_ERROR", 'Question <b><i>%s</i></b> and answer <b>%s</b> has been repeated.');
 define('INVALID_QUESTION_ANSWER', 'Section <b>%s</b> has a repeated question and answer.  Please delete the repeated question and answer', 'error');
 define('BLANK_ANSWER', 'Section <b>%s</b> has a BLANK answer for a <b>REQUIRED</b> clause.  Please add <b>REQURIED</b> to answer column');
@@ -59,11 +60,12 @@ function check_document_specifications() {
 	//  Pull the names of the worksheets before even loading the file
 	$sheet_names = $xls_reader->listWorksheetNames($filename);
 	$header = "";
-
 	foreach($sheet_names as $i => $sheet_name) {
 		$xls_reader->setLoadSheetsOnly($sheet_name);
 		$xls_data = $xls_reader->load($filename);
 		$first_row = $xls_data->getActiveSheet()->toArray(null,true,true,true);
+		crada_log(print_r($first_row));
+
 		//Get first line compare to $header defined below
 		switch ($sheet_name) {
 		    case "Coversheet":
@@ -82,6 +84,12 @@ function check_document_specifications() {
 		        break;
 		    default:
 						$header = ["Subsection","Question","Answer","Followon","Default"];
+						if(check_survivability($first_row) == false) {
+							drupal_set_message("Section: $sheet_name: FAILED", "error");
+							drupal_set_message(sprintf(NO_SURVIVABILITY, $sheet_name), "error");
+							return false;
+						}
+						break;
 		}
 		$document_pass = check_header($first_row, $header);
 		if($document_pass == true){
@@ -93,6 +101,26 @@ function check_document_specifications() {
 		}
 	}
 	return $document_pass;
+}
+
+function check_survivability($row) {
+	//
+	// Seek the header row to
+	//
+
+	$valid = false;
+	foreach($row[1] as $key => $value) {
+		$column = chr(intval($key) + 65); //If $key == 0 then $column = "A"
+		if(strtoupper($value) == "SURVIVABILITY") {
+			$valid = true;
+			break;
+		}
+	}
+
+//	crada_log(print_r($row[1], true));
+//	drupal_set_message(print_r($row[1], true));
+//	drupal_set_message($row[1]);
+	return $valid;
 }
 
 function check_header($row, $header) {
@@ -142,27 +170,32 @@ function master_document_form_validate($form, &$form_state) {
 }
 
 function master_document_form_submit ($form, &$form_state) {
-	crada_log("master_document_form_submit");
 	global $filename, $shorthand, $title;
-	//drupal_set_message(t('Loading the form: '));
+	drupal_set_message(t('Loading the form: '));
 	$filename = $form_state['storage']['filename'];
 	$title = trim($form_state['values']['document_title']);
 	$shorthand = trim($form_state['values']['document_name']);
-	load_excel_file();
+	if(load_excel_file() == false) {
+		exit();
+	}
 }
 
 function load_excel_file() {
 	global $filename, $xls_reader, $document_id;
-	$library = libraries_load('PHPExcel');
-	if (empty($library['loaded'])) {
-		drupal_set_message( "Failed to Load PHPExcel Library" );
-		return;
+
+	try{
+		$library = libraries_load('PHPExcel');
+		$filetype = PHPExcel_IOFactory::identify($filename);
+		$xls_reader = PHPExcel_IOFactory::createReader($filetype);
+		$xls_reader->setReadDataOnly(TRUE);
+		crada_log(print_r($xls_reader, true));
+	} catch (Exception $e) {
+		drupal_set_message("Load PHPExcel Library: FAILED" );
+		drupal_set_message("Exception: ",  $e->getMessage(), "\n");
+    crada_log(print_r($e, true));
+		return false;
 	}
 
-
-	$filetype = PHPExcel_IOFactory::identify($filename);
-	$xls_reader = PHPExcel_IOFactory::createReader($filetype);
-	$xls_reader->setReadDataOnly(TRUE);
 	$valid_document = check_document_specifications();
 	if($valid_document == false) {
 		drupal_set_message(INVALID_TEMPLATE_UNABLE_TO_LOAD, "error");
@@ -187,6 +220,7 @@ function load_excel_file() {
 		drupal_set_message(INVALID_TEMPLATE_UNABLE_TO_LOAD, "error");
 	}
 
+	return true;
 }
 /*
 function load_coversheet() {

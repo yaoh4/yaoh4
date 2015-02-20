@@ -25,7 +25,6 @@ $(document).ready(function () {
 
 	$('#document_select').change(changed_document_id);
 	$("#select_document_button").click(click_select_document_button);
-	$("#annotation_options").change(user_changed_annotation_option);
 
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
   	editClause(event);
@@ -62,8 +61,9 @@ $(document).ready(function () {
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
 	if(getCookie('Drupal.visitor.document.id') != "") {
-		change_annotation_selection();
+		//change_annotation_selection();
 		//change_annotation_selection('both');
+		//change_annotation_for_load();
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
 	} else {
 
@@ -71,9 +71,6 @@ $(document).ready(function () {
 		$("#document_footer").hide();
 		click_load_button();
 	}
-	change_annotation_options('fast');
-	set_footer();
-
 });
 
 function changeDocumentPermissions(event) {
@@ -160,6 +157,8 @@ function updateClauseParagraph() {
 }
 
 function change_annotation_selection(option) {
+	//alert("Change annotation: "+option);
+	//console.log("change annotation: "+option);
 	if(option != null) {
 		annotation_option = option;
 	} else {
@@ -169,15 +168,13 @@ function change_annotation_selection(option) {
 		//console.log('annotation_option is set');
 		//console.log(annotation_option);
 		$( "#annotation_options" ).val(annotation_option);
-		change_annotation_options('fast', false);
-
+		change_annotation_options('fast');
 	} else {
-//		console.log('annotation_option is NOT set');
-//		console.log(annotation_option);
+		console.log('annotation_option is NOT set');
+		console.log(annotation_option);
 	}
 
 }
-
 
 function set_footer(){
 	$("#document_footer").empty().append(
@@ -394,23 +391,31 @@ function user_changed_annotation_option() {
 
 function change_annotation_for_load() {
 	//
-	//Due to annotations needing to be next to clause on load
-	// We have to view both on load so we know where to put the annotations.
+	//In order to get the annotations in
+	// the right position.  Open page with both
+	// After page loads, change page to user preference.
 	//
+
+	//	Get cookie and set dropdown.
+	change_annotation_selection();
 	$('#current_document_content').css('width', '700px');
 	$('#current_annotation_content').show();
   $('.confidential_annotation').show();
   $('.public_annotation').show();
-
+  //Set listener for change.
+	$("#annotation_options").change(user_changed_annotation_option);
 }
 
-function change_annotation_options(speed, annotationOption) {
-	//console.log('speed');
-	//console.log(typeof speed);
-	//console.log(speed);
-	if(annotationOption == null) {
-		annotationOption = $( "#annotation_options" ).val();
-	}
+function change_annotation_options(speed) {
+
+	//alert('change_annotation_options: '+speed);
+	console.log("change annotation options");
+
+	console.log('speed');
+	console.log(typeof speed);
+	console.log(speed);
+	annotationOption = $( "#annotation_options" ).val();
+
 	if( annotationOption == 'off') {
 		$('#current_annotation_content').hide();
 		if(speed == 'slow') {
@@ -957,13 +962,12 @@ function click_select_document_button() {
 	//Set cookies
 	setCookie("Drupal.visitor.document.id", document_id, 365);
 	setCookie("Drupal.visitor.document.version", version_id, 365);
-
-	set_footer();
-	change_annotation_selection();
-	ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
-	$("#load_dialog").dialog( "close" );
-	$("#current_document_container").show();
-	$("#document_footer").show();
+	load_current_document();
+	//change_annotation_for_load();
+	//ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
+	//$("#load_dialog").dialog( "close" );
+	//$("#current_document_container").show();
+	//$("#document_footer").show();
 
 }
 
@@ -981,6 +985,7 @@ function set_toolbar_buttons(editable) {
 }
 
 function get_document_elements_callback(data) {
+	change_annotation_for_load();
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 	set_toolbar_buttons(data.editable);
 	//Hide set Permisson
@@ -1158,6 +1163,9 @@ alert($('#PUB1').outerHeight());
 	var options = $( ".accordion" ).accordion( "option" );
 	console.dir(options);
 	*/
+	change_annotation_options('fast');
+	set_footer();
+
 }
 
 function printSurvivabilityStatement(survivable_clauses) {
