@@ -85,7 +85,7 @@ function add_command_bar() {
 				<option value="confidential">confidential</option>
   				<option value="public">public</option>
   				<option value="both">both</option>
-  				<option value="off" selected>off</option>
+  				<option value="off">off</option>
 			</select>';
 	$data .= "</div>";
 	$data .= add_button("load_button", "Load", "Load a new document", "fa fa-file");
