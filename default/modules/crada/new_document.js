@@ -69,7 +69,7 @@ function add_spinner(id) {
 function saveTemplate() {
 
 	//alert('valid');
-	console.log('Valid Input');
+	//console.log('Valid Input');
 	//console.dir(event);
 	$("#spinner").show();
 	$("#choose_template").hide();
@@ -273,7 +273,7 @@ function get_all_definitions_callback(data) {
 	for (i=0;i<data.definitions.length;i++) {
 		definitions[data.definitions[i].term] = data.definitions[i].definition;
 	}
-	console.dir(definitions);
+	//console.dir(definitions);
 }
 
 function setup_sections() {
@@ -453,18 +453,20 @@ function setup_document_callback(data) {
 	var alternate_text = data.alternate_text;
 	var used_terms = get_used_terms(data.clauses);
 
-
-//	console.log("Where are the question/answers????");
-//	console.log(used_terms);
-//	console.log(data);
+	//var definition = "";
+	//	console.log("Where are the question/answers????");
+	//	console.log(used_terms);
+	//	console.log(data);
 	//Adding Definition sections
-	for (i=0;i<used_terms.length; i++) {
-
+	for (i=0; i<used_terms.length; i++) {
 		//if (used_terms[i] == "") continue;
+
 		var definition = definitions[used_terms[i]];
-		if(definition.toUpperCase() == 'undefined') {
+
+		if(definition === undefined) {
 			definition = "<strong>[definition needed]</strong>";
 		}
+
 		new_clauses[i] = new Object();
 		new_clauses[i].text = "<strong>" + add_demographics(used_terms[i]) + "</strong>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
@@ -478,7 +480,7 @@ function setup_document_callback(data) {
 //	console.dir(new_clauses);
 //	console.log("ANSWERS");
 //	console.dir(answers);
-		console.log("New Clauses");
+		//console.log("New Clauses");
 
 	for (var i=0; i<data.clauses.length; i++) {
 
@@ -489,7 +491,7 @@ function setup_document_callback(data) {
 		new_clauses[used_terms.length+i].public_annotation = data.clauses[i].public_annotation;
 		new_clauses[used_terms.length+i].survivable = data.clauses[i].survivable;
 
-		console.log(new_clauses[used_terms.length+i].section);
+		//console.log(new_clauses[used_terms.length+i].section);
 
 /*************************************************
 * DON'T STOP LOOKING AT THE NEXT 2 LINES
@@ -514,7 +516,7 @@ function setup_document_callback(data) {
 	//console.log("About to send demographic");
 	//console.dir(demographics);
 	//console.log(JSON.stringify(demographics));
-	console.log(new_clauses)
+	//console.log(new_clauses)
 	//alert("About to create document, view new_clauses in console.  Make sure section is not blank.");
 
 
@@ -599,8 +601,8 @@ function replaceValidationUI( form ) {
 
     var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
     submitButton.addEventListener( "click", function( event ) {
-    	console.info('Here is the event');
-    	console.dir(event);
+    	//console.info('Here is the event');
+    	//console.dir(event);
         var invalidFields = form.querySelectorAll( ":invalid" ),
             errorMessages = form.querySelectorAll( ".error-message" ),
             parent;
@@ -628,7 +630,7 @@ function replaceValidationUI( form ) {
 
 function initFormValidator(parent) {
     // Replace the validation UI for all forms
-    console.log("initFormValidator");
+    //console.log("initFormValidator");
     //jQuery('#'+parent).hide();
     //alert('Should be hidden');
     var forms = document.getElementById(parent).querySelectorAll( "form" );
