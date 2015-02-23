@@ -35,7 +35,7 @@ function master_document_form($form, &$form_state) {
 	$form['file'] = array(
 			'#type' => 'file',
 			'#title' => 'Filename',
-			'#accept' => 'csv,xls,xlsx',
+			'#accept' => 'xls,xlsx',
 			'#description' => 'Choose a Base Template File',
 	);
 	//Submit

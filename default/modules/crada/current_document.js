@@ -64,6 +64,7 @@ $(document).ready(function () {
 		//change_annotation_selection();
 		//change_annotation_selection('both');
 		//change_annotation_for_load();
+		change_annotation_for_load();
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
 	} else {
 

@@ -20,50 +20,13 @@ function stop_spinner(spinner_id, show_id) {
   jQuery("#"+show_id).show();
 }
 
-/*
-function addMadLib(madlib, demographics) {
-    //serarch and replace {} with demographic answers
-    //Example search {Agency} replace with FDA
-    console.log('madlib before');
-    console.log(madlib);
-    console.log('demographics');
-    console.dir(demographics);
-    var search_term;
-    var replace_term;
-    //Check to make sure a madlib is defined
-    if (typeof madlib == 'undefined')
-        return;
-
-            $.each(demographics, function(key, val) {
-                search_term = "{"+key+"}";
-                if(replace_term == "") {
-                    replace_term = "<b>["+key+"]</b>";
-                };
-//              replace_term = "<b>"+val+"</b>";
-                madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
-            });
-
-
-    jQuery.each(demographics, function(key, val) {
-        search_term = "{"+key+"}";
-        replace_term = val;
-        alert(replace_term);
-        //Search and replace if length is greater than 0
-        if(replace_term.length > 0) {
-            madlib = madlib.replace(new RegExp(search_term, "g"), replace_term);
-        }
-    });
-
-    console.log('madlib after');
-    console.log(madlib);
-
-    return madlib;
-}
-*/
-
 function display_error(response, status, error) {
     var errorMessage = error || response.statusText;
-    alert(errorMessage);
+    var message = "There was an error with this request.  Please reload and try again.";
+    console.warn(message);
+    console.warn(errorMessage);
+
+    alert(message+"\n\n"+errorMessage);
 }
 
 jQuery.fn.serializeObject = function() {
@@ -119,7 +82,6 @@ function explodeLegalArray(entities, bookmark) {
     });
 
     return output;
-
 }
 
 function replaceValidationUI2( form ) {
