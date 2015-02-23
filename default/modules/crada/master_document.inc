@@ -64,7 +64,7 @@ function check_document_specifications() {
 		$xls_reader->setLoadSheetsOnly($sheet_name);
 		$xls_data = $xls_reader->load($filename);
 		$first_row = $xls_data->getActiveSheet()->toArray(null,true,true,true);
-		crada_log(print_r($first_row));
+		//crada_log(print_r($first_row));
 
 		//Get first line compare to $header defined below
 		switch ($sheet_name) {
@@ -176,7 +176,7 @@ function master_document_form_submit ($form, &$form_state) {
 	$title = trim($form_state['values']['document_title']);
 	$shorthand = trim($form_state['values']['document_name']);
 	if(load_excel_file() == false) {
-		exit();
+		//exit();
 	}
 }
 
