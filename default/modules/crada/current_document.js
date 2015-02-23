@@ -282,7 +282,7 @@ function saveClause(e) {
 	var data = [];
 
 //  console.log('Hello, save clause');
-  console.log(e.editor.getData());
+  //console.log(e.editor.getData());
 	//console.dir(e);
 	//console.log(e.editor.getData());
 	//console.log(e.editor.name);
@@ -321,7 +321,7 @@ function check_ajax(data){
   }
 }
 function save_clause_callback() {
-	console.log('Clause saved');
+	//console.log('Clause saved');
 }
 
 function editAnnotation(e) {
@@ -329,10 +329,10 @@ function editAnnotation(e) {
 	var content;
 
 	var data_annotate = $("#"+ref).attr("data-annotate");
-	console.log("Before: "+data_annotate);
+	//console.log("Before: "+data_annotate);
 	//data_annotate = br2nl(data_annotate);
 	data_annotate = data_annotate.replace(/<br\s*[\/]?>/gi, "\n")
-	console.log("After: "+data_annotate);
+	//console.log("After: "+data_annotate);
 	//Change <br /> to \n
 	//console.log("data_annotate");
 	//console.log(data_annotate);
@@ -410,11 +410,11 @@ function change_annotation_for_load() {
 function change_annotation_options(speed) {
 
 	//alert('change_annotation_options: '+speed);
-	console.log("change annotation options");
+	//console.log("change annotation options");
 
-	console.log('speed');
-	console.log(typeof speed);
-	console.log(speed);
+	//console.log('speed');
+	//console.log(typeof speed);
+	//console.log(speed);
 	annotationOption = $( "#annotation_options" ).val();
 
 	if( annotationOption == 'off') {
@@ -768,8 +768,8 @@ function load_change_owner(data) {
 
 	var key = "document_owner";
 
-	console.log("CHANGE_OWNER data");
-	console.dir(data);
+	//console.log("CHANGE_OWNER data");
+	//console.dir(data);
 
 	$('#change-permission')
 		.append($('<div>')
@@ -824,8 +824,8 @@ function click_change_answer_button() {
 
 function load_change_answer(data) {
 	//change_answer_questions
-	console.log("load_change_answer");
-	console.dir(data);
+	//console.log("load_change_answer");
+	//console.dir(data);
 
 /*
 	$('#change_answer_questions').empty().append(
@@ -844,7 +844,7 @@ function load_change_answer(data) {
 	var questions = data.questions;
 	var previous_section = "";
 	$.each(questions , function( key, value ) {
-		console.dir(value);
+		//console.dir(value);
 		if(previous_section != value.section){
 			//section_change
 			$('#change-answer').append(
