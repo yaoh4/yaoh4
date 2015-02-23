@@ -273,6 +273,7 @@ function get_all_definitions_callback(data) {
 	for (i=0;i<data.definitions.length;i++) {
 		definitions[data.definitions[i].term] = data.definitions[i].definition;
 	}
+	console.dir(definitions);
 }
 
 function setup_sections() {
@@ -461,8 +462,11 @@ function setup_document_callback(data) {
 
 		//if (used_terms[i] == "") continue;
 		var definition = definitions[used_terms[i]];
+		if(definition.toUpperCase() == 'undefined') {
+			definition = "<strong>[definition needed]</strong>";
+		}
 		new_clauses[i] = new Object();
-		new_clauses[i].text = "<B>" + add_demographics(used_terms[i]) + "</B>: " + add_demographics(definition);
+		new_clauses[i].text = "<strong>" + add_demographics(used_terms[i]) + "</strong>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
 		new_clauses[i].survivable = 0;
 //		console.log("new_clauses["+(i)+"]");
