@@ -187,15 +187,18 @@ function get_subsections_callback(data) {
 		);
 	for (i=0;i<data.subsections.length;i++) {
 		if (data.subsections[i] != "") {
-				$("#demographic-form")
-					.append($('<div>')
-						.addClass('form-group')
-						.addClass('subsections')
-						.attr('name', data.subsections[i])
-						.append("<LABEL class='demographic-label' for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL>")
-						.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION selected>No</OPTION></SELECT>")
-						.append("<div style='clear:both;'></div>")
-					);
+			$("#demographic-form")
+				.append($('<div>')
+					.addClass('form-group')
+					.addClass('subsections')
+					.attr('name', data.subsections[i])
+					.append("<LABEL class='demographic-label' for='subsection_"+data.subsections[i]+"' >" + data.subsections[i] + "</LABEL>")
+					.append("<SELECT id='subsection_"+data.subsections[i]+"' ><OPTION>Yes</OPTION><OPTION selected>No</OPTION></SELECT>")
+					.append("<div style='clear:both;'></div>")
+				);
+				if(data.subsections[i].toUpperCase() == "PREAMBLE") {
+					$('#subsection_' + data.subsections[i]).val("Yes");
+				}
 		}
 	}
 	stop_spinner('spinner', 'demographics');
