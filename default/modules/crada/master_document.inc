@@ -7,7 +7,7 @@ define("HEADER_ERROR", 'Section <b><i>%s</i></b> header row is incorrect:  <b>Ro
 define("NO_SURVIVABILITY", "Section <b><i>%s</i></b> does NOT have a <i>Survivability</i> column defined in header Row A.  Please add a column with <i>Survivability</i> in the header row.");
 define("QUESTION_ANSWER_REPEAT_ERROR", 'Question <b><i>%s</i></b> and answer <b>%s</b> has been repeated.');
 define('INVALID_QUESTION_ANSWER', 'Section <b>%s</b> has a repeated question and answer.  Please delete the repeated question and answer', 'error');
-define('BLANK_ANSWER', 'Section <b>%s</b> has a BLANK answer for a <b>REQUIRED</b> clause.  Please add <b>REQURIED</b> to answer column');
+define('BLANK_ANSWER', 'Section <b>%s</b> has a BLANK answer for a <b>REQUIRED</b> clause.  Please add <b>REQUIRED</b> to answer column');
 
 function master_document_form($form, &$form_state) {
 	//
