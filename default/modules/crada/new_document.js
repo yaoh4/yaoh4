@@ -58,6 +58,10 @@ $(document).ready(function ($) {
 			setup_questions_for_section(current_section_number);
 		}
 	});
+
+	window.onbeforeunload = function() {
+		return "Are you sure you wish to leave this delightful page?";
+	}
 });
 
 /*
@@ -142,6 +146,10 @@ function display_demographic_questions(data) {
 }
 
 function get_alternate_text_types_callback(data) {
+	console.log('get_alternate_text_types_callback');
+	console.dir(data);
+	console.log('types count');
+	console.log('count: '+data.types.length);
 
 	$("#demographic-form")
 		.append(
