@@ -212,6 +212,9 @@ function changedAnswer(e) {
 function load_current_document() {
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=current";
 }
+function load_selected_document() {
+	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version=" + getCookie('Drupal.visitor.document.version') ;
+}
 
 function set_answer_retrieve_new_element_callback(data) {
 //	alert(JSON.stringify(data));
@@ -956,14 +959,15 @@ function create_word_file_callback(data) {
 }
 
 function click_select_document_button() {
-//	alert("Clicked Select Document Button: " + $("#document_select").val());
 
 	document_id = $("#document_select").val();
 	version_id = $("#document_version").val();
+	//alert("Clicked Select Document Button: " + $("#document_select").val()+"\nClicked Select Document Button: " + $("#document_version").val());
 	//Set cookies
 	setCookie("Drupal.visitor.document.id", document_id, 365);
 	setCookie("Drupal.visitor.document.version", version_id, 365);
-	load_current_document();
+	load_selected_document();
+	//load_current_document();
 	//change_annotation_for_load();
 	//ajax_caller("get_full_document", {'document_id':document_id, 'version':version_id}, get_document_elements_callback);
 	//$("#load_dialog").dialog( "close" );
