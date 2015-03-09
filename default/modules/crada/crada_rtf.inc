@@ -22,6 +22,7 @@ class CradaRtf extends PHPRtfLite {
   private $left;
   private $center;
   private $right;
+  private $justify;
 
   function __construct() {
     parent::__construct();
@@ -41,14 +42,18 @@ class CradaRtf extends PHPRtfLite {
     $this->fontLargeBold = new PHPRtfLite_Font($this->_fontSizeLarge, $this->_fontFamily, $this->_fontColor);
     $this->fontLargeBold->setBold();
 
+    $this->setDefaultFont($this->fontNormal);
+
+/*
     $this->fontBody = new PHPRtfLite_Font($this->_fontSizeMedium, $this->_fontFamily, $this->_fontColor);
     $this->fontBodyBold = new PHPRtfLite_Font($this->_fontSizeMedium, $this->_fontFamily, $this->_fontColor);
 
     $this->formatPara = new PHPRtfLite_ParFormat();
-
+*/
     $this->left = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_LEFT);
     $this->center = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
     $this->right = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_RIGHT);
+    $this->justify = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_JUSTIFY);
   }
 
   function setHeader($text) {
@@ -61,7 +66,7 @@ class CradaRtf extends PHPRtfLite {
     $footer = $this->addFooter();
     $table = $footer->addTable();
     $table->addRows(2);
-    $table->addColumnsList(array(2.86, 2.86, 2.86));
+    $table->addColumnsList(array(2.15, 2.15, 2.15));
 
     $content = $document['base_template'];
     $table->writeToCell(1, 1, $content, $this->fontSmall, $this->left);
@@ -77,51 +82,43 @@ class CradaRtf extends PHPRtfLite {
 science natural history }}';
 
   }
-  private function setSectionTitle($section_title) {
-    crada_log("SETTING ..." + $section_title);
+  private function setSectionPageTitle($page_title) {
+    crada_log("SETTING ..." + $page_title);
     $this->section->writeText('<br>');
-    $this->section->writeText($section_title, $this->fontLargeBold, $this->center);
+    $this->section->writeText($page_title, $this->fontLargeBold, $this->center);
+    $this->section->writeText('<br>');
   }
 
   function setCoversheet($page_title, $document) {
-
-    crada_log("setCoversheet");
-    // FORMAT Defined
-    $formatPara = new PHPRtfLite_ParFormat();
-    $formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
-    $formatParaLeft = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_LEFT);
-
-  /* Add Cover Page */
     $this->section =  $this->addSection();
-    $this->setSectionTitle($page_title);
+    $this->section->writeText('<br>');
+    $this->setSectionPageTitle($page_title);
 
-    $content = "<br><br><br>";
+    $content = "<br>";
     $this->section->writeText($content, $this->fontNormal, $this->left);
     $content = "This Cover Page identifies the Parties to this CRADA:<br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = "The U.S. Department of Health and Human Services, as represented by<br>";
+    $content = "The U.S. Department of Health and Human Services, as represented by<br>";
     $this->section->writeText($content, $this->fontNormal, $this->center);
-$content = "<b>[INSERT the full name of the ICD]</b><br>";
+    $content = "<b>[INSERT the full name of the ICD]</b><br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = "an Institute, Center, or Division (hereinafter referred to as the “ICD”) of the <br>";
+    $content = "an Institute, Center, or Division (hereinafter referred to as the “ICD”) of the <br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = "<b>[INSERT as appropriate: NIH, CDC, or FDA]</b><br><br>";
+    $content = "<b>[INSERT as appropriate: NIH, CDC, or FDA]</b><br><br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = "and<br><br>";
+    $content = "and<br><br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = "<b>[INSERT Collaborator’s official name]</b>,<br>";
+    $content = "<b>[INSERT Collaborator’s official name]</b>,<br>";
     $this->section->writeText($content, $this->fontNormal);
-$content = 'hereinafter referred to as the “Collaborator”,<br>';
+    $content = 'hereinafter referred to as the “Collaborator”,<br>';
     $this->section->writeText($content, $this->fontNormal);
-$content = "created and operating under the laws of <b>[INSERT State of Incorporation]</b>.<br>";
+    $content = "created and operating under the laws of <b>[INSERT State of Incorporation]</b>.<br>";
     $this->section->writeText($content, $this->fontNormal);
-    //$section->insertPageBreak();
   }
 
   function setBody($doc) {
-    $this->bodySection = $this->addSection();
-
-
+    //$this->section->insertPageBreak();
+    $this->section = $this->addSection();
     /* Print each clause */
  //              \pard \li1440\ri1440\fi480\qj
     /* Print Definitions without section number */
@@ -167,7 +164,8 @@ $content = "created and operating under the laws of <b>[INSERT State of Incorpor
           //Add Section
           $section_number++;
           $current_section = $doc['clauses'][$i]['section'];
-          $this->section->writeText("<b>".$section_number.".  ".$current_section."</b>\n", $this->fontBody, $this->formatPara);
+          $content = "<b>".$section_number.".  ".$current_section."</b>\n";
+          $this->section->writeText($content, $this->fontNormalBold, $this->left);
           $current_subsection = 1;
         }
         //
@@ -198,30 +196,18 @@ $content = "created and operating under the laws of <b>[INSERT State of Incorpor
     //Add survivability
     //
     if(($survivability_statement = getSurvivabilityStatement($doc)) != "") {
-      $this->section->writeText($survivability_statement."\n", $this->fontBody, $formatClause);
+      $this->section->writeText($survivability_statement."\n", $this->fontNormal, $formatClause);
     }
 
-    $this->section->writeText("\n\n\nSIGNATURES BEGIN ON THE NEXT PAGE", $this->fontBody, new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER));
-    $this->section->insertPageBreak();
-
+    $this->section->writeText("\n\n\nSIGNATURES BEGIN ON THE NEXT PAGE", $this->fontNormal, $this->center);
   }
 
 
   function setSignature($page_title, $section_title, $section_statement) {
-    // FONTS Defined
     $this->section = $this->addSection();
-    $this->setSectionTitle($title);
-
-    $fontHeader = new PHPRtfLite_Font(14, $this->_font, $this->fontColor);
-    $fontHeaderBold = new PHPRtfLite_Font(14, $this->_font, $this->fontColor);
-    // FORMAT Defined
-    $formatPara = new PHPRtfLite_ParFormat();
-    $formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
-    $content= 'SIGNATURE PAGE';
-    $this->section->writeText("\n".$content."\n\n", $fontHeader, $formatParaCenter);
-
+    $this->setSectionPageTitle($page_title);
     $content= '<b>'.$section_title.'</b>';
-    $this->section->writeText($content."\n", $this->fontBody, $formatParaCenter);
+    $this->section->writeText($content."\n", $this->fontNormal, $this->center);
 
     $content = "\scaps ".$section_statement;
     $this->section->writeRtfCode($content, $this->fontNormal, $this->left);
@@ -229,40 +215,137 @@ $content = "created and operating under the laws of <b>[INSERT State of Incorpor
 $content = '
 
 
-FOR IC:
+FOR
 
 
 
-_______________________________________      _________________
-Signature                                      Date
+____________________________________________      _________________
+Signature                                           Date
 
-Typed Name: <b>[IC]</b>
-Title: <b>[IC Title]</b>
-
-
-
-FOR COLLABORATOR:
+Typed Name:
+Title:
 
 
 
-_______________________________________      _________________
-Signature                                      Date
+FOR
 
 
-Typed Name: <b>[Collaborator]</b>
-Title: <b>[Collaborator Title]</b>
-';
-    $this->section->writeText($content, $this->fontBody, $this->formatPara);
-    $this->section->insertPageBreak();
+
+____________________________________________      _________________
+Signature                                           Date
+
+Typed Name:
+Title:';
+    $this->section->writeText($content, $this->fontNormal, $this->left);
 
   }
-  function setContacts() {
+
+  private function contactTable($header) {
+    //Fill in rows 2 thru 6 with underscores
+    $table = $this->section->addTable();
+    $table->addRows(6);
+    $table->addColumnsList(array(3.2,3.2));
+    $table->writeToCell(1, 1, $header[0], $this->fontNormal);
+    $table->writeToCell(1, 2, $header[1], $this->fontNormal);
+    for($row=2;$row<=6;$row++) {
+      $table->writeToCell($row, 1, '<u>'.str_repeat(" ", 35).'</u>', $this->fontNormal);
+      $table->writeToCell($row, 2, '<u>'.str_repeat(" ", 35).'</u>', $this->fontNormal);
+    }
+  }
+  function setContacts($page_title) {
+    $this->section =  $this->addSection();
+    $this->setSectionPageTitle($page_title);
+
+    // Part 1
+    $content = "Principal Place of Business<br>";
+    $this->section->writeText($content, $this->fontNormalBold, $this->center);
+    $header = ["For ICD:", "For Collaborator:"];
+    $this->contactTable($header);
+
+    // Part 2
+    $content = "<br>CRADA Notices<br>";
+    $this->section->writeText($content, $this->fontNormalBold, $this->center);
+    $header = ["For ICD:", "For Collaborator:"];
+    $this->contactTable($header);
+
+    // Part 3
+    $content = "<br>Patenting and Licensing<br>";
+    $this->section->writeText($content, $this->fontNormalBold, $this->center);
+    $table = $this->section->addTable();
+    $table->addRows(8);
+    $table->addColumnsList(array(3.2,3.2));
+    $table->writeToCell(1, 1, 'For ICD:', $this->fontNormal);
+    $table->writeToCell(1, 2, 'For Collaborator: (if separate from above):<br>', $this->fontNormal);
+    $table->writeToCell(2, 1, 'Division Director, Division of Technology', $this->fontNormal);
+    $table->writeToCell(3, 1, '     Development and Transfer', $this->fontNormal);
+    $table->writeToCell(4, 1, 'NIH Office of Technology Transfer', $this->fontNormal);
+    $table->writeToCell(5, 1, '6011 Executive Boulevard, Suite 325', $this->fontNormal);
+    $table->writeToCell(6, 1, 'Rockville, Maryland 20852-3804', $this->fontNormal);
+    $table->writeToCell(7, 1, 'Tel:  301-496-7057', $this->fontNormal);
+    $table->writeToCell(8, 1, 'Fax:  301-402-0220', $this->fontNormal);
+    for($row=2;$row<=8;$row++) {
+      $table->writeToCell($row, 2, '<u>'.str_repeat(" ", 35).'</u>', $this->fontNormal);
+    }
+    // Part 4
+    $content = "<br>Delivery of Materials Identified In Appendix B (if any)<br>";
+    $this->section->writeText($content, $this->fontNormalBold, $this->center);
+    $header = ["For ICD:", "For Collaborator:"];
+    $this->contactTable($header);
+
 
   }
-  function setSummary() {
+  function setSummary($page_title, $section_statement) {
+    $this->section =  $this->addSection();
+    $this->setSectionPageTitle($page_title);
+    $content= '<i>'.$section_statement.'</i>';
+    $this->section->writeText($content."\n", $this->fontNormal, $this->center);
+
+$content = "TITLE OF CRADA:<u>".str_repeat(" ", 150)."</u>
+
+PHS [ICD] Component:<u>                     </u>
+ICD CRADA Principal Investigator:<u>                </u>
+
+Collaborator:
+Collaborator CRADA Principal Investigator:<u>                  </u>
+Term of CRADA:          <u>   </u>(<u>  </u>) years from the Effective Date
+
+";
+    $content = "TITLE OF CRADA:  <u>".str_repeat(" ", 60)."</u>";
+    $this->section->writeText($content, $this->fontNormal, $this->left);
+    $content = "<u>".str_repeat(" ", 85)."</u>";
+    $this->section->writeText($content."\n", $this->fontNormal, $this->left);
+
+    $table = $this->section->addTable();
+    $table->addRows(5);
+    $table->addColumnsList(array(3.2,3.2));
+    $table->writeToCell(1, 1, "PHS [ICD] Component:", $this->fontNormal, $this->left);
+    $table->writeToCell(2, 1, "ICD CRADA Principal Investigator:", $this->fontNormal, $this->left);
+    $table->writeToCell(3, 1, "Collaborator:", $this->fontNormal, $this->left);
+    $table->writeToCell(4, 1, "Collaborator CRADA Principal Investigator:", $this->fontNormal, $this->left);
+    $table->writeToCell(5, 1, "Term of CRADA:", $this->fontNormal, $this->left);
+
+    $table->writeToCell(1, 2, '<u>'.str_repeat(" ", 38).'</u>', $this->fontNormal, $this->left);
+    $table->writeToCell(2, 2, '<u>'.str_repeat(" ", 38).'</u><br>', $this->fontNormal, $this->left);
+    $table->writeToCell(3, 2, '<u>'.str_repeat(" ", 38).'</u>', $this->fontNormal, $this->left);
+    $table->writeToCell(4, 2, '<u>'.str_repeat(" ", 38).'</u><br>', $this->fontNormal, $this->left);
+    $table->writeToCell(5, 2, "<u>     </u>(<u>     </u>) years from the Effective Date", $this->fontNormal, $this->right);
+
+    $content = "<br>ABSTRACT OF THE RESEARCH PLAN:";
+    $this->section->writeText($content, $this->fontNormal, $this->center);
+    //Create 6 lines
+    $content = "<u>".str_repeat(" ", 85)."</u>";
+    for($line;$line<=6;$line++) {
+      $this->section->writeText($content, $this->fontNormal, $this->left);
+    }
 
   }
-  function setAppendix() {
+
+  function setAppendix($page_title, $section_title) {
+    $this->section =  $this->addSection();
+    $this->setSectionPageTitle($page_title);
+    $this->section->writeText($section_title, $this->fontNormal, $this->center);
+
+    $this->section->writeText("<br>", $this->fontNormal, $this->left);
 
   }
 
@@ -272,7 +355,7 @@ Title: <b>[Collaborator Title]</b>
     $this->section->writeText($title, $this->fontBody, $formatParaCenter);
     $this->section->writeText('<br>');
   }
-
+/*
   private function setSection($section_number, $title) {
     $this->section->writeText("<b>".$section_number.".  ".$title."</b>", $this->fontBody, $this->formatPara);
     $this->section->writeText('<br>');
@@ -281,7 +364,6 @@ Title: <b>[Collaborator Title]</b>
   private function setIntroduction() {
     //$formatParaCenter = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_CENTER);
 
-      /* Add Cover Page */
     $section = $this->addSection();
     $section->writeText("1.\tabIntroduction", $this->fontBody);
     $section->writeText('<br>');
@@ -290,7 +372,7 @@ Title: <b>[Collaborator Title]</b>
     $section->writeText('<br>');
 
   }
-
+*/
   private function explodeLegalArray($arrayOfEntities, $delimiter=",") {
     $i = 0;
     $legal ="";
