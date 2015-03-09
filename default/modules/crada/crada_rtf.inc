@@ -334,7 +334,7 @@ Term of CRADA:          <u>   </u>(<u>  </u>) years from the Effective Date
     $this->section->writeText($content, $this->fontNormal, $this->center);
     //Create 6 lines
     $content = "<u>".str_repeat(" ", 85)."</u>";
-    for($line;$line<=6;$line++) {
+    for($line=1;$line<=6;$line++) {
       $this->section->writeText($content, $this->fontNormal, $this->left);
     }
 
