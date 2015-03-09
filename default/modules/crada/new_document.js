@@ -153,11 +153,16 @@ function get_alternate_text_types_callback(data) {
 
 	$("#demographic-form")
 		.append(
+			$('<div>').attr('id', 'alternate-text-container')
+			);
+
+	$("#alternate-text-container")
+		.append(
 			$('<h2>').append("Alternate Text")
 			.append($('<hr>'))
 		);
 
-	$("#demographic-form")
+	$("#alternate-text-container")
 		.append(
 			$('<p>')
 				.append("This document has alternative text available to support contracts with multiple entities.")
@@ -168,16 +173,18 @@ function get_alternate_text_types_callback(data) {
 		alternate_text_select.append("<OPTION>" + data.types[i] + "</OPTION>");
 	}
 
-	$("#demographic-form")
+	$("#alternate-text-container")
 		.append($('<label>')
 				.append("Select an Alternative Text Type:")
 				.addClass('demographic-label')
 				.attr("for", "alternate_text_type")
 		);
 
-	$("#demographic-form")
+	$("#alternate-text-container")
 		.append(alternate_text_select);
-
+	if(data.types.length == 1) {
+		$('#alternate-text-container').css('display', 'none');
+	}
 	ajax_caller('get_subsections', {'document_id': document_id}, get_subsections_callback);
 
 }
