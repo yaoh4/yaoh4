@@ -11,35 +11,18 @@ var demographics;
 var chosen_subsections;
 
 $(document).ready(function ($) {
+
 	$("#begin_question_button").click(function() {
 		$("#spinner").show();
 		$("#instructions").hide ();
 		setup_template_chooser();
 	});
-/*
-	$("#template_chooser_button").click(function() {
-		$("#spinner").show();
-		$("#choose_template").hide();
-		document_id = parseInt($("#template_chooser").val());
-		advance_progress_bar("demographics");
-		setup_demographics();
-	});
-*/
-/*
-	$("#demographics_button").click(function() {
-		//Save demographic answers
-		demographics = $('#demographic-form').serializeObject();
-		$("#spinner").show();
-		$("#demographics").hide();
-		get_all_definitions(document_id);
-		advance_progress_bar("questions");
-		identify_subsections();
-		setup_sections();
-	});
-*/
+
 	$("#questions_button").click(function() {
 		store_current_answers(current_section_number);
 		if (current_section_number == sections.length-1) {
+			//Allow Redirection
+			window.onbeforeunload = null;
 			//Generate Document
 			$("#spinner").show();
 			$("#spinner p")
@@ -59,16 +42,7 @@ $(document).ready(function ($) {
 		}
 	});
 
-	window.onbeforeunload = function() {
-		return "Are you sure you wish to leave this delightful page?";
-	}
 });
-
-/*
-function add_spinner(id) {
-	$('#'+id).empty().append('<div></dir><p class="second-page-intro"><i class="fa fa-spinner fa-spin fa-3x"></i></p>Why is this not working....');
-}
-*/
 
 function saveTemplate() {
 
@@ -80,6 +54,10 @@ function saveTemplate() {
 	document_id = parseInt($("#template_chooser").val());
 	advance_progress_bar("demographics");
 	setup_demographics();
+	//Warn user if they hit back button.
+	window.onbeforeunload = function() {
+		return "Are you sure you wish to leave this page?";
+	}
 
 }
 
