@@ -96,11 +96,11 @@ function add_command_bar() {
 //	$data .= '<i class="fa fa-file fa-2x"></i>';
 	$data .= '<span class="download-button-container">';
 //	$data .= ' <button id="download-word" title="Download Word"><i class="fa fa-file-word-o"></i></button>';
-	$data .= add_button("download-word", "", "Download Word", "fa fa-file-word-o");
+	$data .= add_button("download-word", "Download Word", "Download Word", "fa fa-file-word-o");
 	$data .= '</span>';
-	$data .= '<span class="download-button-container">';
-	$data .= '<button id="download-pdf"  title="Download PDF"><i class="fa fa-file-pdf-o"></i></button>';
-	$data .= '</span>';
+	//$data .= '<span class="download-button-container">';
+	//$data .= '<button id="download-pdf"  title="Download PDF"><i class="fa fa-file-pdf-o"></i></button>';
+	//$data .= '</span>';
 	$data .= "</DIV>";
 
 	return $data;
