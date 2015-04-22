@@ -361,7 +361,7 @@ function save_element() {
 
 	//Update text and remove changed_answer
   global $user;
-  $newtext = mysql_escape_string(trim(base64_decode($_REQUEST['column_text'])));
+  $newtext = mysql_real_escape_string(trim(base64_decode($_REQUEST['column_text'])));
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
@@ -1928,7 +1928,35 @@ function db_get_document_info($document_id) {
 }
 
 function db_get_document_elements ($document_id, $version) {
-	$query = "SELECT cde2.* FROM crada_document_element cde2, ";
+
+/*
+select doc3.*, ca.answer_text from (
+select doc2.*, cq.question_text from (
+select doc.*, cd.master_document_id from (
+SELECT cde2.* FROM crada_document_element cde2, 
+	(SELECT document_element_id, MAX(document_version) AS ver
+ 		FROM crada_document_element 		
+        WHERE document_id = 2 and document_version <= 8
+ 		GROUP BY document_element_id ) 
+
+	cde1 WHERE cde2.document_element_id = cde1.document_element_id  and cde2.document_version = cde1.ver and cde2.document_id = 2  and document_element_text not like 'silent'
+) doc, crada_document cd
+where doc.document_id = cd.document_id
+) doc2
+left join crada_question cq
+on doc2.master_document_id = cq.document_id
+and doc2.source_question = cq.question_id
+) doc3
+left join crada_answer ca
+on doc3.master_document_id = ca.document_id
+and doc3.source_question = ca.question_id
+and doc3.source_answer = ca.answer_id
+
+*/
+	$query = "select doc3.*, ca.answer_text from ( ";
+	$query .= "select doc2.*, cq.question_text from (";
+	$query .= "select doc.*, cd.master_document_id from (";
+	$query .= "SELECT cde2.* FROM crada_document_element cde2, ";
 	$query .= "(SELECT document_element_id, MAX(document_version) AS ver ";
 	$query .= "		FROM crada_document_element ";
 	$query .= "		WHERE document_id = $document_id and document_version <= $version ";
@@ -1936,7 +1964,19 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
 	$query .= " and cde2.document_version = cde1.ver ";
 	$query .= " and cde2.document_id = $document_id ";
-	$query .= " and document_element_text not like 'silent'; ";
+	$query .= " and document_element_text not like 'silent' ";
+	$query .= ") doc, crada_document cd ";
+	$query .= "where doc.document_id = cd.document_id ";
+	$query .= ") doc2 ";
+	$query .= "left join crada_question cq ";
+	$query .= "on doc2.master_document_id = cq.document_id ";
+	$query .= "and doc2.source_question = cq.question_id ";
+	$query .= ") doc3 ";
+	$query .= "left join crada_answer ca ";
+	$query .= "on doc3.master_document_id = ca.document_id ";
+	$query .= "and doc3.source_question = ca.question_id ";
+	$query .= "and doc3.source_answer = ca.answer_id ";
+
 
 	crada_log("GET LATEST DOCUMENT BASED on a version number");
 
@@ -1952,8 +1992,8 @@ function db_get_document_elements ($document_id, $version) {
 		$obj['public_annotation'] = trim($row->public_annotation);
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
-		$obj['survivable'] = $row->survivable;
-
+		$obj['question_text'] = $row->question_text;
+		$obj['answer_text'] = $row->answer_text;
 		array_push($list, $obj);
 	}
 	return $list;

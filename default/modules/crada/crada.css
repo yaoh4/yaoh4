@@ -121,8 +121,13 @@ body {
 #download-pdf {
 	color:red;
 }
+/*
 #download-word {
 	color:blue;
+}
+*/
+.fa-file-word-o {
+  color:blue;
 }
 
 
@@ -333,10 +338,15 @@ p.clause:focus{
 	background-color:LightGoldenRodYellow;  /* LightYellow */
 	outline:1px solid #A0981D; /* Highlight Yellow */
 }
-.answer-changed {
+p.answer-changed {
 	background-color:MistyRose;  /* Misty Rose*/
 	outline:1px solid #FC981D; /*  Red highlight */
 }
+p.clause-has-question {
+    background-color:WhiteSmoke; /*very light grey*/
+    outline:1px solid #F5F5F5; /*  WhiteSmoke */
+}
+
 .fa-lock-style{
 	color:gold;
 	margin:0px 10px;

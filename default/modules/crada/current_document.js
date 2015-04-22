@@ -13,9 +13,11 @@ $(document).ready(function () {
 	$("#current_annotation_content").tooltip({show: {delay: 350}}); /*Adding jQuery tooltip for annotations*/
 	$("#load_button").click(click_load_button);
 	$("#archive_version_button").click(click_archive_version_button);
+/*	
 	$("#download-pdf").click(function() {
 		downloadDocument("PDF");
 	});
+*/
 	$("#download-word").click(function() {
 		downloadDocument("Word");
 	});
@@ -194,7 +196,7 @@ function changedAnswer(e) {
 	var answer_id = $("#"+ref).val();
 
 
-	//alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
   //
   //  Disable all other change answer drop downs and the back button.
   //  This will help avoid confusion when change answer rest call is occuring.
@@ -990,6 +992,9 @@ function set_toolbar_buttons(editable) {
 }
 
 function get_document_elements_callback(data) {
+	console.log("GET_DOCUMENT_ELEMENTS_CALLBACK.");
+	console.dir(data);
+
 	change_annotation_for_load();
 	setCookie("Drupal.visitor.document.version", data.version, 365);
 	set_toolbar_buttons(data.editable);
@@ -1058,7 +1063,7 @@ function get_document_elements_callback(data) {
 			section_reference = section_number+"-"+clause_number;
 			//if(section_number == 3) { // For testing only
 
-			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable);
+			displayClauseParagraph(section_number, clause_number, data.clauses[i], i, "accordion-content-"+section_number, data.editable), current_section;
 			min_position = addAnnotationDiv(data.clauses[i], section_reference, data.editable, i, min_position);
 			//console.log("On the outside, min_position: "+min_position);
 			/*
@@ -1468,125 +1473,86 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 	//console.dir(annotation_data);
 }
 
-function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable) {
+/**
+* displayClauseParagraph
+* create each section of document
+*/
 
-//	console.info('section_number '+section_number);
-//	console.info('minor_number '+minor_number);
-//	console.info('clause '+clause);
-//	console.info('index '+index);
-//	console.info('element_id '+element_id);
-	//var clause_text = clause.text;
-	//Search and replace \n with '<br>'
-	// WEIRD. This causes too many returns...
+function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable, section_name) {
 
-	//clause.text = clause.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
+	console.info('section_number: '+section_number+'-'+minor_number);
+	//console.info('clause '+clause);
+	console.info('index '+index+', element_id '+element_id);
+
 	var document_element_id = clause['document_element_id'];
-
-	if(parseInt(section_number) == 1) {
-		$("#"+element_id)
-			.append($('<div>')
-						.addClass('clause-paragraph')
-						.append($('<a>')
-								.attr('name', '#clause-'+section_number+"-"+minor_number)
-							)
-						.append($('<div>')
-									.addClass('minor-version')
-									.append("")
-						)
-
+	var major_minor =  (parseInt(section_number) == 1) ? "" : section_number+"-"+minor_number;
+	$("#"+element_id)
+		.append(
+			$('<div>')
+				.addClass('clause-paragraph')
+				.append($('<a>')
+					.attr('name', '#clause-'+section_number+"-"+minor_number)
+				)
+				.append($('<div>')
+					.addClass('minor-version')
+					.append(major_minor)
+				)
 			.append(
-			    $('<div>', {'class': 'clause-container'}).append(
-			    	$('<p>', {'class':'clause'}).append(
-			        	clause.text
-			        )
-			        .attr('id', 'clause-'+index)
-			    )
+			    $('<div>', {'class': 'clause-container'})
+			    	.append(
+			    		$('<p>', {'class':'clause'}).append(
+			        		clause.text
+			        	)
+			        		.attr('id', 'clause-'+index)
+			    	)
 			)
 		);
-	} else {
-	  $("#"+element_id)
-	    .append($('<div>')
-	          .addClass('clause-paragraph')
-	          .append($('<a>')
-	              .attr('name', '#clause-'+section_number+"-"+minor_number)
-	            )
-	          .append($('<div>')
-	                .addClass('minor-version')
-	                .append(section_number+"-"+minor_number)
-	          )
 
-	    .append(
-	        $('<div>', {'class': 'clause-container'}).append(
-	          $('<p>', {'class':'clause'}).append(
-	              clause.text
-	            )
-	            .attr('id', 'clause-'+index)
-	        )
-	    )
-	  );
+	//Adding 
+	//Clause has 
+	altMessage = createParagraphAltMessage(clause);
+	console.log(altMessage);
+
+	if(clause.question_text != "REQUIRED") {
+		$('#clause-'+index).addClass('clause-has-question');
 	}
-	//console.log("document_version = "+parseInt(clause.document_verison));
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed')
 			.attr('document_element_id', document_element_id)
-      .attr('alt','This clause has changed from original version.')
-      .attr('title','This clause has changed from original version.');
+      		.attr('alt','This clause has changed from original version.')
+      		.attr('title','This clause has changed from original version.');
 	}
 	//console.log("clause.answer_changed = "+parseInt(clause.answer_changed));
 	if(parseInt(clause.answer_changed) == 1) {
 		$('#clause-'+index).addClass('answer-changed')
 			.attr('document_element_id', document_element_id)
-      .attr('alt', 'This clause has changed because of a changed answer.')
-      .attr('title', 'This clause has changed because of a changed answer.');
+      		.attr('alt', 'This clause has changed because of a changed answer.\nQ: What is your favorite color?\nA: Yes')
+     		.attr('title', 'This clause has changed because of a changed answer.\nQ: What is your favorite color?\nA: Yes');
 	}
 
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
 	} else {
 		$('#clause-'+index).removeClass('clause')
-      .addClass('clause-locked')
-      .attr('alt', 'This clause is locked and not editable.');
+      		.addClass('clause-locked')
+      		.attr('alt', 'This clause is locked and not editable.');
 	}
 
-	//var section_position = $('#'+element_id).position();
-	//var section_offset = $('#'+element_id).offset();
-	//var section_height = $('#'+element_id).height();
-
-//	var clause_position = $('#clause-'+index).position();
-	//var clause_offset = $('#clause-'+index).offset();
-	//var clause_height = $('#clause-'+index).height();
-//	console.log('cluase-'+index +"  Should exist now...  Go check");
-
-	//var element = document.getElementById("clause-"+index);
-
-	//var clause_xPosition = (element.offsetLeft - element.scrollLeft + element.clientLeft);
-	//var clause_yPosition = (element.offsetTop - element.scrollTop + element.clientTop);
-
-	/*
-	console.log('position');
-	console.dir(position);
-	console.log('offset');
-	console.dir(offset);
-	console.log('height');
-	console.log(height);
-*/
-/*
-	section_position['height'] = section_height;
-	section_position['offset'] = section_height;
-
-	clause_position['height'] = clause_height;
-	clause_position['offset'] = clause_height;
-	clause_position['xPosition'] = clause_xPosition;
-	clause_position['yPosition'] = clause_yPosition;
-
-	var position = {
-		section: section_position,
-		clause: clause_position
-	};
-*/
-//	console.dir(position);
 	return;
 }
+
+function createParagraphAltMessage(clause) {
+	var message = [];
+	if(parseInt(clause.document_version) == 1) {
+		message.push('This clause has changed from original version.');
+	} else if(parseInt(clause.answer_changed) > 0) {
+		message.push('This clause has changed because of a changed answer.');
+	} 
+
+
+	return message;
+}
+
 
 function displaySectionHeader(section_number, current_section, element_id) {
 //	console.log("section_number = " + section_number);
