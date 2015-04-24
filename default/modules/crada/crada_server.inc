@@ -3,7 +3,8 @@
 
 //Create new document steps:
 //Step 1: get_clauses_from_answers()
-//Step 2: create_new_document()
+//Step 2: get_all_definitions()
+//Step 3: create_new_document()
 	global $user;
 //
 // Make sure user is logged into Drupal
@@ -36,11 +37,11 @@ function crada_server() {
 		else if ($action == 'get_questions_for_section') $output = db_get_questions_for_section();
 		else if ($action == 'get_section_list') $output = db_get_section_list();
 		else if ($action == 'get_section') $output = db_get_section();
-		else if ($action == 'get_all_definitions') $output = db_get_all_definitions();
 		else if ($action == 'get_demographics') $output = db_get_demographics();
 		else if ($action == 'get_all_documents_info') $output = db_get_all_documents_info();
 		else if ($action == 'get_clauses_from_answers') $output = get_clauses_from_answers(); //Step 1:
-		else if ($action == 'create_new_document') $output = create_new_document(); //Step 2:
+		else if ($action == 'get_all_definitions') $output = db_get_all_definitions(); //Step: 2
+		else if ($action == 'create_new_document') $output = create_new_document(); //Step: 3
 		else if ($action == 'get_full_document') $output = get_full_document();
 		else if ($action == 'get_answers') $output = get_answers();
 		else if ($action == 'get_document_permissions') $output = get_document_permissions();
@@ -81,7 +82,7 @@ function crada_server() {
 	}
 }
 function search_clauses() {
-	$searchterm = mysql_escape_string(trim(base64_decode($_REQUEST['searchterm'])));
+	$searchterm = mysql_real_escape_string(trim(base64_decode($_REQUEST['searchterm'])));
 	//crada_log("SEARCH CLAUSE");
 	crada_log("searchterm: $searchterm");
 
@@ -487,7 +488,7 @@ function set_annotation() {
 	extract($_REQUEST);
 	crada_log("new_annotation from _REQUEST");
 	crada_log($_REQUEST['document_element_id']);
-	$new_annotation = mysql_escape_string(trim(base64_decode($new_annotation)));
+	$new_annotation = mysql_real_escape_string(trim(base64_decode($new_annotation)));
 	//Remove all \n\n+ series and replace with just one \n
 	crada_log("BEFORE preg_replace of new line");
 	crada_log($new_annotation);
@@ -613,7 +614,7 @@ function query_get_master_clauses($master_document_id) {
 	$query = "SELECT vc.*, ";
 	$query .= "cde.document_element_id, cde.document_version,  ";
 	$query .= "cde.alternate_text_type, cde.document_element_text, ";
-	$query .= "cde.confidential_annotation, cde.public_annotation ";
+	$query .= "cde.confidential_annotation, cde.public_annotation, cde.survivable ";
 	$query .= "FROM ";
 	$query .= "crada_valid_clause_group_by_answer vc, ";
 	$query .= "crada_clause_group_to_clause gtc, ";
@@ -772,6 +773,7 @@ function set_new_answer() {
 	$new_document_element_text = $row->document_element_text;
 	$new_confidential_annotation = $row->confidential_annotation;
 	$new_public_annotation = $row->public_annotation;
+	$new_survivable = $row->survivable;
 
 	if($new_document_element_text == NULL) {
 		crada_log("GET DEFAULT TEXT");
@@ -786,6 +788,7 @@ function set_new_answer() {
 		$new_document_element_text = $row->document_element_text;
 		$new_confidential_annotation = $row->confidential_annotation;
 		$new_public_annotation = $row->public_annotation;
+		$new_survivable = $row->survivable;
 	}
 
 	crada_log("JUST GOT DONE WITH GET CLAUSE.");
@@ -818,7 +821,8 @@ function set_new_answer() {
 							SET
 							document_element_text = '$new_document_element_text',
 							confidential_annotation = '$new_confidential_annotation',
-							public_annotation = '$public_annotation',
+							public_annotation = '$new_public_annotation',
+							survivable = '$new_survivable',
 							source_answer = $answer_id,
 							answer_changed = 1,
 							updated_by = $user->uid
@@ -1542,27 +1546,6 @@ function db_get_all_documents_info() {
 }
 
 function create_new_document () {
-/*
-		ajax_caller('create_new_document', {
-			'demographic_answers':JSON.stringify(demographics),
-			'data':new_clauses_encoded,
-			'alternate_text':alternate_text,
-			'title':title,
-			'master_document_id':master_document_id},
-		create_new_document_callback, 'POST');
-
-*/
-/*
-	ajax_caller(
-	'create_new_document',
-	{
-	'demographic_answers':JSON.stringify(demographics),
-	 'data':new_clauses_encoded,
-	 'alternate_text':alternate_text,
-	 'title':title,
-	 'master_document_id':master_document_id},
-		create_new_document_callback, 'POST');
-*/
 
 	$data = json_decode($_REQUEST['data'], true);
 
@@ -1594,12 +1577,19 @@ function create_new_document () {
 		//
 		//Walk through each clause and add them to the new document
 		//
-		crada_log("HERE IS THE DATA I GOT");
-		crada_log(print_r($data, true));
+		//crada_log("HERE IS THE DATA I GOT");
+		//crada_log(print_r($data, true));
 		for ($i=0;$i<count($data); $i++) {
 			//crada_log("section: {$data[$i]['section']}");
 			//crada_log("text: {$data[$i]['text']}");
 			$clause = $data[$i];
+			//
+			// To allow definitions to grow when changing answer 
+			// we will add a 10,000 offset to the index.
+			//	When user changes an answer the definitions can be deleted 
+			//  with the offset of 10000
+			//
+
 /*
 			crada_log(print_r($clause, true));
 			crada_log("source_question : ".$clause['source_question']);
@@ -1620,12 +1610,16 @@ function create_new_document () {
 			$subsection = $data[$i]['subsection'];
 //			crada_log("subsection: $subsection");
 			$subsection = ($subsection == NULL) ? "" : $subsection;
+			$index = ($data[$i]['section'] == 'Definitions') ? $i + DEFINITION_INDEX_OFFSET : $i;
+			crada_log("index = $index");
+
 //			crada_log(print_r($clause,true));
 			/*******************************
 			// CAUSING ALL THE PROBLEMS HERE
 			********************************/
 //			crada_log("DB_INSERT_DOCUMENT_ELEMENT");
-			db_insert_document_element($document_id, $i,
+			db_insert_document_element($document_id,
+					$index,
 					$data[$i]['section'],
 					$subsection,
 					$data[$i]['text'],
@@ -1992,7 +1986,8 @@ and doc3.source_answer = ca.answer_id
 		$obj['public_annotation'] = trim($row->public_annotation);
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
-		$obj['question_text'] = $row->question_text;
+		$obj['survivable'] = $row->survivable;
+		$obj['question_text'] = is_null($row->question_text) ? 'DEFINITION' : $row->question_text;
 		$obj['answer_text'] = $row->answer_text;
 		array_push($list, $obj);
 	}

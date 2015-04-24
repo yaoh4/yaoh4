@@ -188,11 +188,11 @@ function load_excel_file() {
 		$filetype = PHPExcel_IOFactory::identify($filename);
 		$xls_reader = PHPExcel_IOFactory::createReader($filetype);
 		$xls_reader->setReadDataOnly(TRUE);
-		crada_log(print_r($xls_reader, true));
+//		crada_log(print_r($xls_reader, true));
 	} catch (Exception $e) {
 		drupal_set_message("Load PHPExcel Library: FAILED" );
 		drupal_set_message("Exception: ",  $e->getMessage(), "\n");
-    crada_log(print_r($e, true));
+  		crada_log(print_r($e, true));
 		return false;
 	}
 

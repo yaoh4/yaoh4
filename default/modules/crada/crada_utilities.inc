@@ -7,6 +7,9 @@
 //
 // Description : Common php functions for CRADA Builder
 //============================================================+
+
+define('DEFINITION_INDEX_OFFSET', 10000);
+
 function crada_log_sql_error($e) {
   $filename = "/local/drupal/logs/crada.log";
 
@@ -254,3 +257,41 @@ function explodeLegalArray($arrayOfEntities, $delimiter=",") {
   }
   return $legal;
 }
+
+function getSurvivabilityStatement($doc) {
+  $output = array();
+
+  crada_log(print_r($doc, true));
+
+  $section_number = 0;
+  $current_section = "";
+  for($i=0;$i<count($doc['clauses']);$i++) {
+      //crada_log("Current Section: $current_section");
+      if($doc['clauses'][$i]['section'] != $current_section) {
+        //crada_log("New Section: {$doc['clauses'][$i]['section']}");
+        $current_section = $doc['clauses'][$i]['section'];
+        //Add Section
+        $section_number++;
+        $current_subsection = 1;
+      }
+      if($doc['clauses'][$i]['survivable']) {
+          //crada_log(print_r($doc['clauses'][$i], true));
+          $output[] = $section_number."-".$current_subsection;
+      }
+      $current_subsection++;
+  }
+
+  $survivability_statement = "";
+
+  if(count($output) > 0) {
+    $label = (count($output) == 1) ? "Paragraph" : "Paragraphs";
+
+    $survivability_statement = "<strong>Survivability</strong>.  ";
+    $survivability_statement .= "The provisions of ".$label." ";
+    $survivability_statement .= explodeLegalArray($output);
+    $survivability_statement .= " will survive the expiration or early termination of this CRADA.";
+  }
+
+  return $survivability_statement;
+}
+

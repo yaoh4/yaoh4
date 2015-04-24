@@ -2,11 +2,6 @@
 
 require_once 'crada_utilities.inc';
 
-
-if(function_exists('openssl_encrypt')) {
-  crada_log("BTW, PHP opensslq_encrypt function exists.  Yes... (current_document.inc)");
-}
-
 function crada_current_document() {
 
 	crada_include();

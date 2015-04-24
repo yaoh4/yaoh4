@@ -4,7 +4,7 @@ ini_set('max_execution_time', 90);
 
 require_once 'crada_utilities.inc';
 require_once 'crada_server.inc';
-require_once 'crada_pdf.inc';
+//require_once 'crada_pdf.inc';
 require_once 'crada_rtf.inc';
 
 //Document Format Details
@@ -34,8 +34,8 @@ function download_document() {
   crada_log(print_r($doc,true));
 
 	if($_REQUEST['document_type'] == "PDF") {
-		crada_log('Creating PDF file');
-		create_pdf_file($doc);
+		//crada_log('Creating PDF file');
+		//create_pdf_file($doc);
 	} else {
 		crada_log('Creating RTF file');
 		create_rtf_file($doc);

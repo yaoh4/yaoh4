@@ -29,7 +29,7 @@ $(document).ready(function () {
 	$("#select_document_button").click(click_select_document_button);
 
  	$("#current_document_content").on( "focus", "p.clause", function(event) {
-  	editClause(event);
+  		editClause(event);
 	});
 	$("#current_document_content").on( "blur", "p.clause", function(event) {
 		updateClauseParagraph();
@@ -41,7 +41,7 @@ $(document).ready(function () {
 
 	$("#current_annotation_content").on( "click", "p", function(event) {
 		if($('#'+event.target.id).attr("annotate-editable") == "true") {
-				editAnnotation(event);
+			editAnnotation(event);
 		}
 	});
 
@@ -145,6 +145,9 @@ function updateClauseParagraph() {
 	var data_changed = my_editor.checkDirty();
 	//If dirty then add the changed-answer class to <p>
 	if(data_changed) {
+		//Prepend this with 
+		//This clause has changed from original version.
+		//
 		$('#'+my_editor.name).removeClass('answer-changed');
 		$('#'+my_editor.name).animate({
 				backgroundColor: "#FAFAD2",
@@ -154,6 +157,12 @@ function updateClauseParagraph() {
 				$('#'+my_editor.name).addClass('clause-changed')
 			}
 		);
+		var alt = $('#'+my_editor.name).attr('alt');
+		var new_title= 'This clause has changed from original version.<br>'+alt;
+
+		console.log('new_title: '+new_title);
+		$('#'+my_editor.name).attr('title', new_title);
+
 	}
 	//remove editor
 	my_editor.destroy();
@@ -201,10 +210,10 @@ function changedAnswer(e) {
   //  Disable all other change answer drop downs and the back button.
   //  This will help avoid confusion when change answer rest call is occuring.
   //
-  $("#change-answer").find('select').attr('disabled', 'disabled');
-  $("#back_button_answer").attr('disabled', 'disabled');
+	$("#change-answer").find('select').attr('disabled', 'disabled');
+  	$("#back_button_answer").attr('disabled', 'disabled');
 
-  $("#"+ref).parent().find('span').fadeIn();
+  	$("#"+ref).parent().find('span').fadeIn();
 	ajax_caller('set_new_answer',
 			{'document_id':getCookie("Drupal.visitor.document.id"),
 			'question_id':question_id, 'answer_id':answer_id},
@@ -243,7 +252,7 @@ function set_answer_retrieve_new_element_callback(data) {
 function set_answer_callback(data) {
 //	console.log("set answer callback");
 //	console.dir(data);
-	alert(JSON.stringify(data));
+	//alert(JSON.stringify(data));
 	//alert("set_answer completed.  Redireccting to latest document for document_id"+current_document_id);
 	location.href = "load_document?action=Load&document_id=" + getCookie('Drupal.visitor.document.id') + "&version="+getCookie('Drupal.visitor.document.version');
 
@@ -259,16 +268,16 @@ var	toolbar = [
 	var ref = e.target.id;
 
 	my_editor = CKEDITOR.inline(
-					ref,
-					{toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
-					);
-	my_editor.on( 'change', function( evt ) {
+			ref,
+			{toolbar:toolbar, uiColor: '#d3ebf9', title:'Click to edit clause'}
+		);
+	my_editor.on('change', function(evt) {
 	    // getData() returns CKEditor's HTML content.
-	    //console.log( 'Total bytes: ' + evt.editor.getData().length );
+	    console.log( 'Total bytes: ' + evt.editor.getData().length );
 	    saveClause(evt);
 	});
 
-	//console.log(e.editor.getData());
+	console.log(e.editor.getData());
 	/*
 	var ref = e.target.id;
 
@@ -1049,6 +1058,8 @@ function get_document_elements_callback(data) {
 	var survivable_clauses = [];
 
 	//Walk through each clause
+	console.info('HERE WE GO data***');
+	console.dir(data);
 	var min_position = 0;
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent')) {
@@ -1159,6 +1170,19 @@ alert($('#PUB1').outerHeight());
 			delay: 250
 		}
 	});
+	var clause_tooltip_settings = {
+		content: function() {
+	    	return $(this).attr('title');
+		},
+		show: {
+			delay: 500
+		}
+	};
+
+	$( ".clause" ).tooltip(clause_tooltip_settings);
+	//When viewing archived document the class is claused-locked
+	$( ".clause-locked" ).tooltip(clause_tooltip_settings);
+
 
 	//$( ".clause-paragraph" ).accordion( "option", "active", 2 );
 /*
@@ -1508,14 +1532,21 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 			)
 		);
 
-	//Adding 
-	//Clause has 
 	altMessage = createParagraphAltMessage(clause);
-	console.log(altMessage);
+	console.log('altMessage');
+	console.dir(altMessage);
 
+	$('#clause-'+index).addClass(altMessage[1])
+		.attr('document_element_id', document_element_id)
+  		.attr('alt', altMessage[0])
+  		.attr('title', altMessage[0]);
+
+/*
 	if(clause.question_text != "REQUIRED") {
 		$('#clause-'+index).addClass('clause-has-question');
 	}
+*/
+/*
 	if(parseInt(clause.document_version) > 0) {
 		$('#clause-'+index).addClass('clause-changed')
 			.attr('document_element_id', document_element_id)
@@ -1529,7 +1560,7 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
       		.attr('alt', 'This clause has changed because of a changed answer.\nQ: What is your favorite color?\nA: Yes')
      		.attr('title', 'This clause has changed because of a changed answer.\nQ: What is your favorite color?\nA: Yes');
 	}
-
+*/
 	if(editable) {
 		$('#clause-'+index).attr('contenteditable', 'true');
 	} else {
@@ -1542,15 +1573,46 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 }
 
 function createParagraphAltMessage(clause) {
-	var message = [];
-	if(parseInt(clause.document_version) == 1) {
-		message.push('This clause has changed from original version.');
-	} else if(parseInt(clause.answer_changed) > 0) {
-		message.push('This clause has changed because of a changed answer.');
-	} 
+	// List messages and style {message, class}
 
+	console.log('document_version: '+parseInt(clause.document_version));
+	console.log('change_answer: '+parseInt(clause.answer_changed));
+	
+	var messages = [["",""], 
+			["This clause has changed from original version.","clause-changed"],
+			["This clause has changed because of a changed answer.","answer-changed"],
+			["","clause-has-question"]
+			];
+	var index = 0;
+	if(clause.question_text != 'REQUIRED' && clause.question_text != 'DEFINITION') {
+		index = 3;
+	}
+	// if answer change turn it light red (highest priority)
+	if(parseInt(clause.answer_changed) == 1){
+		index = 2;
+	// next turn it yellow if document_version has changed
+	} else 	if(parseInt(clause.document_version) > 0) {
+		index = 1;
+	}
+	// If cluase has a question then append
+	if(clause.question_text != 'REQUIRED' && clause.question_text != 'DEFINITION') {
+		if(messages[index][0].length > 0) {
+			messages[index][0] += "<br>";	
+		}
+		messages[index][0] += "<b>Q:</b> "+clause.question_text+"<br><b>A:</b> "+clause.answer_text;  
+	}
+	// If cluase has a question then append
+	if(clause.question_text == 'REQUIRED') {
+		if(messages[index][0].length > 0) {
+			messages[index][0] += "<br>";	
+		}
+		messages[index][0] += "This is a <b>required</b> clause.";  
+	}
 
-	return message;
+	console.log('message index: '+index);
+
+	return messages[index];
+
 }
 
 
