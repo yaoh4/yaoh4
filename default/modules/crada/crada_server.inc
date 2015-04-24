@@ -1947,36 +1947,44 @@ and doc3.source_question = ca.question_id
 and doc3.source_answer = ca.answer_id
 
 */
-	$query = "select doc3.*, ca.answer_text from ( ";
-	$query .= "select doc2.*, cq.question_text from (";
-	$query .= "select doc.*, cd.master_document_id from (";
-	$query .= "SELECT cde2.* FROM crada_document_element cde2, ";
-	$query .= "(SELECT document_element_id, MAX(document_version) AS ver ";
-	$query .= "		FROM crada_document_element ";
-	$query .= "		WHERE document_id = $document_id and document_version <= $version ";
-	$query .= "		GROUP BY document_element_id ) cde1 ";
-	$query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
-	$query .= " and cde2.document_version = cde1.ver ";
-	$query .= " and cde2.document_id = $document_id ";
-	$query .= " and document_element_text not like 'silent' ";
-	$query .= ") doc, crada_document cd ";
-	$query .= "where doc.document_id = cd.document_id ";
-	$query .= ") doc2 ";
-	$query .= "left join crada_question cq ";
-	$query .= "on doc2.master_document_id = cq.document_id ";
-	$query .= "and doc2.source_question = cq.question_id ";
-	$query .= ") doc3 ";
-	$query .= "left join crada_answer ca ";
-	$query .= "on doc3.master_document_id = ca.document_id ";
-	$query .= "and doc3.source_question = ca.question_id ";
-	$query .= "and doc3.source_answer = ca.answer_id ";
+	$list = array();
 
+	$m_query = "select doc3.*, ca.answer_text from ( ";
+	$m_query .= "select doc2.*, cq.question_text from (";
+	$m_query .= "select doc.*, cd.master_document_id from (";
+	$m_query .= "SELECT cde2.* FROM crada_document_element cde2, ";
+	$m_query .= "(SELECT document_element_id, MAX(document_version) AS ver ";
+	$m_query .= "		FROM crada_document_element ";
+	$m_query .= "		WHERE document_id = $document_id and document_version <= $version ";
+	$m_query .= "		GROUP BY document_element_id ) cde1 ";
+	$m_query .= "WHERE cde2.document_element_id = cde1.document_element_id ";
+	$m_query .= " and cde2.document_version = cde1.ver ";
+	$m_query .= " and cde2.document_id = $document_id ";
+	$m_query .= " and document_element_text not like 'silent' ";
+	$m_query .= ") doc, crada_document cd ";
+	$m_query .= "where doc.document_id = cd.document_id ";
+	$m_query .= ") doc2 ";
+	$m_query .= "left join crada_question cq ";
+	$m_query .= "on doc2.master_document_id = cq.document_id ";
+	$m_query .= "and doc2.source_question = cq.question_id ";
+	$m_query .= ") doc3 ";
+	$m_query .= "left join crada_answer ca ";
+	$m_query .= "on doc3.master_document_id = ca.document_id ";
+	$m_query .= "and doc3.source_question = ca.question_id ";
+	$m_query .= "and doc3.source_answer = ca.answer_id ";
+	//
+	// Make three searches filters
+	//
+	// Filter 1: Search Definitions
+	$query = "select * from ( ";
+	$query .= $m_query;
+	$query .= ") final where section = 'Definitions' order by document_element_text; ";
 
 	crada_log("GET LATEST DOCUMENT BASED on a version number");
 
 	crada_log($query);
 	$result=db_query($query);
-	$list = array();
+	$display_clause_number = FALSE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$obj = array();
 		$obj['document_element_id'] = $row->document_element_id;
@@ -1989,9 +1997,64 @@ and doc3.source_answer = ca.answer_id
 		$obj['survivable'] = $row->survivable;
 		$obj['question_text'] = is_null($row->question_text) ? 'DEFINITION' : $row->question_text;
 		$obj['answer_text'] = $row->answer_text;
+		$obj['display_clause_number'] = $display_clause_number;
 		array_push($list, $obj);
 	}
+	// Filter 2: Search Preamble
+	$query = "select * from ( ";
+	$query .= $m_query;
+	$query .= ") final where section = 'Preamble'; ";
+
+	crada_log("GET LATEST DOCUMENT BASED on a version number");
+
+	crada_log($query);
+	$result=db_query($query);
+	$display_clause_number = FALSE;
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['document_element_id'] = $row->document_element_id;
+		$obj['text'] = $row->document_element_text;
+		$obj['section'] = $row->section;
+		$obj['confidential_annotation'] = trim($row->confidential_annotation);
+		$obj['public_annotation'] = trim($row->public_annotation);
+		$obj['document_version'] = $row->document_version;
+		$obj['answer_changed'] = $row->answer_changed;
+		$obj['survivable'] = $row->survivable;
+		$obj['question_text'] = is_null($row->question_text) ? 'DEFINITION' : $row->question_text;
+		$obj['answer_text'] = $row->answer_text;
+		$obj['display_clause_number'] = $display_clause_number;
+		array_push($list, $obj);
+	}
+
+	// Filter 3: Everything except Definition and Preamble
+	$query = "select * from ( ";
+	$query .= $m_query;
+	$query .= ") final where section <> 'Definitions' and  section <> 'Preamble'; ";
+
+
+	crada_log("GET LATEST DOCUMENT BASED on a version number");
+
+	crada_log($query);
+	$result=db_query($query);
+	$display_clause_number = TRUE;
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$obj = array();
+		$obj['document_element_id'] = $row->document_element_id;
+		$obj['text'] = $row->document_element_text;
+		$obj['section'] = $row->section;
+		$obj['confidential_annotation'] = trim($row->confidential_annotation);
+		$obj['public_annotation'] = trim($row->public_annotation);
+		$obj['document_version'] = $row->document_version;
+		$obj['answer_changed'] = $row->answer_changed;
+		$obj['survivable'] = $row->survivable;
+		$obj['question_text'] = is_null($row->question_text) ? 'DEFINITION' : $row->question_text;
+		$obj['answer_text'] = $row->answer_text;
+		$obj['display_clause_number'] = $display_clause_number;
+		array_push($list, $obj);
+	}
+
 	return $list;
+
 }
 
 // Debugging functions

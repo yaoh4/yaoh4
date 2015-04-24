@@ -4,7 +4,7 @@ var clause_editor = [];
 var my_editor;
 var conf_total = 0;
 var pub_total = 0;
-var annotation_positions = []; //Used by canvas
+//var annotation_positions = []; //Used by canvas
 
 $(document).ready(function () {
 
@@ -63,9 +63,6 @@ $(document).ready(function () {
 		setCookie("Drupal.visitor.document.version", querystring["version"], 365);
 	}
 	if(getCookie('Drupal.visitor.document.id') != "") {
-		//change_annotation_selection();
-		//change_annotation_selection('both');
-		//change_annotation_for_load();
 		change_annotation_for_load();
 		ajax_caller("get_full_document", {'document_id':getCookie("Drupal.visitor.document.id"), 'version':getCookie("Drupal.visitor.document.version")}, get_document_elements_callback);
 	} else {
@@ -295,12 +292,15 @@ var	toolbar = [
 function saveClause(e) {
 	var data = [];
 
-//  console.log('Hello, save clause');
+  //console.log('Hello, save clause');
   //console.log(e.editor.getData());
+
 	//console.dir(e);
 	//console.log(e.editor.getData());
 	//console.log(e.editor.name);
-	var document_element_id = e.editor.name.substring(7) ;
+	var id = e.editor.name;
+	var document_element_id = $('#'+id).attr('document_element_id');
+	//alert(document_element_id);
 	//console.log(document_element_id);
   //Make sure text always has at least one character.  Otherwise the clause goes away.
   //We don't have a method to delete a clause.
@@ -309,8 +309,9 @@ function saveClause(e) {
   if(current_clause.length == 0) {
     current_clause = "&nbsp;";
   }
+  	console.log(e.editor.name)
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
-				document_element_id: e.editor.name.substring(7),
+				document_element_id: document_element_id,
 				column_text: btoa(current_clause),
 				update_column: "document_element_text",
 				answer_changed: 0,
@@ -340,7 +341,7 @@ function save_clause_callback() {
 
 function editAnnotation(e) {
 	var ref = e.target.id;
-	var content;
+    var content;
 
 	var data_annotate = $("#"+ref).attr("data-annotate");
 	//console.log("Before: "+data_annotate);
@@ -848,7 +849,8 @@ function load_change_answer(data) {
 			.addClass("change-answer-intro")
 	);
 */
-	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses into the current document.</p>';
+	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses into the current document.';
+	instructions += '<br><b>Note:</b>  New definitions will be reloaded from the master template.  All changes to the definitions section <b>will be lost<b>.</p>';
 	$('#second_page').empty().append(instructions);
 	$('#second_page').append(
 		$("<form>")
@@ -1052,7 +1054,7 @@ function get_document_elements_callback(data) {
 	var element_id = 'current_document_content';
 	var conf_total = 0;
 	var pub_total = 0;
-	var annotation_positions = [];
+//	var annotation_positions = [];
 	var annotation_detail = [];
 	var annotate = [];
 	var survivable_clauses = [];
@@ -1164,6 +1166,9 @@ alert($('#PUB1').outerHeight());
 	//console.log(rect.top, rect.right, rect.bottom, rect.left);
 
 	//$( ".annotation" ).tooltip({ track: true });
+	$(".fa").tooltip();
+	$(".button").tooltip();
+
 	$( ".annotation" ).tooltip({
 		show: {
 			effect: "slideDown",
@@ -1505,11 +1510,11 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable, section_name) {
 
 	console.info('section_number: '+section_number+'-'+minor_number);
-	//console.info('clause '+clause);
+	console.dir(clause);
 	console.info('index '+index+', element_id '+element_id);
 
 	var document_element_id = clause['document_element_id'];
-	var major_minor =  (parseInt(section_number) == 1) ? "" : section_number+"-"+minor_number;
+	var major_minor =  (clause.display_clause_number) ? section_number+"-"+minor_number : "";
 	$("#"+element_id)
 		.append(
 			$('<div>')
