@@ -18,7 +18,7 @@ function crada_list_documents() {
 
   global $user;
 
-  crada_log("CRADA_LIST_DOCUMENTS");
+//  crada_log("CRADA_LIST_DOCUMENTS");
 
   $query = "select IFNULL(t.updated, t.created) as last_date, t.* FROM ";
   $query .= "(SELECT doc_owner.name, doc_owner.mail, cdr.document_id, cd.title, cd.status,  ";
