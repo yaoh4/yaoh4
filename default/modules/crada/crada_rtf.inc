@@ -131,6 +131,9 @@ science natural history }}';
     $formatClause = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_LEFT);
     $formatClause->setIndentFirstLine(-0.5);
     $formatClause->setIndentLeft(0.5);
+
+    $formatFullBlock = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_LEFT);
+
     //$formatDefinition->setSpaceAfter(2);
     //$formatDefinition->setIndentRight(0.5);
 
@@ -156,6 +159,9 @@ science natural history }}';
     }
     */
     /* Print Clauses */
+    crada_log("SET BODY in RTF");
+    crada_log(print_r($doc['clauses'], true));
+
     $current_section = "";
     $section_number = 0;
     for($i=0;$i<count($doc['clauses']);$i++) {
@@ -171,14 +177,18 @@ science natural history }}';
         //
         //Remove <br> from text
         //
+        $section_label = ($doc['clauses'][$i]['display_clause_number']) ? $section_number.".".$current_subsection."   " : "";
         $clause_text = preg_replace('#<br\s*/?>#i', "", $doc['clauses'][$i]['text']);
+        $formatParagraph = ($current_section == "Preamble") ? $formatFullBlock : $formatClause;
 
-        if($current_section == "Definitions") {
+        $this->section->writeText($section_label.$clause_text."\n", $this->fontBody, $formatParagraph);
+        /*
+        if($doc['clauses'][$i]['display_clause_number']) {
           $this->section->writeText($clause_text."\n", $this->fontBody, $formatClause);
         } else {
           $this->section->writeText($section_number.".".$current_subsection."   ".$clause_text."\n", $this->fontBody, $formatClause);
-
         }
+        */
         /*
         if($section_number ==1 and $current_subsection ==7 ) {
           crada_log("Section 3-3");

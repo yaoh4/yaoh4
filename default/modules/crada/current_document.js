@@ -200,9 +200,7 @@ function changedAnswer(e) {
 	var ref = e.target.id;
 	var question_id = $("#"+ref).attr('question_id');
 	var answer_id = $("#"+ref).val();
-
-
-	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
+	//	alert("You changed the answer for "+ref+"\nThe new value selected is "+answer_id+"\nquestion_id = "+question_id);
   //
   //  Disable all other change answer drop downs and the back button.
   //  This will help avoid confusion when change answer rest call is occuring.
@@ -850,7 +848,7 @@ function load_change_answer(data) {
 	);
 */
 	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses into the current document.';
-	instructions += '<br><b>Note:</b>  New definitions will be reloaded from the master template.  All changes to the definitions section <b>will be lost<b>.</p>';
+	//instructions += '<br><b>Warning:</b>  Changing a document answer below will reload the base definitions from the master template.  Some changes to the definitions section <b>may be lost<b>.</p>';
 	$('#second_page').empty().append(instructions);
 	$('#second_page').append(
 		$("<form>")
@@ -1181,7 +1179,8 @@ alert($('#PUB1').outerHeight());
 		},
 		show: {
 			delay: 500
-		}
+		},
+		tooltipClass: "clause-tooltip"
 	};
 
 	$( ".clause" ).tooltip(clause_tooltip_settings);

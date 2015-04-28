@@ -62,20 +62,20 @@ function create_pdf_file($doc) {
 
 function create_rtf_file($doc) {
 
-  PHPRtfLite::registerAutoloader();
-  PHPRtfLite_Unit::setGlobalUnit(PHPRtfLite_Unit::UNIT_INCH);  // inputs used as inches
+  	PHPRtfLite::registerAutoloader();
+  	PHPRtfLite_Unit::setGlobalUnit(PHPRtfLite_Unit::UNIT_INCH);  // inputs used as inches
 
 	$filename = $doc['document']['filename'].'.rtf';
 
 	$rtf = new CradaRtf();
-  $rtf->setHeader(DOCUMENT_HEADER);
-  $rtf->setFooter($doc['document']);
+  	$rtf->setHeader(DOCUMENT_HEADER);
+  	$rtf->setFooter($doc['document']);
 	$rtf->setCoversheet(COVERSHEET_PAGE_TITLE, $doc['document']);
 	$rtf->setBody($doc);
-  $rtf->setSignature(SIGNATURE_PAGE_TITLE, SIGNATURE_SECTION_TITLE, SIGNATURE_STATEMENT);
-  $rtf->setContacts(CONTACTS_PAGE_TITLE);
-  $rtf->setSummary(SUMMARY_PAGE_TITLE, SUMMARY_STATEMENT);
-  $rtf->setAppendix(APPENDIX_PAGE_TITLE, APPENDIX_SECTION_TITLE);
+	$rtf->setSignature(SIGNATURE_PAGE_TITLE, SIGNATURE_SECTION_TITLE, SIGNATURE_STATEMENT);
+	$rtf->setContacts(CONTACTS_PAGE_TITLE);
+	$rtf->setSummary(SUMMARY_PAGE_TITLE, SUMMARY_STATEMENT);
+	$rtf->setAppendix(APPENDIX_PAGE_TITLE, APPENDIX_SECTION_TITLE);
 
 	$rtf->send($filename);
 
