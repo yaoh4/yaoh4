@@ -295,3 +295,10 @@ function getSurvivabilityStatement($doc) {
   return $survivability_statement;
 }
 
+function checkaddslashes($str){       
+    if(strpos(str_replace("\'",""," $str"),"'")!=false)
+        return addslashes($str);
+    else
+        return $str;
+}
+

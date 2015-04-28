@@ -1,30 +1,31 @@
 <?php
-	require_once 'crada_utilities.inc';
+require_once 'crada_utilities.inc';
 
 //Create new document steps:
 //Step 1: get_clauses_from_answers()
-//Step 2: get_all_definitions()
+//Step 2: get_all_definitions() //Filter by terms used
 //Step 3: create_new_document()
-	global $user;
+global $user;
+
 //
 // Make sure user is logged into Drupal
 // If not exit.
 //
 
-	if (!isset($user->uid)) {
-		//user is not logged in Exit()
-		crada_log("User is not logged in (crada_server)");
-		$user_info = array("uid"=>0, "name"=>"unknown");
-		$output["status"] = 'Error';
-		$output["message"] = 'Drupal user unknown';
-		echo json_encode($output, JSON_PRETTY_PRINT);
-		exit();
-	} else {
+if (!isset($user->uid)) {
+	//user is not logged in Exit()
+	crada_log("User is not logged in (crada_server)");
+	$user_info = array("uid"=>0, "name"=>"unknown");
+	$output["status"] = 'Error';
+	$output["message"] = 'Drupal user unknown';
+	echo json_encode($output, JSON_PRETTY_PRINT);
+	exit();
+} else {
 //		crada_log("User is logged in (crada_server)");
-		$user_info = array("id"=> $user->uid,"name"=> $user->name);
+	$user_info = array("id"=> $user->uid,"name"=> $user->name);
 //		crada_log("user->uid = ". $user->uid);
 //		crada_log("user->name = ". $user->name);
-	}
+}
 
 function crada_server() {
 	$action = $_REQUEST['action'];
@@ -731,6 +732,8 @@ function set_new_answer() {
 	$query = "select document_element_id, max_version, master_document_id, alternate_text_type from ( ";
 	$query .= document_current_question_answer_sql($document_id);
 	$query .= ") lca WHERE question_id = $question_id ";
+	crada_log($query);
+	
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	$document_element_id = $row->document_element_id;
@@ -791,11 +794,11 @@ function set_new_answer() {
 		$new_survivable = $row->survivable;
 	}
 
-	crada_log("JUST GOT DONE WITH GET CLAUSE.");
+	crada_log("***** JUST GOT DONE WITH GET CLAUSE.");
 
 	//ADD Demographics
 	crada_log('ORIGINAL TEXT');
-	crada_log('TEXT: '.$new_document_element_text);
+	crada_log('document_element_text: '.$new_document_element_text);
 	crada_log("confidential_annotation: ".$new_confidential_annotation);
 	crada_log("public_annotation: ".$new_public_annotation);
 
@@ -811,30 +814,42 @@ function set_new_answer() {
 					and source_question = $question_id
 					and document_version = $current_document_version";
 	crada_log("document_element_text BEFORE: ");
+	
 	$result=db_query($query);
 	$row = $result->fetchObject();
+	$previous_answer_id = $row->source_answer;
 	crada_log(print_r($row, true));
 
-	crada_log("Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
+	$new_document_element_text = checkaddslashes($new_document_element_text);
+	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
+	$new_public_annotation = checkaddslashes($new_public_annotation);
+	
+	crada_log("****** Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
 
 	$query = "UPDATE ignore crada_document_element
-							SET
-							document_element_text = '$new_document_element_text',
-							confidential_annotation = '$new_confidential_annotation',
-							public_annotation = '$new_public_annotation',
-							survivable = '$new_survivable',
-							source_answer = $answer_id,
-							answer_changed = 1,
-							updated_by = $user->uid
-					WHERE document_id = $document_id
-					and source_question = $question_id
-					and document_version = $current_document_version";
-			crada_log($query);
+				SET	document_element_text = '".$new_document_element_text."',
+					confidential_annotation = '".$new_confidential_annotation."',
+					public_annotation = '".$new_public_annotation."',
+					survivable = '$new_survivable',
+					source_answer = $answer_id,
+					answer_changed = 1,
+					updated_by = $user->uid
+				WHERE document_id = $document_id
+				and source_question = $question_id
+				and document_version = $current_document_version";
+crada_log($query);
+	
 	try {
 		$result = db_query($query);
 	} catch (Exception $e) {
-    crada_log($e->getMessage());
-    crada_log(print_r($e, true));
+		crada_log("***************************");
+		crada_log("*  SQL EXCEPTION (BELOW)  *");
+		crada_log("***************************");
+    	crada_log($e->getMessage());
+    	crada_log(print_r($e, true));
+		crada_log("***************************");
+		crada_log("*  SQL EXCEPTION (ABOVE)  *");
+		crada_log("***************************");
 	}
 
 /* CHECK AFTER */
@@ -847,23 +862,47 @@ function set_new_answer() {
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log(print_r($row, true));
-
 	//Increment modified.
-  $query = 'UPDATE crada_document ';
-  $query .= 'SET modified = modified+1, ';
-  $query .= 'updated = now() ';
-  $query .= "WHERE document_id = $document_id ";
-  crada_log("UPDATE CRADA_DOCUMENT  ");
-  crada_log($query);
+	$query = 'UPDATE crada_document ';
+	$query .= 'SET modified = modified+1, ';
+	$query .= 'updated = now() ';
+	$query .= "WHERE document_id = $document_id ";
+	crada_log("UPDATE CRADA_DOCUMENT  ");
+	crada_log($query);
 
-  $result=db_query($query);
+	$result=db_query($query);
 
+	
 	//DATABASE Unique KEY: document_id, document_element_id, version
+
+	set_new_definitions($document_id, $question_id, $answer_id, $max_version, $master_document_id);
 
 	$output = array();
 	$output["status"] = "OK";
 
 	return $output;
+}
+
+function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id, $max_version, $master_document_id) {
+	$statement = "\n\tdocument_id: $document_id;\n\tquestion_id: $question_id;\n\tnew_answer_id: $new_answer_id;\n\tprevious_answer_id: $previous_answer_id;\n\tmax_version: $max_version;\n\tmaster_document_id: $master_document_id;";
+	crada_log("SET NEW DEFINITIONS");
+	crada_log($statement);
+
+	crada_log("crada_definition for master_id: $master_document_id");
+	$query = "SELECT * FROM crada_definition where document_id = 22";
+	$result=db_query($query);
+	crada_log("CRADA DEFINITIONS");
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		crada_log("document_id: ".$row->document_id.", ".$row->term.", ". $row->definition);
+	}
+	crada_log("");
+	//Get definitions used from previous answer
+	//Get definitions from new answer
+	//Remove terms that are in common and do nothing with them.
+	//Find terms that have gone away.
+	// Copy to current_version  and mark as silent.
+	//If new (COPY) from defiition
+
 }
 
 /*
@@ -1192,18 +1231,22 @@ function db_get_title() {
 
 function db_get_document_templates() {
 
-	$result = db_select('crada_document', 'c')
-		->fields('c')
+	$query = db_select('crada_document', 'cd')
+		->fields('cd')
 		->condition('is_master', 1, '=')
-		->orderBy('title', 'asc')
-		->execute();
+		->orderBy('document_id', 'desc');
 
+	//crada_log((string) $query);
+	//crada_log($query->arguments());
+
+	$result = $query->execute();
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$element = array();
 		$document["name"] = $row->document_name;
 		$document["title"] = $row->title;
 		$document["id"] = $row->document_id;
+
 		array_push($list, $document);
 	}
 	$output = array();
@@ -1923,30 +1966,8 @@ function db_get_document_info($document_id) {
 
 function db_get_document_elements ($document_id, $version) {
 
-/*
-select doc3.*, ca.answer_text from (
-select doc2.*, cq.question_text from (
-select doc.*, cd.master_document_id from (
-SELECT cde2.* FROM crada_document_element cde2, 
-	(SELECT document_element_id, MAX(document_version) AS ver
- 		FROM crada_document_element 		
-        WHERE document_id = 2 and document_version <= 8
- 		GROUP BY document_element_id ) 
+	crada_log("GET LATEST DOCUMENT BASED on a version number");
 
-	cde1 WHERE cde2.document_element_id = cde1.document_element_id  and cde2.document_version = cde1.ver and cde2.document_id = 2  and document_element_text not like 'silent'
-) doc, crada_document cd
-where doc.document_id = cd.document_id
-) doc2
-left join crada_question cq
-on doc2.master_document_id = cq.document_id
-and doc2.source_question = cq.question_id
-) doc3
-left join crada_answer ca
-on doc3.master_document_id = ca.document_id
-and doc3.source_question = ca.question_id
-and doc3.source_answer = ca.answer_id
-
-*/
 	$list = array();
 
 	$m_query = "select doc3.*, ca.answer_text from ( ";
@@ -1975,14 +1996,11 @@ and doc3.source_answer = ca.answer_id
 	//
 	// Make three searches filters
 	//
-	// Filter 1: Search Definitions
+	// Filter 1: Search Preamble
 	$query = "select * from ( ";
 	$query .= $m_query;
-	$query .= ") final where section = 'Definitions' order by document_element_text; ";
+	$query .= ") final where section = 'Preamble'; ";
 
-	crada_log("GET LATEST DOCUMENT BASED on a version number");
-
-	crada_log($query);
 	$result=db_query($query);
 	$display_clause_number = FALSE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -2000,14 +2018,11 @@ and doc3.source_answer = ca.answer_id
 		$obj['display_clause_number'] = $display_clause_number;
 		array_push($list, $obj);
 	}
-	// Filter 2: Search Preamble
+	// Filter 2: Search Definitions
 	$query = "select * from ( ";
 	$query .= $m_query;
-	$query .= ") final where section = 'Preamble'; ";
+	$query .= ") final where section = 'Definitions' order by document_element_text; ";
 
-	crada_log("GET LATEST DOCUMENT BASED on a version number");
-
-	crada_log($query);
 	$result=db_query($query);
 	$display_clause_number = FALSE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -2031,10 +2046,6 @@ and doc3.source_answer = ca.answer_id
 	$query .= $m_query;
 	$query .= ") final where section <> 'Definitions' and  section <> 'Preamble'; ";
 
-
-	crada_log("GET LATEST DOCUMENT BASED on a version number");
-
-	crada_log($query);
 	$result=db_query($query);
 	$display_clause_number = TRUE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {

@@ -168,19 +168,25 @@ function get_alternate_text_types_callback(data) {
 }
 
 function get_subsections_callback(data) {
-
+	console.info("subsections data : ");
+	console.dir(data);
 	$("#demographic-form")
+		.append(
+			$('<div>').attr('id', 'subsection-text-container')
+			);
+
+	$("#subsection-text-container")
 		.append($('<h2>').append("Subsections")
 			.append($('<hr>'))
 	);
 
-	$("#demographic-form")
+	$("#subsection-text-container")
 		.append($('<P>')
 			.append("Select subsections that are applicable to this document:")
 		);
 	for (i=0;i<data.subsections.length;i++) {
 		if (data.subsections[i] != "") {
-			$("#demographic-form")
+			$("#subsection-text-container")
 				.append($('<div>')
 					.addClass('form-group')
 					.addClass('subsections')
@@ -194,6 +200,10 @@ function get_subsections_callback(data) {
 				}
 		}
 	}
+	if(data.subsections[0] == "") {
+		$('#subsection-text-container').css('display', 'none');
+	}
+
 	stop_spinner('spinner', 'demographics');
 
 	//Add a submit button to this form.
