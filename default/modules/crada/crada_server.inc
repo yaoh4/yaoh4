@@ -27,7 +27,133 @@ if (!isset($user->uid)) {
 //		crada_log("user->name = ". $user->name);
 }
 
+/**
+* Checks each character of the uri
+* Must be a A-Z, a-z, 0-1, +, /, &, ?
+* See table:
+* http://en.wikipedia.org/wiki/Base64
+*/
+function valid_uri($uri) {
+//
+//Remove text from set_annotation and save_element
+//
+/*
+http://localhost/crada/crada/server?action=save_element&document_id=26&document_element_id=10008
+&column_text=
+ZDxzdHJvbmc
+%2B
+
+Q29uZmlkZW50aWFsIEluZm9ybWF0aW9uPC9zdHJvbmc%2BOiAmbGRxdW87Q29uZmlkZW50aWFsIEluZm9ybWF0aW9uJnJkcXVvOyBtZWFucyBjb25maWRlbnRpYWwgc2NpZW50aWZpYywgYnVzaW5lc3MsIG9yIGZpbmFuY2lhbCBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBlaXRoZXIgUGFydHkgdG8gdGhlIG90aGVyIFBhcnR5IHRoYXQgaXMgbmVjZXNzYXJ5IHRvIGNvbmR1Y3QgdGhlIGFjdGl2aXRpZXMgb2YgdGhlIFJlc2VhcmNoIFBsYW4uIENvbmZpZGVudGlhbCBJbmZvcm1hdGlvbiBkb2VzIG5vdCBpbmNsdWRlIHRoZSBmb2xsb3dpbmc6IChhKSBpbmZvcm1hdGlvbiB0aGF0IGlzIG9yIGJlY29tZXMgcHVibGljbHkga25vd24gb3IgdGhhdCBpcyBhdmFpbGFibGUgZnJvbSBwdWJsaWMgc291cmNlczsgKGIpIGluZm9ybWF0aW9uIHRoYXQgaGFzIGJlZW4gbWFkZSBhdmFpbGFibGUgYnkgaXRzIG93bmVyIHRvIG90aGVycyB3aXRob3V0IGEgY29uZmlkZW50aWFsaXR5IG9ibGlnYXRpb247IChjKSBpbmZvcm1hdGlvbiB0aGF0IGlzIGFscmVhZHkga25vd24gYnkgdGhlIHJlY2VpdmluZyBQYXJ0eSwgb3IgaW5mb3JtYXRpb24gdGhhdCBpcyBpbmRlcGVuZGVudGx5IGNyZWF0ZWQgb3IgY29tcGlsZWQgYnkgdGhlIHJlY2VpdmluZyBQYXJ0eSwgd2l0aG91dCByZWZlcmVuY2UgdG8gb3IgdXNlIG9mIHRoZSBwcm92aWRlZCBpbmZvcm1hdGlvbjsgb3IgKGQpIGluZm9ybWF0aW9uIHRoYXQgcmVsYXRlcyB0byBwb3RlbnRpYWwgaGF6YXJkcyBvciBjYXV0aW9uYXJ5IHdhcm5pbmdzIGFzc29jaWF0ZWQgd2l0aCB0aGUgcHJvZHVjdGlvbiwgaGFuZGxpbmcsIG9yIHVzZSBvZiB0aGUgc3ViamVjdCBtYXR0ZXIgb2YgdGhlIFJlc2VhcmNoIFBsYW47IG9yIChlKSBDUkFEQSBEYXRhLCBkZXNjcmlwdGlvbnMgb2YgQ1JBREEgTWF0ZXJpYWxzLCBvciBJUEksIHdoaWNoIGhhdmUgc2VwYXJhdGUgY29uZmlkZW50aWFsaXR5IG9ibGlnYXRpb25zLg
+
+%3D
+%3D
+
+&update_column=document_element_text&
+
+http://localhost/crada/crada/server?action=save_element&document_id=26&document_element_id=41&column_text=
+
+SUNEIEZEQSBhbmQgTXkgQ29sbGFib3JhdG9yIGFncmVlIHRoYXQgdGhleSBoYXZlIHRoZSBmb2xsb3dpbmcgc3RhdHV0b3J5IG9ibGlnYXRpb25zOjxiciAvPgooMSkgR292ZXJubWVudCBsaWNlbnNlIGluIElDRCBGREEgU29sZSBDUkFEQSBTdWJqZWN0IEludmVudGlvbnMgYW5kIEpvaW50IENSQURBIFN1YmplY3QgSW52ZW50aW9ucyBwdXJzdWFudCB0byAxNSBVLlMuQy4gJnNlY3Q7IDM3MTBhKGIpKDEpKEEpIChoeXBlcmxpbmspOzxiciAvPgooMikgR292ZXJubWVudCBsaWNlbnNlIGluIENvbGxhYm9yYXRvciBTb2xlIENSQURBIFN1YmplY3QgSW52ZW50aW9ucyBwdXJzdWFudCB0byAxNSBVLlMuQy4gJnNlY3Q7IDM3MTBhKGIpKDIpIChoeXBlcmxpbmspOyBhbmQ8YnIgLz4KKDMpIFRoaXJkIFBhcnR5IExpY2Vuc2UgcHVyc3VhbnQgdG8gMTUgVS5TLkMuICZzZWN0OyAzNzEwYShiKSgxKShCKSAoaHlwZXJsaW5rKS48YnIgLz4KVGhlIEdvdmVybm1lbnQgd2lsbCBub3QgcHVibGljbHkgZGlzY2xvc2UgdHJhZGUgc2VjcmV0cyBvciBjb21tZXJjaWFsIG9yIGZpbmFuY2lhbCBpbmZvcm1hdGlvbiB0aGF0IGlzZCBwcml2aWxlZ2VkIG9yIGNvbmZpZGVudGlhbCB3aXRoaW4gdGhlIG1lYW5pbmcgb2YgNSBVLlMuQy4gJnNlY3Q7IDU1MihiKSg0KSBvciB3aGljaCB3b3VsZCBiZSBjb25zaWRlcmVkIHByaXZpbGVnZWQgb3IgY29uZmlkZW50aWFsIGlmIGl0IGhhZCBiZWVuIG9idGFpbmVkIGZyb20gYSBub24tZmVkZXJhbCBwYXJ0eS4%3D
+
+&update_column=document_element_text&answer_changed=0&updated_by=admin
+
+http://localhost/crada/crada/server?action=set_annotation
+&document_id=26
+&document_element_id=39
+&annotation_position=7
+&annotation_type=public_annotation
+
+&new_annotation=VGhlcmVmb3JlLCB0aGVyZSBpcyBubyBuZWVkIGZvciB0aGUgQ29sbGFib3JhdG9yIHRvIGFkZCB0aGUgb2xkIGxhbmd1YWdlIHRoYXQgZ2l2ZXMgdGhlbSB0aGUgcmlnaHQgb2YgZmlyc3QgcmVmdXNhbCBmb3IgNiBvciBtb3JlIG1vbnRocy4gVGhlIGluY2x1c2lvbiBvZiB0aGF0IGNsYXVzZSBtYWtlcyBpdCBpbXBvc3NpYmxlIGZvciBPVFQgdG8gbWFya2V0IHRoZSB0ZWNobm9sb2d5IGFzIGNvbXBhbmllcyBkbyBub3Qgd2FudCB0byBzdGFydCBuZWdvdGlhdGlvbnMgaWYgYW5vdGhlciBjb21wYW55IGNhbiB0aGVuIHN0ZXAgaW4gYW5kIHRha2UgdGhlIGxpY2Vuc2UuZmRzYQ%3D%3D
+*/
+	if($_REQUEST['action'] == 'set_annotation') {
+		//Remove new_annotation from uri
+		$uri = substr($uri, 0, strrpos($uri, 'new_annotation'));
+	}
+	if($_REQUEST['action'] == 'save_element') {
+		//Remove column_text from uri
+		$uri = substr($uri, 0, strrpos($uri, 'column_text'));
+	}
+	if($_REQUEST['action'] == 'get_questions_for_section') {
+		//Remove column_text from uri
+		$uri = substr($uri, 0, strrpos($uri, 'section'));
+	}
+
+	$valid = true;
+	// Don't forget & and ?
+	$pattern = '([A-Z]|[a-z]|[0-9]|[\+]|[&]|[\?]|[=]|[_]|[/])';
+//	$pattern = '/[A-Z]|[0-9]|[a-z]|[+]|[/]/';
+	$number = preg_match_all($pattern, $uri, $matches);
+	crada_log("preg_match_all: ".$number);
+	crada_log("URI:");
+	crada_log($uri);
+	//crada_log(print_r($matches, true));
+	$results = implode("", $matches[0]);
+	crada_log($results);
+	crada_log('******************************** MATCHES');
+	crada_log("String length of uri: ".strlen($uri));
+	crada_log("String length of search: ".strlen($results));
+
+	if(strlen($results) != strlen($uri)) {
+		$valid = false;
+	}
+
+	return $valid;
+}
+
+function sanitize_url_variables(){
+	//
+	//	Sanitize
+	//
+	crada_log("********************");
+	crada_log("check_url_variables");
+	crada_log("********************");
+	//$uri = parse_url($url, PHP_URL_QUERY);
+
+	$msg["status"] = 'OK';
+
+	$uri = $_SERVER['REQUEST_URI'];
+
+	crada_log($uri);
+	//  make sure there are now % symbols
+	//Stop any $uri that has an ascii value base 64
+	if(!valid_uri($uri)) {
+		$msg["status"] = 'Error';
+		$msg["message"] = "URI has a none base 64 code.";
+		return $msg;
+	}
+
+	crada_log(print_r($_REQUEST, true));
+	foreach ($_REQUEST as $key => $value) {
+		crada_log("Key: $key; Value: $value");
+ 	   	if($key == "document_id"  
+ 	   		|| $key == "question_id"
+ 	   		|| $key == "document_element_id"
+ 	   		|| $key == "annotation_position"
+ 	   		) {
+			if(!is_numeric($value)) {
+				$msg["status"] = 'Error';
+				$msg["message"] = "The $key variable in the URI is incorrect.  A number was expected";
+			}
+ 	   	}
+	   	if($key == "version") {
+			if(!is_numeric($value) && $value !="current" && $value !="undefined") {
+				$msg["status"] = 'Error';
+				$msg["message"] = "The $key variable in the URI is incorrect.  A number, 'current', or 'undefined' was expected";
+			}
+ 	   	}
+ 	}
+
+ 	crada_log(print_r($msg, true));
+	return $msg; 	
+}
+
 function crada_server() {
+	$msg = sanitize_url_variables();
+	if($msg['status'] == "Error") {
+		http_response_code(403);
+		echo json_encode($msg, JSON_PRETTY_PRINT);
+		exit();
+	}
+
 	$action = $_REQUEST['action'];
 	crada_log("ACTION: ".$action);
 
@@ -65,7 +191,9 @@ function crada_server() {
 		else if ($action == 'echo') $output = echo_data();
 
 	} catch (Exception $e) {
-		crada_log("SQL EXCEPTION");
+		crada_log("*******************");
+		crada_log("*  SQL EXCEPTION  *");
+		crada_log("*******************");
 		$output['status'] = 'Error';
 		$output['message'] = $e->getMessage();
 		$output['e'] = $e;
@@ -77,15 +205,17 @@ function crada_server() {
 	if (isset($output))
 		echo json_encode($output, JSON_PRETTY_PRINT);
 	else {
-		$output["status"] = 'Error';
-		$output["message"] = 'Function action = '.$action .'does not produce an output.';
-		echo json_encode($output, JSON_PRETTY_PRINT);
+		$error["status"] = 'Error';
+		$error["message"] = 'Function action = '.$action .'does not produce an output.';
+		
+		echo json_encode($error, JSON_PRETTY_PRINT);
 	}
 }
 function search_clauses() {
-	$searchterm = mysql_real_escape_string(trim(base64_decode($_REQUEST['searchterm'])));
+	$searchterm = htmlentities(checkaddslashes(mysql_real_escape_string(trim(base64_decode($_REQUEST['searchterm'])))));
+	//$searchterm = checkaddslashes(trim(base64_decode($_REQUEST['searchterm'])));
 	//crada_log("SEARCH CLAUSE");
-	crada_log("searchterm: $searchterm");
+	//crada_log("searchterm: $searchterm");
 
 /* OLD Search searches all clauses (faster) */
 
@@ -269,7 +399,7 @@ function create_word_file() {
 	$objWriter = PHPWord_IOFactory::createWriter($PHPWord, 'Word2007');
 	$objWriter->save('word/'.$filename);
 
-	crada_log("Making the WORD Document");
+	//crada_log("Making the WORD Document");
 	$output = array();
 	$output['status'] = "OK";
 	$output['filename'] = $filename;
@@ -293,7 +423,7 @@ function create_word_file() {
 	$xls_reader = PHPExcel_IOFactory::createReader($filetype);
 	$xls_reader->setReadDataOnly(FALSE);
 
-	crada_log("Making the WORD Document");
+	//crada_log("Making the WORD Document");
 	$output = array();
 	$output['status'] = "OK";
 	$output['filename'] = $filename;
@@ -362,8 +492,14 @@ function save_element() {
 	$current_document_version = create_element($document_id, $document_element_id);
 
 	//Update text and remove changed_answer
-  global $user;
-  $newtext = mysql_real_escape_string(trim(base64_decode($_REQUEST['column_text'])));
+  	global $user;
+  	crada_log("BEFORE:");
+  	crada_log($_REQUEST['column_text']);
+  	$newtext = checkaddslashes(mysql_real_escape_string(trim(base64_decode($_REQUEST['column_text']))));
+  	//$newtext = checkaddslashes(trim(base64_decode($_REQUEST['column_text'])));
+  	crada_log("AFTER:");
+  	crada_log($newtext);
+
 	$query = "update crada_document_element ";
 	$query .= "set ";
 	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
@@ -381,17 +517,18 @@ function save_element() {
 
 	crada_log(json_encode($result));
 
-  //
-  //Increment modified from crada_document.  This automatically updates the updated date.
-  //
-  $query = 'UPDATE crada_document ';
-  $query .= 'SET modified = modified+1, ';
-  $query .= 'updated = now() ';
-  $query .= "WHERE document_id = $document_id ";
-  crada_log("UPDATE CRADA_DOCUMENT  ");
-  crada_log($query);
+	//
+	//Increment modified from crada_document.  This automatically updates the updated date.
+	//
 
-  $result=db_query($query);
+	$query = 'UPDATE crada_document ';
+	$query .= 'SET modified = modified+1, ';
+	$query .= 'updated = now() ';
+	$query .= "WHERE document_id = $document_id ";
+	crada_log("UPDATE CRADA_DOCUMENT  ");
+	crada_log($query);
+
+	$result=db_query($query);
 
 	$output["status"] = "Ok";
 	crada_log(json_encode($output));
@@ -477,7 +614,6 @@ function set_document_permissions() {
 	crada_log("OUTPUT IS");
 	crada_log(json_encode($output));
 
-
 	return $output;
 
 }
@@ -489,7 +625,14 @@ function set_annotation() {
 	extract($_REQUEST);
 	crada_log("new_annotation from _REQUEST");
 	crada_log($_REQUEST['document_element_id']);
-	$new_annotation = mysql_real_escape_string(trim(base64_decode($new_annotation)));
+	//$new_annotation = htmlentities(mysql_real_escape_string(trim(base64_decode($new_annotation))));
+	$new_annotation = trim(base64_decode($new_annotation));
+
+	//Get rid of the stray apostrophe problem
+	//$new_annotation = str_replace("'", "\'", $new_annotation);
+	//$new_annotation = str_replace("’", "\'", $new_annotation);
+	//$new_annotation = t(trim(base64_decode($new_annotation)));
+	//$new_annotation = checkaddslashes(trim(base64_decode($new_annotation)));
 	//Remove all \n\n+ series and replace with just one \n
 	crada_log("BEFORE preg_replace of new line");
 	crada_log($new_annotation);
@@ -526,7 +669,6 @@ function set_annotation() {
 	crada_log("Annotation Count: " .count($annotations));
 	crada_log($annotations[count($annotations)-1]);
 
-
 	// Replace new annotation in the right position
 	crada_log(print_r($annotations, true));
 	crada_log("new_annotation");
@@ -537,19 +679,26 @@ function set_annotation() {
 		if(trim($annotation) == "" ) {
 			unset($annotations[$key]);
 		}
+		//clean
+		$clean[$key] = mysql_real_escape_string($annotation);
 	}
 	// Save new annotation in database
 	crada_log("NEW annotation array");
 	crada_log(print_r($annotations, true));
-	$annotation = implode('\n\n', $annotations);
+	//$annotation = implode('\n\n', $annotations);
+	$annotation = implode('\n\n', $clean);
 	crada_log("Put this back into the database");
 	crada_log($annotation);
+
+	//$annotation = checkaddslashes($annotation);
+	//crada_log($annotation);
 
 	$query = "UPDATE crada_document_element cde, ";
 	$query .= "(SELECT max(document_version) as max_version FROM crada_document_element where  ";
 	$query .= "document_id = $document_id and document_element_id = $document_element_id ";
 	$query .= ") mcde ";
-	$query .= "SET cde.$annotation_type  = '{$annotation}' ";
+	//$query .= 'SET cde.'.$annotation_type.'  = "'.$annotation.'" ';
+	$query .= "SET cde.$annotation_type  = '{".htmlentities($annotation)."'";
 	$query .= "where mcde.max_version = cde.document_version ";
 	$query .= "and cde.document_id = $document_id and cde.document_element_id = $document_element_id ";
 
@@ -558,6 +707,7 @@ function set_annotation() {
 
 	$output = array();
 	$output["status"] = "Ok";
+
 	return $output;
 
 }
@@ -697,18 +847,20 @@ function add_demographics($document_id, $text) {
 	//crada_log(print_r($demographics, true));
 
 	//Walk through and perform search and replace
+//	crada_log("Before demographic: TEXT");
+//	crada_log($text);
 	foreach ($demographics as $key => $value) {
 		crada_log($key ." : " . $value);
 		$search = "{".$key."}";
 		if($value == "") {
-			//Highlight brackets to show
-			$text = str_replace($search, "<strong>[".$search."]</strong>", $text);
-
+			//If no value bold missing demographics
+			$text = str_replace($search, "<strong>[".$key."]</strong>", $text);
 		} else {
-			//Otherwise bold missing demographics
 			$text = str_replace($search, $value, $text);
 		}
 	}
+//	crada_log("After demographic: TEXT");
+//	crada_log($text);
 
 	return $text;
 
@@ -823,7 +975,7 @@ function set_new_answer() {
 	$new_document_element_text = checkaddslashes($new_document_element_text);
 	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
 	$new_public_annotation = checkaddslashes($new_public_annotation);
-	
+
 	crada_log("****** Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
 
 	$query = "UPDATE ignore crada_document_element
@@ -1811,37 +1963,38 @@ function get_full_document() {
 	$output['status'] = 'Ok';
 	$output['document'] = db_get_document_info($document_id);
   // If $version is not a number then go get the current version
-  if(!is_numeric($version)) {
-  	$version = $output['document']['current_version'];
-  	crada_log("SETTING TO LATEST VERSION $version");
-  }
-  //
-  // Append version to filename if not current
-  //
-  if($version != $output['document']['current_version']) {
-  	$output['document']['filename'] .= " (version ". $version.")";
-  	$output['document']['footer_title'] .= " (version ". $version.")";
-  }
-  //Check if user has access to this document.
-  //
-  $output['access'] = db_get_document_access($document_id, $user->uid);
-  if($output['access'] == "none") {
-  	//
-  	//  User does not have access to document.
-  	//  Exit without sending document details.
-  	//
-  	return $output;
-  }
+	if(!is_numeric($version)) {
+		$version = $output['document']['current_version'];
+		crada_log("SETTING TO LATEST VERSION $version");
+	}
+	//
+	// Append version to filename if not current
+	//
+	if($version != $output['document']['current_version']) {
+		$output['document']['filename'] .= " (version ". $version.")";
+		$output['document']['footer_title'] .= " (version ". $version.")";
+	}
+	//
+	//Check if user has access to this document.
+	//
+	$output['access'] = db_get_document_access($document_id, $user->uid);
+	if($output['access'] == "none") {
+		//
+		//  User does not have access to document.
+		//  Exit without sending document details.
+		//
+		return $output;
+	}
 	$output['editable'] = db_is_version_editable($document_id, $version);
 	//
 	// Lock document... make it uneditable if user only has read access.
 	//
-  if($output['access'] == "read") {
+	if($output['access'] == "read") {
 		$output['editable'] = 0;
-  }
+	}
 
-  $output['version'] = $version;
-  crada_log(json_encode($output));
+	$output['version'] = $version;
+	crada_log(json_encode($output));
 
 	$output['clauses'] = db_get_document_elements($document_id, $version);
 
@@ -1921,9 +2074,11 @@ function db_get_document_info($document_id) {
 	crada_log("You just got db_get_title_for_document");
 
 	$output['title'] = $record->title;
-  $output['uid'] = $record->uid;
+  	$output['uid'] = $record->uid;
 	$output['filename'] = preg_replace('/[^A-Za-z0-9\. -]/', '', $record->title);
 	$output['footer_title'] = $record->title;
+	$output['document_id'] = $document_id;
+
   //
   // Get current version for this document
   //
@@ -2019,9 +2174,15 @@ function db_get_document_elements ($document_id, $version) {
 		array_push($list, $obj);
 	}
 	// Filter 2: Search Definitions
-	$query = "select * from ( ";
+	$query = "SELECT sf.document_element_id, sf.document_version, sf.document_id, sf.section, sf.subsection, sf.location, sf.alternate_text_type, sf.document_element_text, sf.confidential_annotation, sf.public_annotation, sf.survivable, sf.required, sf.source_question, sf.source_answer, sf.answer_changed, sf.updated_by, sf.updated_date from ( ";
+	$query .= "select if(SUBSTR(final.document_element_text,1,8)='<strong>', SUBSTR(final.document_element_text,9), final.document_element_text) as filter_text, final.* from ( ";
+
 	$query .= $m_query;
-	$query .= ") final where section = 'Definitions' order by document_element_text; ";
+	$query .= ") final where section = 'Definitions' ";
+	$query .= ") sf order by sf.filter_text; ";
+
+	crada_log('DEFINITION Query');
+	crada_log($query);
 
 	$result=db_query($query);
 	$display_clause_number = FALSE;

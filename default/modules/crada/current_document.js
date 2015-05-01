@@ -19,7 +19,7 @@ $(document).ready(function () {
 	});
 */
 	$("#download-word").click(function() {
-		downloadDocument("Word");
+		downloadDocument("RTF");
 	});
 	$("#change_answer_button").click(click_change_answer_button);
 	$("#change_permission_button").click(click_change_permission_button);
@@ -129,7 +129,6 @@ function downloadDocument(document_type) {
     	+"&version="+getCookie('Drupal.visitor.document.version')
     	+"&user="+getCookie('Drupal.visitor.user.name')
     	+"&document_type="+document_type;
-
     if(document_type == "PDF") {
 			window.open(link);
     } else {
@@ -157,7 +156,7 @@ function updateClauseParagraph() {
 		var alt = $('#'+my_editor.name).attr('alt');
 		var new_title= 'This clause has changed from original version.<br>'+alt;
 
-		console.log('new_title: '+new_title);
+		//console.log('new_title: '+new_title);
 		$('#'+my_editor.name).attr('title', new_title);
 
 	}
@@ -179,8 +178,8 @@ function change_annotation_selection(option) {
 		$( "#annotation_options" ).val(annotation_option);
 		change_annotation_options('fast');
 	} else {
-		console.log('annotation_option is NOT set');
-		console.log(annotation_option);
+		//console.log('annotation_option is NOT set');
+		//console.log(annotation_option);
 	}
 
 }
@@ -268,11 +267,11 @@ var	toolbar = [
 		);
 	my_editor.on('change', function(evt) {
 	    // getData() returns CKEditor's HTML content.
-	    console.log( 'Total bytes: ' + evt.editor.getData().length );
+	    //console.log( 'Total bytes: ' + evt.editor.getData().length );
 	    saveClause(evt);
 	});
 
-	console.log(e.editor.getData());
+	//console.log(e.editor.getData());
 	/*
 	var ref = e.target.id;
 
@@ -303,17 +302,17 @@ function saveClause(e) {
   //Make sure text always has at least one character.  Otherwise the clause goes away.
   //We don't have a method to delete a clause.
   //
-  var current_clause = e.editor.getData();
-  if(current_clause.length == 0) {
-    current_clause = "&nbsp;";
-  }
-  	console.log(e.editor.name)
+	var current_clause = e.editor.getData();
+	if(current_clause.length == 0) {
+		current_clause = "&nbsp;";
+	}
+	//console.log(e.editor.name)
 	var data = {document_id: getCookie('Drupal.visitor.document.id'),
 				document_element_id: document_element_id,
-				column_text: btoa(current_clause),
 				update_column: "document_element_text",
 				answer_changed: 0,
-				updated_by: getCookie('Drupal.visitor.user.name')
+				updated_by: getCookie('Drupal.visitor.user.name'),
+				column_text: btoa(current_clause)
 			};
 	//alert(JSON.stringify(data));
 	ajax_caller("save_element", data, check_ajax);
@@ -366,8 +365,21 @@ function editAnnotation(e) {
 		title: $("#"+ref).attr("dialog-title"),
 		buttons:{
 			Save: function() {
-				$( this ).dialog( "close" );
 				var textarea = $('#annotate-textarea-'+unique).val();
+				//Test btoa to see if there are any errors.
+				var data_bin;
+				try {
+					data_bin = btoa(textarea);
+				}
+				catch(err) {
+					console.dir(err);
+					//document.getElementById("demo").innerHTML = err.message;
+					alert("Invalid Character: "+err.message+"\n\nRemove non-keyboard characters from dialog before saving.");
+					return;
+				}
+				//Text is OK.  Continure.
+				$( this ).dialog( "close" );
+
 				var header = $("#"+ref).text();
 				header = header.substr(0, header.search(']') + 1);
 				var newText = '<b>'+header+'</b> '+ trimAnnotation(nl2br(textarea));
@@ -389,12 +401,31 @@ function updateAnnotateData(ref, data_text) {
 //	data_text = data_text.replace('/\n/g', "<br />");
 //	data_text = data_text.replace('/\r\n/g', "<br />");
 //	data_text = data_text.replace('/\r/g', "<br />");
+	// Somehow a strange apostrophe gets placed in there.
+	//  Let's remove it before it does some damage.
+	//
+
+//	var data_clean = data_text.replace("’", "'"); 
+//	data_clean = data_text.replace('”', '"');
+//	data_clean = data_text.replace('“', '"');
+	var data_bin;
+	try {
+		data_bin = btoa(data_text);
+	}
+	catch(err) {
+		console.error("The current annotation can not be saved properly because of invalid characters.");
+		console.dir(err);
+		//document.getElementById("demo").innerHTML = err.message;
+		//alert("Invalid Character: "+err.message+"\n\n");
+		return;
+	}
+
 	var data = {
 		document_id:getCookie("Drupal.visitor.document.id"),
 		document_element_id: $("#"+ref).attr('document_element_id'),
 		annotation_position: $("#"+ref).attr('annotation_position'),
 		annotation_type: $("#"+ref).attr('annotation_type'),
-		new_annotation: btoa(data_text)
+		new_annotation: data_bin
 	};
 	ajax_caller('set_annotation', data, generic_callback);
 }
@@ -414,9 +445,9 @@ function change_annotation_for_load() {
 	change_annotation_selection();
 	$('#current_document_content').css('width', '700px');
 	$('#current_annotation_content').show();
-  $('.confidential_annotation').show();
-  $('.public_annotation').show();
-  //Set listener for change.
+	$('.confidential_annotation').show();
+	$('.public_annotation').show();
+	//Set listener for change.
 	$("#annotation_options").change(user_changed_annotation_option);
 }
 
@@ -1001,8 +1032,8 @@ function set_toolbar_buttons(editable) {
 }
 
 function get_document_elements_callback(data) {
-	console.log("GET_DOCUMENT_ELEMENTS_CALLBACK.");
-	console.dir(data);
+	//console.log("GET_DOCUMENT_ELEMENTS_CALLBACK.");
+	//console.dir(data);
 
 	change_annotation_for_load();
 	setCookie("Drupal.visitor.document.version", data.version, 365);
@@ -1058,8 +1089,8 @@ function get_document_elements_callback(data) {
 	var survivable_clauses = [];
 
 	//Walk through each clause
-	console.info('HERE WE GO data***');
-	console.dir(data);
+	//console.info('HERE WE GO data***');
+	//console.dir(data);
 	var min_position = 0;
 	for (var i=0; i<data.clauses.length; i++) {
 		if (!(data.clauses[i].text == 'silent')) {
@@ -1508,9 +1539,9 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 
 function displayClauseParagraph(section_number, minor_number, clause, index, element_id, editable, section_name) {
 
-	console.info('section_number: '+section_number+'-'+minor_number);
-	console.dir(clause);
-	console.info('index '+index+', element_id '+element_id);
+	//console.info('section_number: '+section_number+'-'+minor_number);
+	//console.dir(clause);
+	//console.info('index '+index+', element_id '+element_id);
 
 	var document_element_id = clause['document_element_id'];
 	var major_minor =  (clause.display_clause_number) ? section_number+"-"+minor_number : "";
@@ -1537,8 +1568,8 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 		);
 
 	altMessage = createParagraphAltMessage(clause);
-	console.log('altMessage');
-	console.dir(altMessage);
+	//console.log('altMessage');
+	//console.dir(altMessage);
 
 	$('#clause-'+index).addClass(altMessage[1])
 		.attr('document_element_id', document_element_id)
@@ -1579,8 +1610,8 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 function createParagraphAltMessage(clause) {
 	// List messages and style {message, class}
 
-	console.log('document_version: '+parseInt(clause.document_version));
-	console.log('change_answer: '+parseInt(clause.answer_changed));
+	//console.log('document_version: '+parseInt(clause.document_version));
+	//console.log('change_answer: '+parseInt(clause.answer_changed));
 	
 	var messages = [["",""], 
 			["This clause has changed from original version.","clause-changed"],
@@ -1613,7 +1644,7 @@ function createParagraphAltMessage(clause) {
 		messages[index][0] += "This is a <b>required</b> clause.";  
 	}
 
-	console.log('message index: '+index);
+	//console.log('message index: '+index);
 
 	return messages[index];
 

@@ -21,6 +21,7 @@ function stop_spinner(spinner_id, show_id) {
 }
 
 function display_error(response, status, error) {
+    
     var errorMessage = error || response.statusText;
     var message = "There was an error with this request.  Please reload and try again.";
     console.warn(message);

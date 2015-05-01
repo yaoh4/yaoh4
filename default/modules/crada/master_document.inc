@@ -448,6 +448,21 @@ function load_line($section, $line) {
 	$default_public_annotation = $line[$public_annotation_column];
 	$default_survivability = (strtoupper($line[$survivability_column]) == "YES") ? 1:0;
 
+	//Get rid of those strange apostrophe
+	$default_confidential_annotation = str_replace("’", "'", $default_confidential_annotation);
+	$default_confidential_annotation = str_replace('”', '"', $default_confidential_annotation);
+	$default_confidential_annotation = str_replace('“', '"', $default_confidential_annotation);
+	$default_confidential_annotation = str_replace('…', '...', $default_confidential_annotation);
+	$default_public_annotation = str_replace("’", "'", $default_public_annotation);
+	$default_public_annotation = str_replace('”', '"', $default_public_annotation);
+	$default_public_annotation = str_replace('“', '"', $default_public_annotation);
+	$default_public_annotation = str_replace('…', '...', $default_public_annotation);
+	/*
+	…
+
+	*/
+
+
 	$defined_terms = $line[$defined_terms_column];
 
 

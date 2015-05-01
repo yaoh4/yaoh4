@@ -124,10 +124,10 @@ function display_demographic_questions(data) {
 }
 
 function get_alternate_text_types_callback(data) {
-	console.log('get_alternate_text_types_callback');
-	console.dir(data);
-	console.log('types count');
-	console.log('count: '+data.types.length);
+	//console.log('get_alternate_text_types_callback');
+	//console.dir(data);
+	//console.log('types count');
+	//console.log('count: '+data.types.length);
 
 	$("#demographic-form")
 		.append(
@@ -168,8 +168,8 @@ function get_alternate_text_types_callback(data) {
 }
 
 function get_subsections_callback(data) {
-	console.info("subsections data : ");
-	console.dir(data);
+	//console.info("subsections data : ");
+	//console.dir(data);
 	$("#demographic-form")
 		.append(
 			$('<div>').attr('id', 'subsection-text-container')

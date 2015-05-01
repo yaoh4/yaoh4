@@ -31,14 +31,14 @@ define('SIGNATURE_STATEMENT', "By executing this agreement, each Party represent
 function download_document() {
 
 	$doc = get_full_document();
-  crada_log(print_r($doc,true));
+//  	crada_log(print_r($doc,true));
 
-	if($_REQUEST['document_type'] == "PDF") {
-		//crada_log('Creating PDF file');
-		//create_pdf_file($doc);
-	} else {
+	if($_REQUEST['document_type'] == "RTF") {
 		crada_log('Creating RTF file');
 		create_rtf_file($doc);
+	} else {
+		//crada_log('Creating PDF file');
+		//create_pdf_file($doc);
 	}
 
 }
@@ -72,10 +72,11 @@ function create_rtf_file($doc) {
   	$rtf->setFooter($doc['document']);
 	$rtf->setCoversheet(COVERSHEET_PAGE_TITLE, $doc['document']);
 	$rtf->setBody($doc);
-	$rtf->setSignature(SIGNATURE_PAGE_TITLE, SIGNATURE_SECTION_TITLE, SIGNATURE_STATEMENT);
-	$rtf->setContacts(CONTACTS_PAGE_TITLE);
-	$rtf->setSummary(SUMMARY_PAGE_TITLE, SUMMARY_STATEMENT);
-	$rtf->setAppendix(APPENDIX_PAGE_TITLE, APPENDIX_SECTION_TITLE);
+	//$rtf->setSignature(SIGNATURE_PAGE_TITLE, SIGNATURE_SECTION_TITLE, SIGNATURE_STATEMENT, $doc['document']['document_id']);
+	//$rtf->setContacts(CONTACTS_PAGE_TITLE, $doc['document']['document_id']);
+	//$rtf->setSummary(SUMMARY_PAGE_TITLE, SUMMARY_STATEMENT, $doc['document']['document_id']);
+	//$rtf->setAppendix(APPENDIX_PAGE_TITLE, APPENDIX_SECTION_TITLE);
+	$rtf->addAnnotation();
 
 	$rtf->send($filename);
 
