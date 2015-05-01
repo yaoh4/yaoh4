@@ -261,7 +261,7 @@ function explodeLegalArray($arrayOfEntities, $delimiter=",") {
 function getSurvivabilityStatement($doc) {
   $output = array();
 
-  crada_log(print_r($doc, true));
+//  crada_log(print_r($doc, true));
 
   $section_number = 0;
   $current_section = "";
@@ -300,5 +300,27 @@ function checkaddslashes($str){
         return addslashes($str);
     else
         return $str;
+}
+
+//
+// This is similar to mysql_real_escape
+//
+function webify($input) {
+
+  $symbols = array(
+    '/&/' => '&#38;',
+    '/[\\\\]{1}\'/' => '&#39;',
+    '/[\\\\]{1}"/' => '&#34;',
+    '/</' => '&#60;',
+    '/>/' => '&#62;',
+    '\'' => '&#39;',
+    '"' => '&#34;'
+  );
+
+  foreach($symbols as $symb => $repl) {
+    $input = preg_replace($symb, $repl, $input);
+  }
+
+  return $input;
 }
 

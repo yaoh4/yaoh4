@@ -47,7 +47,6 @@ class CradaRtf extends PHPRtfLite {
 /*
     $this->fontBody = new PHPRtfLite_Font($this->_fontSizeMedium, $this->_fontFamily, $this->_fontColor);
     $this->fontBodyBold = new PHPRtfLite_Font($this->_fontSizeMedium, $this->_fontFamily, $this->_fontColor);
-
     $this->formatPara = new PHPRtfLite_ParFormat();
 */
     $this->left = new PHPRtfLite_ParFormat(PHPRtfLite_ParFormat::TEXT_ALIGN_LEFT);
@@ -63,6 +62,8 @@ class CradaRtf extends PHPRtfLite {
   }
 
   function setFooter($document) {
+    //crada_log($document['document_id']);
+
     $footer = $this->addFooter();
     $table = $footer->addTable();
     $table->addRows(2);
@@ -71,7 +72,7 @@ class CradaRtf extends PHPRtfLite {
     $content = $document['base_template'];
     $table->writeToCell(1, 1, $content, $this->fontSmall, $this->left);
 
-    $table->writeToCell(1, 2, 'Ref. No. _______', $this->fontSmall, $this->center);
+    $table->writeToCell(1, 2, add_demographics($document['document_id'],'Ref. No. {ICD_Ref}'), $this->fontSmall, $this->center);
     $content = 'Page <pagenum> of <pagetotal>';
     $table->writeToCell(2, 1, $content, $this->fontSmall, $this->left);
     $table->writeToCell(2, 3, '<i>Confidential</i>', $this->fontSmall, $this->right);
@@ -100,19 +101,19 @@ science natural history }}';
     $this->section->writeText($content, $this->fontNormal);
     $content = "The U.S. Department of Health and Human Services, as represented by<br>";
     $this->section->writeText($content, $this->fontNormal, $this->center);
-    $content = "<b>[INSERT the full name of the ICD]</b><br>";
+    $content = add_demographics($document['document_id'], "<b>{ICD_Full}</b><br>");
     $this->section->writeText($content, $this->fontNormal);
-    $content = "an Institute, Center, or Division (hereinafter referred to as the “ICD”) of the <br>";
+    $content = add_demographics($document['document_id'], "an Institute, Center, or Division (hereinafter referred to as the “{ICD}” of the <br>");
     $this->section->writeText($content, $this->fontNormal);
-    $content = "<b>[INSERT as appropriate: NIH, CDC, or FDA]</b><br><br>";
+    $content = add_demographics($document['document_id'], "<b>{Agency_Full}</b><br><br>");
     $this->section->writeText($content, $this->fontNormal);
     $content = "and<br><br>";
     $this->section->writeText($content, $this->fontNormal);
-    $content = "<b>[INSERT Collaborator’s official name]</b>,<br>";
+    $content = add_demographics($document['document_id'], "<b>{Collaborator_Full}</b>,<br>");
     $this->section->writeText($content, $this->fontNormal);
-    $content = 'hereinafter referred to as the “Collaborator”,<br>';
+    $content = add_demographics($document['document_id'], 'hereinafter referred to as the “{Collaborator}”,<br>');
     $this->section->writeText($content, $this->fontNormal);
-    $content = "created and operating under the laws of <b>[INSERT State of Incorporation]</b>.<br>";
+    $content = add_demographics($document['document_id'], "created and operating under the laws of <b>{Collaborator_State}</b>.<br>");
     $this->section->writeText($content, $this->fontNormal);
   }
 
@@ -160,7 +161,7 @@ science natural history }}';
     */
     /* Print Clauses */
     crada_log("SET BODY in RTF");
-    crada_log(print_r($doc['clauses'], true));
+    //crada_log(print_r($doc['clauses'], true));
 
     $current_section = "";
     $section_number = 0;
@@ -180,8 +181,12 @@ science natural history }}';
         $section_label = ($doc['clauses'][$i]['display_clause_number']) ? $section_number.".".$current_subsection."   " : "";
         $clause_text = preg_replace('#<br\s*/?>#i', "", $doc['clauses'][$i]['text']);
         $formatParagraph = ($current_section == "Preamble") ? $formatFullBlock : $formatClause;
-
         $this->section->writeText($section_label.$clause_text."\n", $this->fontBody, $formatParagraph);
+
+        $public_annotations = preg_replace('#<br\s*/?>#i', "", $doc['clauses'][$i]['public_annotation']);
+        if($public_annotations != "") {
+          $this->section->writeText("Public Annotations:".$public_annotations."\n", $this->fontBody, $formatParagraph);
+        }
         /*
         if($doc['clauses'][$i]['display_clause_number']) {
           $this->section->writeText($clause_text."\n", $this->fontBody, $formatClause);
@@ -212,6 +217,153 @@ science natural history }}';
     $this->section->writeText("\n\n\nSIGNATURES BEGIN ON THE NEXT PAGE", $this->fontNormal, $this->center);
   }
 
+  function addAnnotation() {
+/*
+ANNOTATIONS
+
+===========
+
+The group containing annotation text begins with the control word
+\*\annotation. Annotations are anchored to the character that
+immediately precedes the annotation group. The group must be preceded
+by an annotation reference character identified by the control word
+\chatn. The annotation reference character must in turn be preceded by
+a group that begins with the control word \*\atnid and that contains
+the identification text for the author of the annotation. An example
+of annotation text follows:
+
+  ...
+  An example of a paradigm might be Newtonian physics or
+  Darwinian biology.{\v\fs16 {\atnid bz}\chatn{\*\annotation
+  \pard\plain \s224 \fs20 {field{fldinst page \\*"'Page:
+  '#\line'"}{\fldrslt}}{\fs 16 \chatn }
+  How about some examples that deal with social science?
+  That's what this paper is about.}}
+
+  ...
+*/
+    $content = 'Hello{\v\fs16 
+    {\atnid section 3-9}\chatn
+    {\*\annotation \pard\plain \s224 \fs20 
+      {\fs 16 \chatn }
+      How about some examples that deal with social science?
+      That what this paper is about.}
+    }
+  {\v\fs16 
+    {\atnid section 3-9r2}\chatn{\*\annotation \pard\plain \s224 \fs20 {\fs 16 \chatn }
+  This is the second comment.  See if you can change Something
+  That what this paper is about.}}
+    What is this';
+    //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+    $content = '\line\line
+{\*\atrfstart 10001}
+{\*\atrfstart 10002}
+{\*\atrfstart 10003}
+This is my first paragraph
+{\line}
+
+    ';
+  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+  //
+  //Now lets make a reference to that first paragraph
+  //
+  $content = '
+{\*\atrfend 10001}
+{\*\atnid CONF}
+{\*\atnauthor Confidential}\chatn 
+{\*\annotation
+{\*\atnref 10001}
+This is a new annotation.
+}
+  ';
+  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+
+  $content = '
+  {\*\atrfend 10001}
+
+{\*\atnid CONF}
+{\*\atnauthor Confidential}\chatn 
+{\*\annotation
+{\*\atnref 1}
+This is a second annotation to same paragraph.
+}
+  ';
+  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+
+  $content = '
+  {\*\atrfend 10002}
+
+{\*\atnid PUB}
+{\*\atnauthor Public [3-3]}\chatn 
+{\*\annotation
+{\*\atnref 1}
+This is a new annotation.
+}
+  ';
+
+  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+$content = '
+{\*\atrfstart 291936523}
+{\*\atrfstart 291936529}
+{\*\atrfstart 291936538}
+Yes. There will be material generated.\~ Except as specifically stated}
+
+
+{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0
+  {\*\atrfend 291936523}
+  {\*\atnid PUB}
+  {\*\atnauthor Public}\chatn 
+  {\*\annotation
+  {\*\atnref 291936523}
+  {\rtlch\fcs1 \af0 \ltrch\fcs0 This is the neatest thing in the world.}
+}
+
+{\*\atrfend 291936529}
+{\*\atnid PUB}
+{\*\atnauthor Public}\chatn 
+{\*\annotation
+  {\*\atnref 291936529}
+  {\*\atndate 1731521428}
+  {\*\atnparent -1}
+  {\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \chatn }
+  {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Comment 2}
+}
+
+{\*\atrfend 291936538}
+{\*\atnid PUB}
+{\*\atnauthor Public}\chatn 
+{\*\annotation
+  {\*\atnref 291936538}
+  {\*\atnparent -1}
+  {\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \chatn }
+  {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 How cool.}
+  }
+}
+{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 
+\fs24\cf1\insrsid4485699 \line 
+\par {\*\atrfstart 291936400}3.10   No indemnification for any loss, REQUIRED}{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 {\*\atrfend 291936400}{\*\atnid CK}{\*\atnauthor Chris Kneisler}\chatn {\*\annotation{\*\atnref 291936400}
+{\*\atndate 1731521426}\ltrpar \pard\plain \ltrpar\s18\ql \li0\ri0\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1033 \ltrch\fcs0 \fs24\lang1033\langfe1033\cgrid\langnp1033\langfenp1033 {\rtlch\fcs1 
+\af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 \chatn }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Oh wow.  Got it}}}{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 \fs24\cf1\insrsid4485699 \line 
+\par }{\rtlch\fcs1 \ab\af0\afs24 \ltrch\fcs0 \b\fs24\cf1\insrsid4485699 {\*\atrfstart 291936378}{\*\atrfstart 291936427}Survivability}{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 \fs24\cf1\insrsid4485699 
+.  The provisions of Paragraphs 3-4, 3-8, and 3-10 will survive the expiration or early termination of this CRADA.}{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 
+
+
+  {\*\atrfend 291936378}{\*\atnid CK}{\*\atnauthor Chris Kneisler}\chatn 
+{\*\annotation{\*\atnref 291936378}
+{\*\atndate 1731521425}\ltrpar \pard\plain \ltrpar\s18\ql \li0\ri0\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1033 \ltrch\fcs0 
+\fs24\lang1033\langfe1033\cgrid\langnp1033\langfenp1033 
+{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 \chatn }
+{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Why is this green}}
+
+
+';
+  $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+
+  $content = "It is sooo cool.";
+  $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+
+  
+  }
 
   function setSignature($page_title, $section_title, $section_statement) {
     $this->section = $this->addSection();
@@ -262,25 +414,27 @@ Title:';
       $table->writeToCell($row, 2, '<u>'.str_repeat(" ", 35).'</u>', $this->fontNormal);
     }
   }
-  function setContacts($page_title) {
+  function setContacts($page_title, $document_id) {
     $this->section =  $this->addSection();
     $this->setSectionPageTitle($page_title);
 
     // Part 1
     $content = "Principal Place of Business<br>";
     $this->section->writeText($content, $this->fontNormalBold, $this->center);
-    $header = ["For ICD:", "For Collaborator:"];
+    $header = [add_demographics($document_id, "For {ICD}:"), add_demographics($document_id, "For {Collaborator}:")];
     $this->contactTable($header);
 
     // Part 2
     $content = "<br>CRADA Notices<br>";
     $this->section->writeText($content, $this->fontNormalBold, $this->center);
-    $header = ["For ICD:", "For Collaborator:"];
+    //$header = ["For ICD:", "For Collaborator:"];
     $this->contactTable($header);
 
+/*
     // Part 3
     $content = "<br>Patenting and Licensing<br>";
     $this->section->writeText($content, $this->fontNormalBold, $this->center);
+    
     $table = $this->section->addTable();
     $table->addRows(8);
     $table->addColumnsList(array(3.2,3.2));
@@ -296,20 +450,21 @@ Title:';
     for($row=2;$row<=8;$row++) {
       $table->writeToCell($row, 2, '<u>'.str_repeat(" ", 35).'</u>', $this->fontNormal);
     }
+*/
     // Part 4
-    $content = "<br>Delivery of Materials Identified In Appendix B (if any)<br>";
+    $content = "<br>Delivery of Materials (if any)<br>";
     $this->section->writeText($content, $this->fontNormalBold, $this->center);
-    $header = ["For ICD:", "For Collaborator:"];
+   // $header = ["For ICD:", "For Collaborator:"];
     $this->contactTable($header);
 
 
   }
-  function setSummary($page_title, $section_statement) {
+  function setSummary($page_title, $section_statement, $document_id) {
     $this->section =  $this->addSection();
     $this->setSectionPageTitle($page_title);
     $content= '<i>'.$section_statement.'</i>';
     $this->section->writeText($content."\n", $this->fontNormal, $this->center);
-
+/*
 $content = "TITLE OF CRADA:<u>".str_repeat(" ", 150)."</u>
 
 PHS [ICD] Component:<u>                     </u>
@@ -320,6 +475,7 @@ Collaborator CRADA Principal Investigator:<u>                  </u>
 Term of CRADA:          <u>   </u>(<u>  </u>) years from the Effective Date
 
 ";
+*/
     $content = "TITLE OF CRADA:  <u>".str_repeat(" ", 60)."</u>";
     $this->section->writeText($content, $this->fontNormal, $this->left);
     $content = "<u>".str_repeat(" ", 85)."</u>";
@@ -328,15 +484,15 @@ Term of CRADA:          <u>   </u>(<u>  </u>) years from the Effective Date
     $table = $this->section->addTable();
     $table->addRows(5);
     $table->addColumnsList(array(3.2,3.2));
-    $table->writeToCell(1, 1, "PHS [ICD] Component:", $this->fontNormal, $this->left);
-    $table->writeToCell(2, 1, "ICD CRADA Principal Investigator:", $this->fontNormal, $this->left);
+    $table->writeToCell(1, 1, add_demographics($document_id, "{Agency} Institute, Center, or Division:"), $this->fontNormal, $this->left);
+    $table->writeToCell(2, 1, add_demographics($document_id, "{ICD} CRADA Principal Investigator:"), $this->fontNormal, $this->left);
     $table->writeToCell(3, 1, "Collaborator:", $this->fontNormal, $this->left);
-    $table->writeToCell(4, 1, "Collaborator CRADA Principal Investigator:", $this->fontNormal, $this->left);
+    $table->writeToCell(4, 1, add_demographics($document_id, "{Collaborator} CRADA Principal Investigator:"), $this->fontNormal, $this->left);
     $table->writeToCell(5, 1, "Term of CRADA:", $this->fontNormal, $this->left);
 
-    $table->writeToCell(1, 2, '<u>'.str_repeat(" ", 38).'</u>', $this->fontNormal, $this->left);
+    $table->writeToCell(1, 2, add_demographics($document_id, '<u> {ICD} </u>'), $this->fontNormal, $this->left);
     $table->writeToCell(2, 2, '<u>'.str_repeat(" ", 38).'</u><br>', $this->fontNormal, $this->left);
-    $table->writeToCell(3, 2, '<u>'.str_repeat(" ", 38).'</u>', $this->fontNormal, $this->left);
+    $table->writeToCell(3, 2, add_demographics($document_id, '<u> {Collaborator} </u>'), $this->fontNormal, $this->left);
     $table->writeToCell(4, 2, '<u>'.str_repeat(" ", 38).'</u><br>', $this->fontNormal, $this->left);
     $table->writeToCell(5, 2, "<u>     </u>(<u>     </u>) years from the Effective Date", $this->fontNormal, $this->right);
 
