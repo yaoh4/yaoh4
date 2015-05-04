@@ -1414,6 +1414,7 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 		//console.info(annotations.length);
 		var ref_number = 0; //annotation revision number for paragraph
 		$.each(annotations, function(key2, annotation) {
+			decoded_annotation = $('<textarea />').html(annotation).text();
 
 /*
 			var position = $('#clause-5').position();
@@ -1433,9 +1434,9 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 			// Additional annotations to the same clause need R<num> appended
 			// to the annotation reference.
 			ref_number++;
-			if( JSON.stringify(annotation).length > 2) {
+			if( JSON.stringify(decoded_annotation).length > 2) {
 				//annotate_div = $("<div/>").html(annotation).text();
-				annotation_short = trimAnnotation(JSON.stringify(annotation));
+				annotation_short = trimAnnotation(JSON.stringify(decoded_annotation));
 				if(annotation_type == "confidential_annotation") {
 					conf_total++;
 					annotation_index = conf_total;
@@ -1477,8 +1478,8 @@ function addAnnotationDiv(clause, section_reference, editable, clause_id, min_po
 							.addClass('annotation')
 							.addClass(annotation_type)
 							.attr("id", ref)
-							.attr("data-annotate", br2nl(annotation))
-							.attr("title", br2sp(annotation))
+							.attr("data-annotate", br2nl(decoded_annotation))
+							.attr("title", br2sp(decoded_annotation))
 							.attr("dialog-title", annotation_title)
 							.attr("document_element_id", clause.document_element_id)
 							.attr("annotation_type", annotation_type)

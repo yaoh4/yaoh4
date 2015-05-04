@@ -76,13 +76,29 @@ class CradaRtf extends PHPRtfLite {
     $content = 'Page <pagenum> of <pagetotal>';
     $table->writeToCell(2, 1, $content, $this->fontSmall, $this->left);
     $table->writeToCell(2, 3, '<i>Confidential</i>', $this->fontSmall, $this->right);
-  }
-
-  private function setProperties() {
-    $content = '\info{\title The Panda Thumb}{\author Stephen J Gould}{\keywords
-science natural history }}';
 
   }
+
+  private function setProperties($document) {
+
+    $base_template = $document['base_template'];
+    $ref = strip_tags(add_demographics($document['document_id'],'{ICD_Ref}'));
+    $company = strip_tags(add_demographics($document['document_id'], '{ICD_Full}'));
+    $company = ($company == '</strong>') ? "" : $company;
+    $content = "  
+    {\info
+      {\\title Cooperative Research Development Agreement}
+      {\subject CRADA}
+      {\author CRADA Builder}
+      {\company {$company}}
+      {\doccomm Ref. No.: {$ref}\'0dBase Template: {$base_template}}
+      {\keywords CRADA}      
+    }";
+    $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
+
+  }
+
+
   private function setSectionPageTitle($page_title) {
     crada_log("SETTING ..." + $page_title);
     $this->section->writeText('<br>');
@@ -92,6 +108,8 @@ science natural history }}';
 
   function setCoversheet($page_title, $document) {
     $this->section =  $this->addSection();
+    $this->setProperties($document);
+
     $this->section->writeText('<br>');
     $this->setSectionPageTitle($page_title);
 
@@ -175,18 +193,53 @@ science natural history }}';
           $this->section->writeText($content, $this->fontNormalBold, $this->left);
           $current_subsection = 1;
         }
+        // Count public annotations
+        $annotations = [];
+        $clean = [];
+        $public_annotations = $doc['clauses'][$i]['public_annotation'];
+        if($public_annotations != "") {
+            $rand = mt_rand ( 10000 , 99999 );
+            $annotations = explode("\n\n", rtrim($public_annotations));
+            //$this->section->writeText("Public Annotations:".$public_annotations."\n", $this->fontBody, $formatParagraph);
+            foreach ($annotations as $key => $annotation) {
+              //clean
+              //$clean[$key] = html_entity_decode($annotation, ENT_QUOTES, "ISO-8859-1");
+              
+              //
+              //search and replace section sign
+              //
+              //$clean[$key] = str_replace('&sect;', '§', $clean[$key]);
+              $ref[$key] = $rand++;
+            }
+
+        }
+        $annotation_count = count($clean);
+
         //
         //Remove <br> from text
         //
         $section_label = ($doc['clauses'][$i]['display_clause_number']) ? $section_number.".".$current_subsection."   " : "";
+        
         $clause_text = preg_replace('#<br\s*/?>#i', "", $doc['clauses'][$i]['text']);
         $formatParagraph = ($current_section == "Preamble") ? $formatFullBlock : $formatClause;
         $this->section->writeText($section_label.$clause_text."\n", $this->fontBody, $formatParagraph);
 
-        $public_annotations = preg_replace('#<br\s*/?>#i', "", $doc['clauses'][$i]['public_annotation']);
-        if($public_annotations != "") {
-          $this->section->writeText("Public Annotations:".$public_annotations."\n", $this->fontBody, $formatParagraph);
+        $public_annotations = $doc['clauses'][$i]['public_annotation'];
+        //Quickly print out all the annotations
+//        foreach ($clean as $key => $annotation) {
+        foreach ($annotations as $key => $annotation) {
+            //  $Content = preg_replace("/&#?[a-z0-9]{2,8};/i","",$Content);
+              $content = '{\v\fs16 
+                {\atnid Public}\chatn
+                {\*\annotation \pard\plain \s224 \fs20 '.html_entity_decode($annotation).'}}';
+              $this->section->writePlainRtfCode($content); 
         }
+        if(count($annotation)) {
+          crada_log($section_label);
+          crada_log(print_r($clean, true));
+          $this->section->addEmptyParagraph($this->fontBody, $formatParagraph);
+        }
+
         /*
         if($doc['clauses'][$i]['display_clause_number']) {
           $this->section->writeText($clause_text."\n", $this->fontBody, $formatClause);
