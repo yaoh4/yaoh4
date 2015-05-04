@@ -21,10 +21,7 @@ if (!isset($user->uid)) {
 	echo json_encode($output, JSON_PRETTY_PRINT);
 	exit();
 } else {
-//		crada_log("User is logged in (crada_server)");
 	$user_info = array("id"=> $user->uid,"name"=> $user->name);
-//		crada_log("user->uid = ". $user->uid);
-//		crada_log("user->name = ". $user->name);
 }
 
 /**
@@ -37,33 +34,7 @@ function valid_uri($uri) {
 //
 //Remove text from set_annotation and save_element
 //
-/*
-http://localhost/crada/crada/server?action=save_element&document_id=26&document_element_id=10008
-&column_text=
-ZDxzdHJvbmc
-%2B
 
-Q29uZmlkZW50aWFsIEluZm9ybWF0aW9uPC9zdHJvbmc%2BOiAmbGRxdW87Q29uZmlkZW50aWFsIEluZm9ybWF0aW9uJnJkcXVvOyBtZWFucyBjb25maWRlbnRpYWwgc2NpZW50aWZpYywgYnVzaW5lc3MsIG9yIGZpbmFuY2lhbCBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBlaXRoZXIgUGFydHkgdG8gdGhlIG90aGVyIFBhcnR5IHRoYXQgaXMgbmVjZXNzYXJ5IHRvIGNvbmR1Y3QgdGhlIGFjdGl2aXRpZXMgb2YgdGhlIFJlc2VhcmNoIFBsYW4uIENvbmZpZGVudGlhbCBJbmZvcm1hdGlvbiBkb2VzIG5vdCBpbmNsdWRlIHRoZSBmb2xsb3dpbmc6IChhKSBpbmZvcm1hdGlvbiB0aGF0IGlzIG9yIGJlY29tZXMgcHVibGljbHkga25vd24gb3IgdGhhdCBpcyBhdmFpbGFibGUgZnJvbSBwdWJsaWMgc291cmNlczsgKGIpIGluZm9ybWF0aW9uIHRoYXQgaGFzIGJlZW4gbWFkZSBhdmFpbGFibGUgYnkgaXRzIG93bmVyIHRvIG90aGVycyB3aXRob3V0IGEgY29uZmlkZW50aWFsaXR5IG9ibGlnYXRpb247IChjKSBpbmZvcm1hdGlvbiB0aGF0IGlzIGFscmVhZHkga25vd24gYnkgdGhlIHJlY2VpdmluZyBQYXJ0eSwgb3IgaW5mb3JtYXRpb24gdGhhdCBpcyBpbmRlcGVuZGVudGx5IGNyZWF0ZWQgb3IgY29tcGlsZWQgYnkgdGhlIHJlY2VpdmluZyBQYXJ0eSwgd2l0aG91dCByZWZlcmVuY2UgdG8gb3IgdXNlIG9mIHRoZSBwcm92aWRlZCBpbmZvcm1hdGlvbjsgb3IgKGQpIGluZm9ybWF0aW9uIHRoYXQgcmVsYXRlcyB0byBwb3RlbnRpYWwgaGF6YXJkcyBvciBjYXV0aW9uYXJ5IHdhcm5pbmdzIGFzc29jaWF0ZWQgd2l0aCB0aGUgcHJvZHVjdGlvbiwgaGFuZGxpbmcsIG9yIHVzZSBvZiB0aGUgc3ViamVjdCBtYXR0ZXIgb2YgdGhlIFJlc2VhcmNoIFBsYW47IG9yIChlKSBDUkFEQSBEYXRhLCBkZXNjcmlwdGlvbnMgb2YgQ1JBREEgTWF0ZXJpYWxzLCBvciBJUEksIHdoaWNoIGhhdmUgc2VwYXJhdGUgY29uZmlkZW50aWFsaXR5IG9ibGlnYXRpb25zLg
-
-%3D
-%3D
-
-&update_column=document_element_text&
-
-http://localhost/crada/crada/server?action=save_element&document_id=26&document_element_id=41&column_text=
-
-SUNEIEZEQSBhbmQgTXkgQ29sbGFib3JhdG9yIGFncmVlIHRoYXQgdGhleSBoYXZlIHRoZSBmb2xsb3dpbmcgc3RhdHV0b3J5IG9ibGlnYXRpb25zOjxiciAvPgooMSkgR292ZXJubWVudCBsaWNlbnNlIGluIElDRCBGREEgU29sZSBDUkFEQSBTdWJqZWN0IEludmVudGlvbnMgYW5kIEpvaW50IENSQURBIFN1YmplY3QgSW52ZW50aW9ucyBwdXJzdWFudCB0byAxNSBVLlMuQy4gJnNlY3Q7IDM3MTBhKGIpKDEpKEEpIChoeXBlcmxpbmspOzxiciAvPgooMikgR292ZXJubWVudCBsaWNlbnNlIGluIENvbGxhYm9yYXRvciBTb2xlIENSQURBIFN1YmplY3QgSW52ZW50aW9ucyBwdXJzdWFudCB0byAxNSBVLlMuQy4gJnNlY3Q7IDM3MTBhKGIpKDIpIChoeXBlcmxpbmspOyBhbmQ8YnIgLz4KKDMpIFRoaXJkIFBhcnR5IExpY2Vuc2UgcHVyc3VhbnQgdG8gMTUgVS5TLkMuICZzZWN0OyAzNzEwYShiKSgxKShCKSAoaHlwZXJsaW5rKS48YnIgLz4KVGhlIEdvdmVybm1lbnQgd2lsbCBub3QgcHVibGljbHkgZGlzY2xvc2UgdHJhZGUgc2VjcmV0cyBvciBjb21tZXJjaWFsIG9yIGZpbmFuY2lhbCBpbmZvcm1hdGlvbiB0aGF0IGlzZCBwcml2aWxlZ2VkIG9yIGNvbmZpZGVudGlhbCB3aXRoaW4gdGhlIG1lYW5pbmcgb2YgNSBVLlMuQy4gJnNlY3Q7IDU1MihiKSg0KSBvciB3aGljaCB3b3VsZCBiZSBjb25zaWRlcmVkIHByaXZpbGVnZWQgb3IgY29uZmlkZW50aWFsIGlmIGl0IGhhZCBiZWVuIG9idGFpbmVkIGZyb20gYSBub24tZmVkZXJhbCBwYXJ0eS4%3D
-
-&update_column=document_element_text&answer_changed=0&updated_by=admin
-
-http://localhost/crada/crada/server?action=set_annotation
-&document_id=26
-&document_element_id=39
-&annotation_position=7
-&annotation_type=public_annotation
-
-&new_annotation=VGhlcmVmb3JlLCB0aGVyZSBpcyBubyBuZWVkIGZvciB0aGUgQ29sbGFib3JhdG9yIHRvIGFkZCB0aGUgb2xkIGxhbmd1YWdlIHRoYXQgZ2l2ZXMgdGhlbSB0aGUgcmlnaHQgb2YgZmlyc3QgcmVmdXNhbCBmb3IgNiBvciBtb3JlIG1vbnRocy4gVGhlIGluY2x1c2lvbiBvZiB0aGF0IGNsYXVzZSBtYWtlcyBpdCBpbXBvc3NpYmxlIGZvciBPVFQgdG8gbWFya2V0IHRoZSB0ZWNobm9sb2d5IGFzIGNvbXBhbmllcyBkbyBub3Qgd2FudCB0byBzdGFydCBuZWdvdGlhdGlvbnMgaWYgYW5vdGhlciBjb21wYW55IGNhbiB0aGVuIHN0ZXAgaW4gYW5kIHRha2UgdGhlIGxpY2Vuc2UuZmRzYQ%3D%3D
-*/
 	if($_REQUEST['action'] == 'set_annotation') {
 		//Remove new_annotation from uri
 		$uri = substr($uri, 0, strrpos($uri, 'new_annotation'));
@@ -80,17 +51,16 @@ http://localhost/crada/crada/server?action=set_annotation
 	$valid = true;
 	// Don't forget & and ?
 	$pattern = '([A-Z]|[a-z]|[0-9]|[\+]|[&]|[\?]|[=]|[_]|[/])';
-//	$pattern = '/[A-Z]|[0-9]|[a-z]|[+]|[/]/';
 	$number = preg_match_all($pattern, $uri, $matches);
-	crada_log("preg_match_all: ".$number);
-	crada_log("URI:");
-	crada_log($uri);
+	//crada_log("preg_match_all: ".$number);
+	//crada_log("URI:");
+	//crada_log($uri);
 	//crada_log(print_r($matches, true));
 	$results = implode("", $matches[0]);
-	crada_log($results);
-	crada_log('******************************** MATCHES');
-	crada_log("String length of uri: ".strlen($uri));
-	crada_log("String length of search: ".strlen($results));
+	//crada_log($results);
+	//crada_log('******************************** MATCHES');
+	//crada_log("String length of uri: ".strlen($uri));
+	//crada_log("String length of search: ".strlen($results));
 
 	if(strlen($results) != strlen($uri)) {
 		$valid = false;
@@ -103,9 +73,9 @@ function sanitize_url_variables(){
 	//
 	//	Sanitize
 	//
-	crada_log("********************");
-	crada_log("check_url_variables");
-	crada_log("********************");
+	//crada_log("********************");
+	//crada_log("check_url_variables");
+	//crada_log("********************");
 	//$uri = parse_url($url, PHP_URL_QUERY);
 
 	$msg["status"] = 'OK';
@@ -128,12 +98,12 @@ function sanitize_url_variables(){
  	   		|| $key == "question_id"
  	   		|| $key == "document_element_id"
  	   		|| $key == "annotation_position"
- 	   		) {
+			) {
 			if(!is_numeric($value)) {
 				$msg["status"] = 'Error';
 				$msg["message"] = "The $key variable in the URI is incorrect.  A number was expected";
 			}
- 	   	}
+		}
 	   	if($key == "version") {
 			if(!is_numeric($value) && $value !="current" && $value !="undefined") {
 				$msg["status"] = 'Error';
@@ -673,7 +643,9 @@ function set_annotation() {
 	crada_log(print_r($annotations, true));
 	crada_log("new_annotation");
 	crada_log($new_annotation);
+
 	$annotations[$annotation_position-1] = rtrim($new_annotation);
+
 	//Remove blank annotations
 	foreach ($annotations as $key => $annotation) {
 		if(trim($annotation) == "" ) {
@@ -682,6 +654,7 @@ function set_annotation() {
 		//clean
 		$clean[$key] = mysql_real_escape_string($annotation);
 	}
+
 	// Save new annotation in database
 	crada_log("NEW annotation array");
 	crada_log(print_r($annotations, true));
@@ -841,7 +814,7 @@ function add_demographics($document_id, $text) {
 	$row = $result->fetchObject();
 	//crada_log("add Mad Lib Demographics.");
 	// Convert json to php array
-	crada_log($row->demographic_answers);
+	//crada_log($row->demographic_answers);
 
 	$demographics = json_decode($row->demographic_answers, true);
 	//crada_log(print_r($demographics, true));
@@ -1036,27 +1009,52 @@ crada_log($query);
 }
 
 function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id, $max_version, $master_document_id) {
+	//
+	//	Turn on new definitons
+	// Rules:
+	//	1. 
+	//
 	$statement = "\n\tdocument_id: $document_id;\n\tquestion_id: $question_id;\n\tnew_answer_id: $new_answer_id;\n\tprevious_answer_id: $previous_answer_id;\n\tmax_version: $max_version;\n\tmaster_document_id: $master_document_id;";
 	crada_log("SET NEW DEFINITIONS");
 	crada_log($statement);
+	$master_document_id = get_master_document_id($document_id);
+	crada_log($master_document_id);
 
+	//Step 0: Print out all the definitons
 	crada_log("crada_definition for master_id: $master_document_id");
-	$query = "SELECT * FROM crada_definition where document_id = 22";
+	$query = "SELECT * FROM crada_definition where document_id = $master_document_id ";
 	$result=db_query($query);
-	crada_log("CRADA DEFINITIONS");
+	crada_log("Step 0: CRADA DEFINITIONS:");
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
-		crada_log("document_id: ".$row->document_id.", ".$row->term.", ". $row->definition);
+		crada_log($row->term."  ". $row->definition);
 	}
-	crada_log("");
-	//Get definitions used from previous answer
-	//Get definitions from new answer
+	//Get definitions used from previous answer (OLD DEFINITIONS)
+	//Step 1: Old Definitions
+	crada_log("Step 1: Old Definitions");
+	crada_log(print_r($old_definitions, true));
+	//Get definitions from new answer (NEW DEFINITIONS)
+	//Step 2: New Definitions
+	crada_log("Step 1: New Definitions");
+	crada_log(print_r($new_definitions, true));
+
 	//Remove terms that are in common and do nothing with them.
+
 	//Find terms that have gone away.
 	// Copy to current_version  and mark as silent.
 	//If new (COPY) from defiition
-
+	crada_log("*************************");
+	crada_log("*************************");
+	crada_log("*************************");
 }
 
+function get_master_document_id($document_id) {
+	$query = "select master_document_id from crada_document where document_id = $document_id";
+	$result=db_query($query);
+	$result=db_query($query);
+	$row = $result->fetchObject();
+
+	return $row->master_document_id;
+}
 /*
 function set_answer() {
 
@@ -1646,11 +1644,11 @@ function db_get_demographics() {
 }
 
 function db_get_all_definitions() {
-	$document_id = $_REQUEST['document_id'];
+	$master_document_id = $_REQUEST['document_id'];
 
 	$result = db_select('crada_definition', 'cd')
 	->fields('cd')
-	->condition('document_id', $document_id, '=')
+	->condition('document_id', $master_document_id, '=')
 	->execute();
 
 	$list = array();
@@ -1741,6 +1739,7 @@ function db_get_all_documents_info() {
 }
 
 function create_new_document () {
+	crada_log("********************************************        CREATE_NEW_DOCUMENT");
 
 	$data = json_decode($_REQUEST['data'], true);
 
@@ -1915,7 +1914,18 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 		$source_question, $source_answer, $alternate_text) {
 
 	global $user;
-
+	//If section is 'Definitions'
+	$term =null;
+	if($section == 'Definitions') {
+		crada_log('TERM HELLO - Definitions section');
+		crada_log($text);
+		crada_log('TERM HELLO - Definitions section');
+		$term = strip_tags($text);
+		crada_log($term);
+		crada_log(strpos($term, ":"));
+		$term = substr($term, 0, strpos($term, ":"));
+		crada_log($term);
+	}
 	$survivable = (isset($survivable)) ? $survivable : 0;
 	$alternate_text = (isset($alternate_text))? $alternate_text : 'default';
 	crada_log("doc: $document_id, element: $document_element_id, survivable: $survivable, alternate_text: $alternate_text, section = $section	");
@@ -1933,6 +1943,7 @@ function db_insert_document_element ($document_id, $document_element_id, $sectio
 	  'public_annotation' => $public_annotation,
 	  'source_question' => $source_question,
 	  'source_answer' => $source_answer,
+	  'term' => $term,
 	  'survivable' => $survivable,
 	  'required' => 0,
 	  'updated_by' => $user->uid,
@@ -1958,14 +1969,14 @@ function get_full_document() {
 	$document_id = $_REQUEST['document_id'];
 	$version = $_REQUEST['version'];
   // If $version is not a number then go get the current version
-	crada_log("user: {$user->uid}, document_id: $document_id, version: $version");
+//	crada_log("user: {$user->uid}, document_id: $document_id, version: $version");
 
 	$output['status'] = 'Ok';
 	$output['document'] = db_get_document_info($document_id);
   // If $version is not a number then go get the current version
 	if(!is_numeric($version)) {
 		$version = $output['document']['current_version'];
-		crada_log("SETTING TO LATEST VERSION $version");
+//		crada_log("SETTING TO LATEST VERSION $version");
 	}
 	//
 	// Append version to filename if not current
@@ -2062,7 +2073,7 @@ function db_is_version_editable($document_id, $version) {
 }
 
 function db_get_document_info($document_id) {
-	crada_log("get_document_info- HERE WE GO");
+//	crada_log("get_document_info- HERE WE GO");
 
 	$output = array();
 
@@ -2071,7 +2082,7 @@ function db_get_document_info($document_id) {
 	->condition('document_id', $document_id, '=')
 	->execute()
 	->fetchObject();
-	crada_log("You just got db_get_title_for_document");
+//	crada_log("You just got db_get_title_for_document");
 
 	$output['title'] = $record->title;
   	$output['uid'] = $record->uid;
@@ -2114,14 +2125,14 @@ function db_get_document_info($document_id) {
 
 
 
-	crada_log(print_r($output, true));
+//	crada_log(print_r($output, true));
 
   return $output;
 }
 
 function db_get_document_elements ($document_id, $version) {
 
-	crada_log("GET LATEST DOCUMENT BASED on a version number");
+//	crada_log("GET LATEST DOCUMENT BASED on a version number");
 
 	$list = array();
 
@@ -2181,8 +2192,8 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= ") final where section = 'Definitions' ";
 	$query .= ") sf order by sf.filter_text; ";
 
-	crada_log('DEFINITION Query');
-	crada_log($query);
+//	crada_log('DEFINITION Query');
+//	crada_log($query);
 
 	$result=db_query($query);
 	$display_clause_number = FALSE;
@@ -2191,8 +2202,8 @@ function db_get_document_elements ($document_id, $version) {
 		$obj['document_element_id'] = $row->document_element_id;
 		$obj['text'] = $row->document_element_text;
 		$obj['section'] = $row->section;
-		$obj['confidential_annotation'] = trim($row->confidential_annotation);
-		$obj['public_annotation'] = trim($row->public_annotation);
+		$obj['confidential_annotation'] = html_entity_decode(trim($row->confidential_annotation));
+		$obj['public_annotation'] = html_entity_decode(trim($row->public_annotation));
 		$obj['document_version'] = $row->document_version;
 		$obj['answer_changed'] = $row->answer_changed;
 		$obj['survivable'] = $row->survivable;

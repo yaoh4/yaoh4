@@ -474,7 +474,9 @@ function setup_document_callback(data) {
 		}
 
 		new_clauses[i] = new Object();
-		new_clauses[i].text = "<strong>" + add_demographics(used_terms[i]) + "</strong>: " + add_demographics(definition);
+		//Need to remove add_demographics because we need the original term for setting up set_definition after change answer
+		//new_clauses[i].text = "<strong>" + add_demographics(used_terms[i]) + "</strong>: " + add_demographics(definition);
+		new_clauses[i].text = "<strong>" + used_terms[i] + "</strong>: " + add_demographics(definition);
 		new_clauses[i].section = 	"Definitions";
 		new_clauses[i].survivable = 0;
 //		console.log("new_clauses["+(i)+"]");
