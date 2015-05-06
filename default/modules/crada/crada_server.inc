@@ -74,7 +74,7 @@ function sanitize_url_variables(){
 	//	Sanitize
 	//
 	//crada_log("********************");
-	//crada_log("check_url_variables");
+	//crada_log("sanitize_url_variables");
 	//crada_log("********************");
 	//$uri = parse_url($url, PHP_URL_QUERY);
 
@@ -95,9 +95,9 @@ function sanitize_url_variables(){
 	foreach ($_REQUEST as $key => $value) {
 		crada_log("Key: $key; Value: $value");
  	   	if($key == "document_id"  
- 	   		|| $key == "question_id"
- 	   		|| $key == "document_element_id"
- 	   		|| $key == "annotation_position"
+			|| $key == "question_id"
+			|| $key == "document_element_id"
+			|| $key == "annotation_position"
 			) {
 			if(!is_numeric($value)) {
 				$msg["status"] = 'Error';
@@ -109,8 +109,8 @@ function sanitize_url_variables(){
 				$msg["status"] = 'Error';
 				$msg["message"] = "The $key variable in the URI is incorrect.  A number, 'current', or 'undefined' was expected";
 			}
- 	   	}
- 	}
+		}
+	}
 
  	crada_log(print_r($msg, true));
 	return $msg; 	
@@ -465,10 +465,11 @@ function save_element() {
   	global $user;
   	crada_log("BEFORE:");
   	crada_log($_REQUEST['column_text']);
-  	$newtext = checkaddslashes(mysql_real_escape_string(trim(base64_decode($_REQUEST['column_text']))));
+  	$newtext = trim(base64_decode($_REQUEST['column_text']));
   	//$newtext = checkaddslashes(trim(base64_decode($_REQUEST['column_text'])));
   	crada_log("AFTER:");
-  	crada_log($newtext);
+  	crada_log(trim(base64_decode($_REQUEST['column_text'])));
+  	///crada_log($newtext);
 
 	$query = "update crada_document_element ";
 	$query .= "set ";
@@ -785,7 +786,7 @@ function copy_element($document_id, $document_element_id) {
 		$query .= "cde2.document_element_id, $current_document_version, cde2.document_id, cde2.section, ";
 		$query .= "cde2.subsection, cde2.location, cde2.alternate_text_type, cde2.document_element_text, ";
 		$query .= "cde2.confidential_annotation, cde2.public_annotation, cde2.survivable, ";
-		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed, ";
+		$query .= "cde2.required, cde2.source_question, cde2.source_answer, cde2.answer_changed,  cde2.term, ";
 		$query .= "cde2.updated_by, cde2.updated_date ";
 		$query .= "from crada_document_element cde2, ";
 		$query .= "(SELECT max(document_version) as latest_document_version FROM crada_document_element where ";
@@ -854,7 +855,7 @@ function set_new_answer() {
 	//GET element Row
 	// This query will retrieve current version row from
 	// crada_document_element table.
-	$query = "select document_element_id, max_version, master_document_id, alternate_text_type from ( ";
+	$query = "select document_element_id, max_version, master_document_id, alternate_text_type, source_answer from ( ";
 	$query .= document_current_question_answer_sql($document_id);
 	$query .= ") lca WHERE question_id = $question_id ";
 	crada_log($query);
@@ -865,6 +866,7 @@ function set_new_answer() {
 	$max_version = $row->max_version;
 	$master_document_id = $row->master_document_id;
 	$alternate_text_type = $row->alternate_text_type;
+	$previous_answer_id =  $row->source_answer;
 
 	$statement = "
 	document_element_id: $document_element_id;
@@ -939,15 +941,19 @@ function set_new_answer() {
 					and source_question = $question_id
 					and document_version = $current_document_version";
 	crada_log("document_element_text BEFORE: ");
+	crada_log($query);
 	
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	$previous_answer_id = $row->source_answer;
 	crada_log(print_r($row, true));
 
-	$new_document_element_text = checkaddslashes($new_document_element_text);
-	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
-	$new_public_annotation = checkaddslashes($new_public_annotation);
+//	$new_document_element_text = checkaddslashes($new_document_element_text);
+//	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
+//	$new_public_annotation = checkaddslashes($new_public_annotation);
+	$new_document_element_text = $new_document_element_text;
+	$new_confidential_annotation = $new_confidential_annotation;
+	$new_public_annotation = $new_public_annotation;
 
 	crada_log("****** Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
 
@@ -984,6 +990,7 @@ crada_log($query);
 					and document_version = $current_document_version";
 
 	crada_log("document_element_text AFTER: ");
+	crada_log($query);
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log(print_r($row, true));
@@ -1000,7 +1007,7 @@ crada_log($query);
 	
 	//DATABASE Unique KEY: document_id, document_element_id, version
 
-	set_new_definitions($document_id, $question_id, $answer_id, $max_version, $master_document_id);
+	set_new_definitions($document_id, $question_id, $answer_id, $previous_answer_id, $max_version, $master_document_id);
 
 	$output = array();
 	$output["status"] = "OK";
@@ -1008,7 +1015,54 @@ crada_log($query);
 	return $output;
 }
 
+function query_get_definitions($question_id) {
+	/* Example:
+SELECT cvcgba.*, ccgtc.clause_id, cd.term, cd.definition FROM 
+crada_valid_clause_group_by_answer cvcgba,
+crada_clause_group_to_clause ccgtc,
+crada_definition_element_crosslink crosslink,
+crada_definition cd
+where cvcgba.question_id = 94
+and cvcgba.document_id = ccgtc.document_id
+and cvcgba.clause_group_id = ccgtc.clause_group_id
+and ccgtc.clause_id = crosslink.clause_id
+and ccgtc.document_id = crosslink.document_id
+and crosslink.document_id = cd.document_id
+and crosslink.term = cd.term
+	*/
+	$query = "SELECT cvcgba.*, ccgtc.clause_id, cd.term, cd.definition FROM  ";
+	$query .= "crada_valid_clause_group_by_answer cvcgba, ";
+	$query .= "crada_clause_group_to_clause ccgtc, ";
+	$query .= "crada_definition_element_crosslink crosslink, ";
+	$query .= "crada_definition cd ";
+	$query .= "where cvcgba.question_id = {$question_id} ";
+	$query .= "and cvcgba.document_id = ccgtc.document_id ";
+	$query .= "and cvcgba.clause_group_id = ccgtc.clause_group_id ";
+	$query .= "and ccgtc.clause_id = crosslink.clause_id ";
+	$query .= "and ccgtc.document_id = crosslink.document_id ";
+	$query .= "and crosslink.document_id = cd.document_id ";
+	$query .= "and crosslink.term = cd.term ";
+
+	return $query;
+}
+
 function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id, $max_version, $master_document_id) {
+/*
+
+SELECT * FROM 
+crada_valid_clause_group_by_answer cvcgba,
+crada_clause_group_to_clause ccgtc,
+crada_definition_element_crosslink crosslink,
+crada_definition cd
+where cvcgba.question_id = 94
+and cvcgba.document_id = ccgtc.document_id
+and cvcgba.clause_group_id = ccgtc.clause_group_id
+and ccgtc.clause_id = crosslink.clause_id
+
+//HOLD
+
+*/
+
 	//
 	//	Turn on new definitons
 	// Rules:
@@ -1025,26 +1079,77 @@ function set_new_definitions($document_id, $question_id, $new_answer_id, $previo
 	$query = "SELECT * FROM crada_definition where document_id = $master_document_id ";
 	$result=db_query($query);
 	crada_log("Step 0: CRADA DEFINITIONS:");
+	crada_log($query);
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		crada_log($row->term."  ". $row->definition);
 	}
 	//Get definitions used from previous answer (OLD DEFINITIONS)
 	//Step 1: Old Definitions
-	crada_log("Step 1: Old Definitions");
+	crada_log("Step 1: Old Definitions (REMOVE)");
+	$query = "select * from ( ";
+	$query .= query_get_definitions($question_id);
+	$query .= ") definitions ";
+	$query .= "WHERE answer_id = $previous_answer_id ";
+	crada_log($query);
+	$result=db_query($query);
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$old_definitions[] =$row->term;
+	}
 	crada_log(print_r($old_definitions, true));
 	//Get definitions from new answer (NEW DEFINITIONS)
 	//Step 2: New Definitions
-	crada_log("Step 1: New Definitions");
+	crada_log("Step 2: New Definitions (ADD)");
+	$query = "select * from ( ";
+	$query .= query_get_definitions($question_id);
+	$query .= ") definitions ";
+	$query .= "WHERE answer_id = $new_answer_id ";
+	$result=db_query($query);
+	crada_log($query);
+	for ($count = 0; $row = $result->fetchObject(); $count++) {
+		$new_definitions[] =$row->term;
+	}
 	crada_log(print_r($new_definitions, true));
 
-	//Remove terms that are in common and do nothing with them.
+	//Remove terms that are in common between these lists and do nothing with them.
+	foreach($old_definitions as $old_key => $old_value) {
+		foreach ($new_definitions as $new_key => $new_value) {
+			if($old_value == $new_value) {
+				unset($old_definitions[$old_key]);
+				unset($new_definitions[$new_key]);
+			}
+		}
+	}
+	crada_log("Old filtered");
+	crada_log(print_r($old_definitions, true));
 
-	//Find terms that have gone away.
-	// Copy to current_version  and mark as silent.
+	foreach($old_definitions as $old_key => $old_value) {
+		//
+		// Virtually delete.
+		//  If current_element_version equals 
+		// current_document_version then add the word 'silent'
+		// to the text area.  Otherwise create a copy of latest version
+		// to the current version and add the word 'silent' to the text area. 
+		//
+
+	}
+
+	crada_log(print_r($new_definitions, true));
+	foreach($new_definitions as $old_key => $old_value) {
+		//
+		// Find max id and add one, then copy latest.
+		// If an entry exists for the document_element_id and max_version and text='silent' then replace with original...
+		// otherwise create a new one with the max version in crada_document
+		//
+	}
+
+	//Find old terms that have gone away and delete the latest copy.
+	//Find new terms and append them to the list.
 	//If new (COPY) from defiition
+
 	crada_log("*************************");
 	crada_log("*************************");
 	crada_log("*************************");
+
 }
 
 function get_master_document_id($document_id) {

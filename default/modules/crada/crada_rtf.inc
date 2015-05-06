@@ -84,13 +84,13 @@ class CradaRtf extends PHPRtfLite {
     $base_template = $document['base_template'];
     $ref = strip_tags(add_demographics($document['document_id'],'{ICD_Ref}'));
     $company = strip_tags(add_demographics($document['document_id'], '{ICD_Full}'));
-    $company = ($company == '</strong>') ? "" : $company;
+    $company = ($company == 'ICD_Full') ? "" : $company;
     $content = "  
     {\info
       {\\title Cooperative Research Development Agreement}
       {\subject CRADA}
       {\author CRADA Builder}
-      {\company {$company}}
+      {\company {$company}|
       {\doccomm Ref. No.: {$ref}\'0dBase Template: {$base_template}}
       {\keywords CRADA}      
     }";
