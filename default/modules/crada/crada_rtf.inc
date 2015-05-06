@@ -90,10 +90,11 @@ class CradaRtf extends PHPRtfLite {
       {\\title Cooperative Research Development Agreement}
       {\subject CRADA}
       {\author CRADA Builder}
-      {\company {$company}|
+      {\company {$company}}
       {\doccomm Ref. No.: {$ref}\'0dBase Template: {$base_template}}
       {\keywords CRADA}      
     }";
+
     $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
 
   }
