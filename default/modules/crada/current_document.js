@@ -878,7 +878,7 @@ function load_change_answer(data) {
 			.addClass("change-answer-intro")
 	);
 */
-	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses into the current document.';
+	var instructions = '<p class="second-page-intro">Changing a document answer below will immediately replace the appropriate clauses and definitions into the current document.';
 	//instructions += '<br><b>Warning:</b>  Changing a document answer below will reload the base definitions from the master template.  Some changes to the definitions section <b>may be lost<b>.</p>';
 	$('#second_page').empty().append(instructions);
 	$('#second_page').append(
@@ -1611,9 +1611,9 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 function createParagraphAltMessage(clause) {
 	// List messages and style {message, class}
 
-	//console.log('document_version: '+parseInt(clause.document_version));
-	//console.log('change_answer: '+parseInt(clause.answer_changed));
-	
+	console.log('document_version: '+parseInt(clause.document_version));
+	console.log('change_answer: '+parseInt(clause.answer_changed));
+	console.dir(clause);
 	var messages = [["",""], 
 			["This clause has changed from original version.","clause-changed"],
 			["This clause has changed because of a changed answer.","answer-changed"],
@@ -1644,7 +1644,9 @@ function createParagraphAltMessage(clause) {
 		}
 		messages[index][0] += "This is a <b>required</b> clause.";  
 	}
-
+	if(clause.question_text == 'DEFINITION' && parseInt(clause.document_version) > 0) {
+		messages[index][0] = "This definition has been added or has changed from original version."
+	}
 	//console.log('message index: '+index);
 
 	return messages[index];
