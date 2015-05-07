@@ -367,6 +367,7 @@ function editAnnotation(e) {
 			Save: function() {
 				var textarea = $('#annotate-textarea-'+unique).val();
 				//Test btoa to see if there are any errors.
+				//alert(textarea);
 				var data_bin;
 				try {
 					data_bin = btoa(textarea);
@@ -410,7 +411,9 @@ function updateAnnotateData(ref, data_text) {
 //	data_clean = data_text.replace('“', '"');
 	var data_bin;
 	try {
+		data_text = data_text.replace(/'/g, "\\'");
 		data_bin = btoa(data_text);
+		//alert(data_text);
 	}
 	catch(err) {
 		console.error("The current annotation can not be saved properly because of invalid characters.");
@@ -1645,7 +1648,7 @@ function createParagraphAltMessage(clause) {
 		messages[index][0] += "This is a <b>required</b> clause.";  
 	}
 	if(clause.question_text == 'DEFINITION' && parseInt(clause.document_version) > 0) {
-		messages[index][0] = "This definition has been added or has changed from original version."
+		messages[index][0] = "This definition has been added because of a changed answer or has been modified from it's original version."
 	}
 	//console.log('message index: '+index);
 
