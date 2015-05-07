@@ -687,6 +687,7 @@ function set_annotation() {
 	}
 
 	$content = str_replace('&amp;sect;', '&sect;', $content);
+	$content = str_replace('&sect;', '§', $content);
 
 	crada_log("Put this back into the database");
 	crada_log($annotation);
@@ -986,8 +987,8 @@ function set_new_answer() {
 //	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
 //	$new_public_annotation = checkaddslashes($new_public_annotation);
 	$new_document_element_text = $new_document_element_text;
-	$new_confidential_annotation = $new_confidential_annotation;
-	$new_public_annotation = $new_public_annotation;
+	$new_confidential_annotation = htmlentities(mysql_escape_mimic(stripslashes($new_confidential_annotation)), ENT_NOQUOTES);
+	$new_public_annotation = htmlentities(mysql_escape_mimic(stripslashes($new_public_annotation)), ENT_NOQUOTES);
 
 	crada_log("****** Replace in crada_document_element.  Change answer_id.  Set Changed answer to true.");
 
