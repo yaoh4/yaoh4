@@ -664,7 +664,10 @@ function set_annotation() {
 			unset($annotations[$key]);
 		}
 		//clean
-		$clean[$key] = mysql_real_escape_string($annotation);
+		//I don't know why mysql_real_escape_string stopped working.
+		// Removing for now.
+		//$clean[$key] = mysql_real_escape_string($annotation);
+		$clean[$key] = $annotation;
 	}
 
 	// Save new annotation in database
@@ -675,6 +678,9 @@ function set_annotation() {
 	crada_log("Put this back into the database");
 	crada_log($annotation);
 
+	$annotation = htmlentities($annotation);
+	crada_log($annotation);
+
 	//$annotation = checkaddslashes($annotation);
 	//crada_log($annotation);
 
@@ -683,7 +689,7 @@ function set_annotation() {
 	$query .= "document_id = $document_id and document_element_id = $document_element_id ";
 	$query .= ") mcde ";
 	//$query .= 'SET cde.'.$annotation_type.'  = "'.$annotation.'" ';
-	$query .= "SET cde.$annotation_type  = '{".htmlentities($annotation)."'";
+	$query .= "SET cde.$annotation_type  = '{".$annotation."'";
 	$query .= "where mcde.max_version = cde.document_version ";
 	$query .= "and cde.document_id = $document_id and cde.document_element_id = $document_element_id ";
 
@@ -1010,7 +1016,7 @@ function set_new_answer() {
 
 	//DATABASE Unique KEY: document_id, document_element_id, version
 
-	set_new_definitions($document_id, $question_id, $answer_id, $previous_answer_id, $max_version, $master_document_id);
+	set_new_definitions($document_id, $question_id, $answer_id, $previous_answer_id);
 
 	$output = array();
 	$output["status"] = "OK";
@@ -1060,7 +1066,7 @@ and crosslink.term = cd.term
 	return $query;
 }
 
-function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id, $max_version, $master_document_id) {
+function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id) {
 	global $user;
 /*
 
@@ -1083,13 +1089,14 @@ and ccgtc.clause_id = crosslink.clause_id
 	// Rules:
 	//	1. 
 	//
-	$statement = "\n\tdocument_id: $document_id;\n\tquestion_id: $question_id;\n\tnew_answer_id: $new_answer_id;\n\tprevious_answer_id: $previous_answer_id;\n\tmax_version: $max_version;\n\tmaster_document_id: $master_document_id;";
+	$statement = "\n\tdocument_id: $document_id;\n\tquestion_id: $question_id;\n\tnew_answer_id: $new_answer_id;\n\tprevious_answer_id: $previous_answer_id;";
 	crada_log("SET NEW DEFINITIONS");
 	crada_log($statement);
 	$master_document_id = get_master_document_id($document_id);
 	crada_log($master_document_id);
 
 	//Step 0: Print out all the definitons
+	/*
 	crada_log("crada_definition for master_id: $master_document_id");
 	$query = "SELECT * FROM crada_definition where document_id = $master_document_id ";
 	$result=db_query($query);
@@ -1098,6 +1105,7 @@ and ccgtc.clause_id = crosslink.clause_id
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		crada_log($row->term."  ". $row->definition);
 	}
+	*/
 	//Get definitions used from previous answer (OLD DEFINITIONS)
 	//Step 1: Old Definitions
 	crada_log("Step 1: Old Definitions (REMOVE)");
@@ -1213,7 +1221,7 @@ and ccgtc.clause_id = crosslink.clause_id
 			$required = 0;
 			$source_question = "null";
 			$source_answer = "null";
-			$answer_changed = 0;
+			$answer_changed = 1;
 			$term = "'{$new_value}'";
 			$updated_by = $user->uid;
 			$updated_date = "'".date('Y-m-d H:i:s', time())."'";
@@ -1269,6 +1277,7 @@ and ccgtc.clause_id = crosslink.clause_id
 				crada_log("$current_document_version");
 				$query = "UPDATE ignore crada_document_element
 						SET	document_element_text = '{$document_element_text}',
+							answer_changed = 1,
 							updated_by = $user->uid
 						WHERE document_id = $document_id
 						and term = '{$new_value}'
