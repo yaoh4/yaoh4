@@ -365,7 +365,9 @@ function editAnnotation(e) {
 		title: $("#"+ref).attr("dialog-title"),
 		buttons:{
 			Save: function() {
+				//var textarea = $('#annotate-textarea-'+unique).val();
 				var textarea = $('#annotate-textarea-'+unique).val();
+				textarea = textarea.replace('§', '&sect;');
 				//Test btoa to see if there are any errors.
 				//alert(textarea);
 				var data_bin;
@@ -411,7 +413,9 @@ function updateAnnotateData(ref, data_text) {
 //	data_clean = data_text.replace('“', '"');
 	var data_bin;
 	try {
-		data_text = data_text.replace(/'/g, "\\'");
+		//data_text = data_text.replace(/'/g, "\\'");
+		//data_text = data_text.replace(/'/g, "&apos;");
+
 		data_bin = btoa(data_text);
 		//alert(data_text);
 	}
@@ -1614,9 +1618,9 @@ function displayClauseParagraph(section_number, minor_number, clause, index, ele
 function createParagraphAltMessage(clause) {
 	// List messages and style {message, class}
 
-	console.log('document_version: '+parseInt(clause.document_version));
-	console.log('change_answer: '+parseInt(clause.answer_changed));
-	console.dir(clause);
+	//console.log('document_version: '+parseInt(clause.document_version));
+	//console.log('change_answer: '+parseInt(clause.answer_changed));
+	//console.dir(clause);
 	var messages = [["",""], 
 			["This clause has changed from original version.","clause-changed"],
 			["This clause has changed because of a changed answer.","answer-changed"],
@@ -1647,8 +1651,17 @@ function createParagraphAltMessage(clause) {
 		}
 		messages[index][0] += "This is a <b>required</b> clause.";  
 	}
-	if(clause.question_text == 'DEFINITION' && parseInt(clause.document_version) > 0) {
-		messages[index][0] = "This definition has been added because of a changed answer or has been modified from it's original version."
+	if(clause.question_text == 'DEFINITION'){
+		if(parseInt(clause.answer_changed) == 1) {
+			messages[index][0] = "This definition was added because of a changed answer.";
+		} else {
+			messages[index][0] = "This definition clause has changed from original version.";
+		}
+/*		
+		if(clause.answer_changed)
+		if(parseInt(clause.document_version) > 0) {
+			messages[index][0] = "This definition has been added because of a changed answer or has been modified from it's original version."
+*/
 	}
 	//console.log('message index: '+index);
 

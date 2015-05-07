@@ -667,7 +667,11 @@ function set_annotation() {
 		//I don't know why mysql_real_escape_string stopped working.
 		// Removing for now.
 		//$clean[$key] = mysql_real_escape_string($annotation);
-		$clean[$key] = $annotation;
+		//$clean[$key] = checkaddslashes(htmlentities($annotation, ENT_NOQUOTES, ENT_IGNORE));
+		$clean[$key] = htmlentities(mysql_escape_mimic(stripslashes($annotation)), ENT_NOQUOTES);
+
+		//$clean[$key] = checkaddslashed($annotation);
+
 	}
 
 	// Save new annotation in database
@@ -675,11 +679,23 @@ function set_annotation() {
 	crada_log(print_r($annotations, true));
 	//$annotation = implode('\n\n', $annotations);
 	$annotation = implode('\n\n', $clean);
+	// implode caused problems.  Making a implode type to create the string.
+	$content = $clean[0];
+	for($i=1;$i<count($clean);$i++) {
+		$content .= '\n\n';
+		$content .= $clean[$i];
+	}
+
+	$content = str_replace('&amp;sect;', '&sect;', $content);
+
 	crada_log("Put this back into the database");
 	crada_log($annotation);
+	crada_log($content);
 
-	$annotation = htmlentities($annotation);
-	crada_log($annotation);
+	//$annotation = htmlentities($annotation, ENT_QUOTES);
+	//crada_log($annotation);
+	//$annotation = htmlentities($annotation);
+	//crada_log($annotation);
 
 	//$annotation = checkaddslashes($annotation);
 	//crada_log($annotation);
@@ -689,8 +705,9 @@ function set_annotation() {
 	$query .= "document_id = $document_id and document_element_id = $document_element_id ";
 	$query .= ") mcde ";
 	//$query .= 'SET cde.'.$annotation_type.'  = "'.$annotation.'" ';
-	$query .= "SET cde.$annotation_type  = '{".$annotation."'";
-	$query .= "where mcde.max_version = cde.document_version ";
+//	$query .= "SET cde.$annotation_type  = '".$annotation."' ";
+	$query .= "SET cde.$annotation_type  = '".$content."' ";
+	$query .= " where mcde.max_version = cde.document_version ";
 	$query .= "and cde.document_id = $document_id and cde.document_element_id = $document_element_id ";
 
 	crada_log($query);
