@@ -235,7 +235,7 @@ class CradaRtf extends PHPRtfLite {
                 {\*\annotation \pard\plain \s224 \fs20 '.html_entity_decode($annotation).'}}';
               $this->section->writePlainRtfCode($content); 
         }
-        if(count($annotation)) {
+        if(count($annotations)) {
           crada_log($section_label);
           crada_log(print_r($clean, true));
           $this->section->addEmptyParagraph($this->fontBody, $formatParagraph);

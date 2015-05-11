@@ -1,4 +1,5 @@
 <?php
+
 require_once 'crada_utilities.inc';
 
 //Create new document steps:
@@ -859,7 +860,7 @@ function add_demographics($document_id, $text) {
 //	crada_log("Before demographic: TEXT");
 //	crada_log($text);
 	foreach ($demographics as $key => $value) {
-		crada_log($key ." : " . $value);
+		//crada_log($key ." : " . $value);
 		$search = "{".$key."}";
 		if($value == "") {
 			//If no value bold missing demographics
@@ -1084,6 +1085,86 @@ and crosslink.term = cd.term
 	return $query;
 }
 
+function is_definition_being_used($document_id, $old_value){
+
+	//Get current list of term used for this document
+	$query = "select if(count(*)>0, true, false) as term_found  from  ";
+	$query .= "(SELECT * FROM ";
+	$query .= "    (SELECT cd.master_document_id, doc.source_question, doc.source_answer ";
+	$query .= "    FROM (SELECT cde2.* ";
+	$query .= "    FROM crada_document_element cde2, (SELECT document_element_id, MAX(document_version) AS ver ";
+	$query .= "    FROM crada_document_element ";
+	$query .= "    WHERE document_id = $document_id AND document_version <= 1 ";
+	$query .= "    GROUP BY document_element_id) cde1 WHERE ";
+	$query .= "        cde2.document_element_id = cde1.document_element_id ";
+	$query .= "            AND cde2.document_version = cde1.ver ";
+	$query .= "            AND cde2.document_id = $document_id ";
+	$query .= "            AND document_element_text NOT LIKE 'silent') doc, crada_document cd ";
+	$query .= "    WHERE doc.document_id = cd.document_id ";
+	$query .= "            AND section <> 'Definitions' ";
+	$query .= "            AND section <> 'Preamble') AS filtered ";
+	$query .= "        LEFT JOIN crada_valid_clause_group_by_answer cvcgba ON filtered.master_document_id = cvcgba.document_id ";
+	$query .= "        AND filtered.source_question = cvcgba.question_id ";
+	$query .= "        AND filtered.source_answer = cvcgba.answer_id) linked ";
+	$query .= "        left join  crada_clause_group_to_clause ccgtc ";
+	$query .= "        ON linked.document_id = ccgtc.document_id ";
+	$query .= "        and linked.clause_group_id = ccgtc.clause_group_id ";
+	$query .= "        left join crada_definition_element_crosslink cdec ";
+	$query .= "        on ccgtc.document_id = cdec.document_id ";
+	$query .= "        and ccgtc.clause_id = cdec.clause_id ";
+	$query .= "       where term = '{$old_value}'; ";
+
+	crada_log($query);
+	crada_log("is_definition_being_used");
+	$result=db_query($query);
+	$row = $result->fetchObject();
+	crada_log(print_r($row, true));
+
+	return ($row->term_found == 1) ? true : false;
+
+
+/*
+SELECT 
+    *
+FROM
+    (SELECT 
+        cd.master_document_id,
+            doc.source_question,
+            doc.source_answer
+    FROM
+        (SELECT 
+        cde2.*
+    FROM
+        crada_document_element cde2, (SELECT 
+        document_element_id, MAX(document_version) AS ver
+    FROM
+        crada_document_element
+    WHERE
+        document_id = 27
+            AND document_version <= 1
+    GROUP BY document_element_id) cde1
+    WHERE
+        cde2.document_element_id = cde1.document_element_id
+            AND cde2.document_version = cde1.ver
+            AND cde2.document_id = 27
+            AND document_element_text NOT LIKE 'silent') doc, crada_document cd
+    WHERE
+        doc.document_id = cd.document_id
+            AND section <> 'Definitions'
+            AND section <> 'Preamble') AS filtered
+        LEFT JOIN
+    crada_valid_clause_group_by_answer cvcgba ON filtered.master_document_id = cvcgba.document_id
+        AND filtered.source_question = cvcgba.question_id
+        AND filtered.source_answer = cvcgba.answer_id
+
+*/
+}
+
+function query_document_id_to_clause_id () {
+	$query = "SELECT cvcgba.*, ccgtc.clause_id FROM crada_valid_clause_group_by_answer cvcgba, crada_clause_group_to_clause ccgtc where cvcgba.document_id = ccgtc.document_id and cvcgba.clause_group_id = ccgtc.clause_group_id ";
+	return $query;
+}
+
 function set_new_definitions($document_id, $question_id, $new_answer_id, $previous_answer_id) {
 	global $user;
 /*
@@ -1162,6 +1243,13 @@ and ccgtc.clause_id = crosslink.clause_id
 	}
 	crada_log("Old filtered");
 	crada_log(print_r($old_definitions, true));
+	//Lastly make sure it is not being used elsewhere.
+	foreach($old_definitions as $old_key => $old_value) {
+		//Is $old_value being used else where?
+		if(is_definition_being_used($document_id, $old_value)){
+			unset($old_definitions[$old_key]);
+		}
+	}
 
 	foreach($old_definitions as $old_key => $old_value) {
 		//
@@ -2438,6 +2526,9 @@ function db_get_document_elements ($document_id, $version) {
 	$query .= $m_query;
 	$query .= ") final where section = 'Preamble'; ";
 
+	crada_log("QUERY ONE Preamble.");
+	crada_log($query);
+
 	$result=db_query($query);
 	$display_clause_number = FALSE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
@@ -2456,17 +2547,18 @@ function db_get_document_elements ($document_id, $version) {
 		array_push($list, $obj);
 	}
 	// Filter 2: Search Definitions
-	$query = "SELECT sf.document_element_id, sf.document_version, sf.document_id, sf.section, sf.subsection, sf.location, sf.alternate_text_type, sf.document_element_text, sf.confidential_annotation, sf.public_annotation, sf.survivable, sf.required, sf.source_question, sf.source_answer, sf.answer_changed, sf.updated_by, sf.updated_date from ( ";
+	$query = "SELECT sf.document_element_id, sf.document_version, sf.document_id, sf.section, sf.subsection, sf.location, sf.alternate_text_type, sf.document_element_text, sf.confidential_annotation, sf.public_annotation, sf.survivable, sf.required, sf.source_question, sf.source_answer, sf.answer_changed, sf.updated_by, sf.updated_date, sf.question_text, sf.answer_text from ( ";
 	$query .= "select if(SUBSTR(final.document_element_text,1,8)='<strong>', SUBSTR(final.document_element_text,9), final.document_element_text) as filter_text, final.* from ( ";
 
 	$query .= $m_query;
 	$query .= ") final where section = 'Definitions' ";
 	$query .= ") sf order by sf.filter_text; ";
 
-//	crada_log('DEFINITION Query');
-//	crada_log($query);
+	crada_log('Preamble Query');
+	crada_log($query);
 
 	$result=db_query($query);
+
 	$display_clause_number = FALSE;
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$obj = array();
@@ -2488,6 +2580,9 @@ function db_get_document_elements ($document_id, $version) {
 	$query = "select * from ( ";
 	$query .= $m_query;
 	$query .= ") final where section <> 'Definitions' and  section <> 'Preamble'; ";
+
+	crada_log('No Definitions and no Preamble Query');
+	crada_log($query);
 
 	$result=db_query($query);
 	$display_clause_number = TRUE;

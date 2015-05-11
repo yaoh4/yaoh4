@@ -1651,11 +1651,11 @@ function createParagraphAltMessage(clause) {
 		}
 		messages[index][0] += "This is a <b>required</b> clause.";  
 	}
-	if(clause.question_text == 'DEFINITION'){
+	if(clause.question_text == 'DEFINITION' && index != 0){
 		if(parseInt(clause.answer_changed) == 1) {
 			messages[index][0] = "This definition was added because of a changed answer.";
 		} else {
-			messages[index][0] = "This definition clause has changed from original version.";
+			messages[index][0] = "This definition has changed from original version.";
 		}
 /*		
 		if(clause.answer_changed)
