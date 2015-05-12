@@ -1053,6 +1053,75 @@ function db_increment_modified($document_id) {
 	crada_log($query);
 	$result=db_query($query);
 }
+function query_qa($document_id) {
+
+	$query = "SELECT  final.master_document_id,  final.source_question, final.source_answer ";
+	$query .= "FROM (SELECT doc3.*, ca.answer_text  ";
+	$query .= "    FROM (SELECT doc2.*, cq.question_text ";
+	$query .= "    FROM (SELECT doc.*, cd.master_document_id ";
+	$query .= "    FROM (SELECT cde2.* ";
+	$query .= "    FROM crada_document_element cde2, (SELECT document_element_id, MAX(document_version) AS ver ";
+	$query .= "    FROM crada_document_element WHERE document_id = {$document_id} ";
+	$query .= "    GROUP BY document_element_id) cde1 ";
+	$query .= "    WHERE cde2.document_element_id = cde1.document_element_id ";
+	$query .= "            AND cde2.document_version = cde1.ver ";
+	$query .= "            AND cde2.document_id = {$document_id} ";
+	$query .= "            AND document_element_text NOT LIKE 'silent') doc, crada_document cd ";
+	$query .= "    WHERE doc.document_id = cd.document_id) doc2 ";
+	$query .= "    LEFT JOIN crada_question cq ON doc2.master_document_id = cq.document_id ";
+	$query .= "        AND doc2.source_question = cq.question_id) doc3 ";
+	$query .= "    LEFT JOIN crada_answer ca ON doc3.master_document_id = ca.document_id ";
+	$query .= "        AND doc3.source_question = ca.question_id ";
+	$query .= "        AND doc3.source_answer = ca.answer_id) final ";
+	$query .= "WHERE section <> 'Definitions' ";
+
+	return $query;
+}
+
+function query_current_question_answer($document_id) {
+
+	$query = "SELECT "; 
+	$query .= "final.master_document_id,  "; 
+	$query .= "final.source_question, "; 
+	$query .= "final.source_answer "; 
+	$query .= "FROM "; 
+	$query .= "    (SELECT  "; 
+	$query .= "        doc3.*, ca.answer_text "; 
+	$query .= "    FROM "; 
+	$query .= "        (SELECT  "; 
+	$query .= "        doc2.*, cq.question_text "; 
+	$query .= "    FROM "; 
+	$query .= "        (SELECT  "; 
+	$query .= "        doc.*, cd.master_document_id "; 
+	$query .= "    FROM "; 
+	$query .= "        (SELECT  "; 
+	$query .= "        cde2.* "; 
+	$query .= "    FROM "; 
+	$query .= "        crada_document_element cde2, (SELECT  "; 
+	$query .= "        document_element_id, MAX(document_version) AS ver "; 
+	$query .= "    FROM "; 
+	$query .= "        crada_document_element "; 
+	$query .= "    WHERE "; 
+	$query .= "        document_id = 5 "; 
+	$query .= "    GROUP BY document_element_id) cde1 "; 
+	$query .= "    WHERE "; 
+	$query .= "        cde2.document_element_id = cde1.document_element_id "; 
+	$query .= "            AND cde2.document_version = cde1.ver "; 
+	$query .= "            AND cde2.document_id = 5 "; 
+	$query .= "            AND document_element_text NOT LIKE 'silent') doc, crada_document cd "; 
+	$query .= "    WHERE "; 
+	$query .= "        doc.document_id = cd.document_id) doc2 "; 
+	$query .= "    LEFT JOIN crada_question cq ON doc2.master_document_id = cq.document_id "; 
+	$query .= "        AND doc2.source_question = cq.question_id) doc3 "; 
+	$query .= "    LEFT JOIN crada_answer ca ON doc3.master_document_id = ca.document_id "; 
+	$query .= "        AND doc3.source_question = ca.question_id "; 
+	$query .= "        AND doc3.source_answer = ca.answer_id) final "; 
+	$query .= "WHERE "; 
+	$query .= "    section <> 'Definitions' "; 
+	$query .= "        AND section <> 'Preamble'  "; 
+
+	return $query;
+}
 
 function query_get_definitions($question_id) {
 	/* Example:
@@ -1086,78 +1155,68 @@ and crosslink.term = cd.term
 }
 
 function is_definition_being_used($document_id, $old_value){
+/*
+select if(count(*)>0, true, false) as term_found  from (
+//qa//
+SELECT  final.master_document_id,  final.source_question, final.source_answer
+FROM     (SELECT          doc3.*, ca.answer_text     FROM         (SELECT          doc2.*, cq.question_text
+    FROM          (SELECT          doc.*, cd.master_document_id
+    FROM         (SELECT          cde2.*
+    FROM         crada_document_element cde2, (SELECT          document_element_id, MAX(document_version) AS ver
+    FROM         crada_document_element     WHERE         document_id = 5
+    GROUP BY document_element_id) cde1
+    WHERE         cde2.document_element_id = cde1.document_element_id
+            AND cde2.document_version = cde1.ver
+            AND cde2.document_id = 5
+            AND document_element_text NOT LIKE 'silent') doc, crada_document cd
+    WHERE         doc.document_id = cd.document_id) doc2
+    LEFT JOIN crada_question cq ON doc2.master_document_id = cq.document_id
+        AND doc2.source_question = cq.question_id) doc3
+    LEFT JOIN crada_answer ca ON doc3.master_document_id = ca.document_id
+        AND doc3.source_question = ca.question_id
+        AND doc3.source_answer = ca.answer_id) final
+
+WHERE     section <> 'Definitions'
+) qa
+// end qa //
+LEFT JOIN crada_valid_clause_group_by_answer cvcgba
+ON qa.master_document_id = cvcgba.document_id
+and qa.source_question = cvcgba.question_id
+and qa.source_answer = cvcgba.answer_id
+left join crada_clause_group_to_clause ccgtc
+ON cvcgba.clause_group_id = ccgtc.clause_group_id
+and cvcgba.document_id = ccgtc.document_id
+left join crada_definition_element_crosslink cdec
+ON ccgtc.document_id = cdec.document_id
+and ccgtc.clause_id = cdec.clause_id
+WHERE term = 'Winter'
+*/
 
 	//Get current list of term used for this document
-	$query = "select if(count(*)>0, true, false) as term_found  from  ";
-	$query .= "(SELECT * FROM ";
-	$query .= "    (SELECT cd.master_document_id, doc.source_question, doc.source_answer ";
-	$query .= "    FROM (SELECT cde2.* ";
-	$query .= "    FROM crada_document_element cde2, (SELECT document_element_id, MAX(document_version) AS ver ";
-	$query .= "    FROM crada_document_element ";
-	$query .= "    WHERE document_id = $document_id AND document_version <= 1 ";
-	$query .= "    GROUP BY document_element_id) cde1 WHERE ";
-	$query .= "        cde2.document_element_id = cde1.document_element_id ";
-	$query .= "            AND cde2.document_version = cde1.ver ";
-	$query .= "            AND cde2.document_id = $document_id ";
-	$query .= "            AND document_element_text NOT LIKE 'silent') doc, crada_document cd ";
-	$query .= "    WHERE doc.document_id = cd.document_id ";
-	$query .= "            AND section <> 'Definitions' ";
-	$query .= "            AND section <> 'Preamble') AS filtered ";
-	$query .= "        LEFT JOIN crada_valid_clause_group_by_answer cvcgba ON filtered.master_document_id = cvcgba.document_id ";
-	$query .= "        AND filtered.source_question = cvcgba.question_id ";
-	$query .= "        AND filtered.source_answer = cvcgba.answer_id) linked ";
-	$query .= "        left join  crada_clause_group_to_clause ccgtc ";
-	$query .= "        ON linked.document_id = ccgtc.document_id ";
-	$query .= "        and linked.clause_group_id = ccgtc.clause_group_id ";
-	$query .= "        left join crada_definition_element_crosslink cdec ";
-	$query .= "        on ccgtc.document_id = cdec.document_id ";
-	$query .= "        and ccgtc.clause_id = cdec.clause_id ";
-	$query .= "       where term = '{$old_value}'; ";
 
+	$query = "select if(count(*)>0, true, false) as term_found  from  (";
+	$query .= query_qa($document_id);
+	$query .= ") qa ";
+	/* end qa */
+	$query .= "LEFT JOIN crada_valid_clause_group_by_answer cvcgba ";
+	$query .= "ON qa.master_document_id = cvcgba.document_id ";
+	$query .= "and qa.source_question = cvcgba.question_id ";
+	$query .= "and qa.source_answer = cvcgba.answer_id ";
+	$query .= "left join crada_clause_group_to_clause ccgtc ";
+	$query .= "ON cvcgba.clause_group_id = ccgtc.clause_group_id ";
+	$query .= "and cvcgba.document_id = ccgtc.document_id ";
+	$query .= "left join crada_definition_element_crosslink cdec ";
+	$query .= "ON ccgtc.document_id = cdec.document_id ";
+	$query .= "and ccgtc.clause_id = cdec.clause_id ";
+	$query .= "WHERE term = '{$old_value}' ;";
+
+	crada_log("is_definition_being_used?");
 	crada_log($query);
-	crada_log("is_definition_being_used");
 	$result=db_query($query);
 	$row = $result->fetchObject();
 	crada_log(print_r($row, true));
 
 	return ($row->term_found == 1) ? true : false;
-
-
-/*
-SELECT 
-    *
-FROM
-    (SELECT 
-        cd.master_document_id,
-            doc.source_question,
-            doc.source_answer
-    FROM
-        (SELECT 
-        cde2.*
-    FROM
-        crada_document_element cde2, (SELECT 
-        document_element_id, MAX(document_version) AS ver
-    FROM
-        crada_document_element
-    WHERE
-        document_id = 27
-            AND document_version <= 1
-    GROUP BY document_element_id) cde1
-    WHERE
-        cde2.document_element_id = cde1.document_element_id
-            AND cde2.document_version = cde1.ver
-            AND cde2.document_id = 27
-            AND document_element_text NOT LIKE 'silent') doc, crada_document cd
-    WHERE
-        doc.document_id = cd.document_id
-            AND section <> 'Definitions'
-            AND section <> 'Preamble') AS filtered
-        LEFT JOIN
-    crada_valid_clause_group_by_answer cvcgba ON filtered.master_document_id = cvcgba.document_id
-        AND filtered.source_question = cvcgba.question_id
-        AND filtered.source_answer = cvcgba.answer_id
-
-*/
 }
 
 function query_document_id_to_clause_id () {
@@ -1243,13 +1302,22 @@ and ccgtc.clause_id = crosslink.clause_id
 	}
 	crada_log("Old filtered");
 	crada_log(print_r($old_definitions, true));
-	//Lastly make sure it is not being used elsewhere.
+
+	//Lastly add back any value that is currently being used.
+	//Rethink this...
 	foreach($old_definitions as $old_key => $old_value) {
 		//Is $old_value being used else where?
 		if(is_definition_being_used($document_id, $old_value)){
+			crada_log("Definition Found: $old_value");
+			// Remove it from the old list.
 			unset($old_definitions[$old_key]);
+			crada_log("keep definition: $old_value");
 		}
 	}
+
+	crada_log("New filtered: FINAL");
+	crada_log(print_r($new_definitions, true));
+
 
 	foreach($old_definitions as $old_key => $old_value) {
 		//
