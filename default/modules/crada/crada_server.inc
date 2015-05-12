@@ -987,7 +987,7 @@ function set_new_answer() {
 //	$new_document_element_text = checkaddslashes($new_document_element_text);
 //	$new_confidential_annotation = checkaddslashes($new_confidential_annotation);
 //	$new_public_annotation = checkaddslashes($new_public_annotation);
-	$new_document_element_text = $new_document_element_text;
+	$new_document_element_text = mysql_escape_mimic(stripslashes($new_document_element_text));
 	$new_confidential_annotation = htmlentities(mysql_escape_mimic(stripslashes($new_confidential_annotation)), ENT_NOQUOTES);
 	$new_public_annotation = htmlentities(mysql_escape_mimic(stripslashes($new_public_annotation)), ENT_NOQUOTES);
 
@@ -1369,7 +1369,8 @@ and ccgtc.clause_id = crosslink.clause_id
 					(select master_document_id from crada_document where document_id = {$document_id}) ";
 		$result = db_query($query);
 		$row = $result->fetchObject();
-		$definition = $row->definition;
+
+		$definition = mysql_escape_mimic(stripslashes($row->definition));
 
 		if($term_count == 0) {
 			crada_log("term does not exist yet so append to bottom of the definition section");
