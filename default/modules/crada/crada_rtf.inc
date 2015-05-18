@@ -230,10 +230,13 @@ class CradaRtf extends PHPRtfLite {
 //        foreach ($clean as $key => $annotation) {
         foreach ($annotations as $key => $annotation) {
             //  $Content = preg_replace("/&#?[a-z0-9]{2,8};/i","",$Content);
-              $content = '{\v\fs16 
+              crada_log("Before: ".$annotation);
+              $annotate = preg_replace('#<br>#', " \line ", html_entity_decode($annotation));
+              crada_log("After: ".$annotate);
+              $content = '{\v\fs16
                 {\atnid Public}\chatn
-                {\*\annotation \pard\plain \s224 \fs20 '.html_entity_decode($annotation).'}}';
-              $this->section->writePlainRtfCode($content); 
+                {\*\annotation \pard\plain \s224 \fs20 '.$annotate.'}}';
+              $this->section->writePlainRtfCode($content);
         }
         if(count($annotations)) {
           crada_log($section_label);
@@ -269,154 +272,6 @@ class CradaRtf extends PHPRtfLite {
     }
 
     $this->section->writeText("\n\n\nSIGNATURES BEGIN ON THE NEXT PAGE", $this->fontNormal, $this->center);
-  }
-
-  function addAnnotation() {
-/*
-ANNOTATIONS
-
-===========
-
-The group containing annotation text begins with the control word
-\*\annotation. Annotations are anchored to the character that
-immediately precedes the annotation group. The group must be preceded
-by an annotation reference character identified by the control word
-\chatn. The annotation reference character must in turn be preceded by
-a group that begins with the control word \*\atnid and that contains
-the identification text for the author of the annotation. An example
-of annotation text follows:
-
-  ...
-  An example of a paradigm might be Newtonian physics or
-  Darwinian biology.{\v\fs16 {\atnid bz}\chatn{\*\annotation
-  \pard\plain \s224 \fs20 {field{fldinst page \\*"'Page:
-  '#\line'"}{\fldrslt}}{\fs 16 \chatn }
-  How about some examples that deal with social science?
-  That's what this paper is about.}}
-
-  ...
-*/
-    $content = 'Hello{\v\fs16 
-    {\atnid section 3-9}\chatn
-    {\*\annotation \pard\plain \s224 \fs20 
-      {\fs 16 \chatn }
-      How about some examples that deal with social science?
-      That what this paper is about.}
-    }
-  {\v\fs16 
-    {\atnid section 3-9r2}\chatn{\*\annotation \pard\plain \s224 \fs20 {\fs 16 \chatn }
-  This is the second comment.  See if you can change Something
-  That what this paper is about.}}
-    What is this';
-    //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-    $content = '\line\line
-{\*\atrfstart 10001}
-{\*\atrfstart 10002}
-{\*\atrfstart 10003}
-This is my first paragraph
-{\line}
-
-    ';
-  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-  //
-  //Now lets make a reference to that first paragraph
-  //
-  $content = '
-{\*\atrfend 10001}
-{\*\atnid CONF}
-{\*\atnauthor Confidential}\chatn 
-{\*\annotation
-{\*\atnref 10001}
-This is a new annotation.
-}
-  ';
-  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-
-  $content = '
-  {\*\atrfend 10001}
-
-{\*\atnid CONF}
-{\*\atnauthor Confidential}\chatn 
-{\*\annotation
-{\*\atnref 1}
-This is a second annotation to same paragraph.
-}
-  ';
-  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-
-  $content = '
-  {\*\atrfend 10002}
-
-{\*\atnid PUB}
-{\*\atnauthor Public [3-3]}\chatn 
-{\*\annotation
-{\*\atnref 1}
-This is a new annotation.
-}
-  ';
-
-  //$this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-$content = '
-{\*\atrfstart 291936523}
-{\*\atrfstart 291936529}
-{\*\atrfstart 291936538}
-Yes. There will be material generated.\~ Except as specifically stated}
-
-
-{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0
-  {\*\atrfend 291936523}
-  {\*\atnid PUB}
-  {\*\atnauthor Public}\chatn 
-  {\*\annotation
-  {\*\atnref 291936523}
-  {\rtlch\fcs1 \af0 \ltrch\fcs0 This is the neatest thing in the world.}
-}
-
-{\*\atrfend 291936529}
-{\*\atnid PUB}
-{\*\atnauthor Public}\chatn 
-{\*\annotation
-  {\*\atnref 291936529}
-  {\*\atndate 1731521428}
-  {\*\atnparent -1}
-  {\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \chatn }
-  {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Comment 2}
-}
-
-{\*\atrfend 291936538}
-{\*\atnid PUB}
-{\*\atnauthor Public}\chatn 
-{\*\annotation
-  {\*\atnref 291936538}
-  {\*\atnparent -1}
-  {\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \chatn }
-  {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 How cool.}
-  }
-}
-{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 
-\fs24\cf1\insrsid4485699 \line 
-\par {\*\atrfstart 291936400}3.10   No indemnification for any loss, REQUIRED}{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 {\*\atrfend 291936400}{\*\atnid CK}{\*\atnauthor Chris Kneisler}\chatn {\*\annotation{\*\atnref 291936400}
-{\*\atndate 1731521426}\ltrpar \pard\plain \ltrpar\s18\ql \li0\ri0\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1033 \ltrch\fcs0 \fs24\lang1033\langfe1033\cgrid\langnp1033\langfenp1033 {\rtlch\fcs1 
-\af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 \chatn }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Oh wow.  Got it}}}{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 \fs24\cf1\insrsid4485699 \line 
-\par }{\rtlch\fcs1 \ab\af0\afs24 \ltrch\fcs0 \b\fs24\cf1\insrsid4485699 {\*\atrfstart 291936378}{\*\atrfstart 291936427}Survivability}{\rtlch\fcs1 \af0\afs24 \ltrch\fcs0 \fs24\cf1\insrsid4485699 
-.  The provisions of Paragraphs 3-4, 3-8, and 3-10 will survive the expiration or early termination of this CRADA.}{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 
-
-
-  {\*\atrfend 291936378}{\*\atnid CK}{\*\atnauthor Chris Kneisler}\chatn 
-{\*\annotation{\*\atnref 291936378}
-{\*\atndate 1731521425}\ltrpar \pard\plain \ltrpar\s18\ql \li0\ri0\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1033 \ltrch\fcs0 
-\fs24\lang1033\langfe1033\cgrid\langnp1033\langfenp1033 
-{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \cs17\fs18\insrsid15413303 \chatn }
-{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid15413303 Why is this green}}
-
-
-';
-  $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-
-  $content = "It is sooo cool.";
-  $this->section->writeRtfCode($content, $this->fontNormal, $this->left); 
-
-  
   }
 
   function setSignature($page_title, $section_title, $section_statement) {
