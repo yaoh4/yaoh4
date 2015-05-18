@@ -87,6 +87,11 @@ function sanitize_url_variables(){
 	$msg["status"] = 'OK';
 
 	$uri = $_SERVER['REQUEST_URI'];
+	/*
+	if($_REQUEST["action"] =="save_element") {
+		return $msg["status"] = 'OK';
+	}
+	*/
 
 	crada_log($uri);
 	//  make sure there are now % symbols
@@ -100,26 +105,58 @@ function sanitize_url_variables(){
 	crada_log(print_r($_REQUEST, true));
 	foreach ($_REQUEST as $key => $value) {
 		crada_log("Key: $key; Value: $value");
- 	   	if($key == "document_id"  
+ 	   	if($key == "document_id"
 			|| $key == "question_id"
 			|| $key == "document_element_id"
 			|| $key == "annotation_position"
+			|| $key == "master_document_id"
 			) {
 			if(!is_numeric($value)) {
 				$msg["status"] = 'Error';
 				$msg["message"] = "The $key variable in the URI is incorrect.  A number was expected";
 			}
 		}
-	   	if($key == "version") {
+		if($key == "version") {
 			if(!is_numeric($value) && $value !="current" && $value !="undefined") {
 				$msg["status"] = 'Error';
 				$msg["message"] = "The $key variable in the URI is incorrect.  A number, 'current', or 'undefined' was expected";
 			}
 		}
+		if($key == "answer_id") {
+			if(!is_numeric($value) && $value !="read" && $value !="write" && $value !="") {
+				$msg["status"] = 'Error';
+				$msg["message"] = "The $key variable in the URI is incorrect.  A number, 'current', or 'undefined' was expected";
+			}
+		}
+		if($key == "annotation_type") {
+			if($value !="public_annotation" && $value !="confidential_annotation") {
+				$msg["status"] = 'Error';
+				$msg["message"] = "The $key variable in the URI is incorrect.  A number, 'current', or 'undefined' was expected";
+			}
+		}
+
 	}
 
- 	crada_log(print_r($msg, true));
-	return $msg; 	
+	//Look for known patters such as javascript, alert, input
+	//
+	crada_log("uri: $uri");
+	$pattern = 'javascript';
+	$js_count = stripos($uri, $pattern);
+	crada_log("javascript count in uri");
+	crada_log("count: "+$js_count);
+
+	$pattern = 'alert';
+	$alert_count = stripos($uri, $pattern);
+	crada_log("alert count in uri");
+	crada_log("count: "+$_count);
+
+	if($alert_count || $js_count) {
+		$msg["status"] = 'Error';
+		$msg["message"] = "Malformed URI";
+	}
+
+	crada_log(print_r($msg, true));
+	return $msg;
 }
 
 function crada_server() {
@@ -484,7 +521,8 @@ function save_element() {
 
 	$query = "update crada_document_element ";
 	$query .= "set ";
-	$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
+	//$query .= "{$_REQUEST['update_column']} = '{$newtext}',  ";
+	$query .= "document_element_text ='{$newtext}', ";
 	$query .= "answer_changed = {$_REQUEST['answer_changed']}, ";
 	$query .= "updated_by= '{$user->uid}', ";
 	$query .= "updated_date = '".date('Y-m-d H:i:s', time())."' ";
