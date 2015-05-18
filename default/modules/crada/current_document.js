@@ -368,6 +368,7 @@ function editAnnotation(e) {
 				//var textarea = $('#annotate-textarea-'+unique).val();
 				var textarea = $('#annotate-textarea-'+unique).val();
 				textarea = textarea.replace('§', '&sect;');
+				textarea = textarea.trim();
 				//Test btoa to see if there are any errors.
 				//alert(textarea);
 				var data_bin;

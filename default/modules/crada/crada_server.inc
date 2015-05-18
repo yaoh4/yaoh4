@@ -619,10 +619,12 @@ function set_annotation() {
 	//Remove all \n\n+ series and replace with just one \n
 	crada_log("BEFORE preg_replace of new line");
 	crada_log($new_annotation);
-	//$new_annotation = preg_replace('/\n\n+/', '<br />', $new_annotation);
+	$new_annotation = trim(preg_replace('/\\n+/', '<br>', $new_annotation));
+	//$new_annotation = preg_replace('/\\n+/', '<br />', $new_annotation);
 	//$new_annotation = trim(preg_replace('/\n\n+/', ' ', $new_annotation));
 	//$new_annotation = preg_replace("/\r\n|\r|\n/", ' ', $new_annotation);
-	$new_annotation = str_replace("\\n", '<br />', $new_annotation);
+	//Removing this
+	//$new_annotation = str_replace("\\n", '<br />', $new_annotation);
 	//$new_annotation = nl2br($new_annotation);
 	crada_log("AFTER preg_replace of new line");
 	crada_log($new_annotation);
