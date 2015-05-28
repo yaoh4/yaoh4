@@ -139,16 +139,16 @@ function sanitize_url_variables(){
 
 	//Look for known patters such as javascript, alert, input
 	//
-	crada_log("uri: $uri");
+//	crada_log("uri: $uri");
 	$pattern = 'javascript';
 	$js_count = stripos($uri, $pattern);
-	crada_log("javascript count in uri");
-	crada_log("count: "+$js_count);
+//	crada_log("javascript count in uri");
+//	crada_log("count: "+$js_count);
 
 	$pattern = 'alert';
 	$alert_count = stripos($uri, $pattern);
-	crada_log("alert count in uri");
-	crada_log("count: "+$_count);
+//	crada_log("alert count in uri");
+//	crada_log("count: "+$_count);
 
 	if($alert_count || $js_count) {
 		$msg["status"] = 'Error';
@@ -1316,7 +1316,7 @@ and ccgtc.clause_id = crosslink.clause_id
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$old_definitions[] =$row->term;
 	}
-	crada_log(print_r($old_definitions, true));
+	//crada_log(print_r($old_definitions, true));
 	//Get definitions from new answer (NEW DEFINITIONS)
 	//Step 2: New Definitions
 	crada_log("Step 2: New Definitions (ADD)");
@@ -1329,180 +1329,187 @@ and ccgtc.clause_id = crosslink.clause_id
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$new_definitions[] =$row->term;
 	}
-	crada_log(print_r($new_definitions, true));
+	//crada_log(print_r($new_definitions, true));
 
 	//Remove terms that are in common between these lists and do nothing with them.
-	foreach($old_definitions as $old_key => $old_value) {
-		foreach ($new_definitions as $new_key => $new_value) {
-			if($old_value == $new_value) {
-				unset($old_definitions[$old_key]);
-				unset($new_definitions[$new_key]);
+	if(isset($old_definitions)) {
+		foreach($old_definitions as $old_key => $old_value) {
+			if(isset($new_definitions)) {
+				foreach ($new_definitions as $new_key => $new_value) {
+					if($old_value == $new_value) {
+						unset($old_definitions[$old_key]);
+						unset($new_definitions[$new_key]);
+					}
+				}
 			}
 		}
 	}
-	crada_log("Old filtered");
-	crada_log(print_r($old_definitions, true));
+	//crada_log("Old filtered");
+	//crada_log(print_r($old_definitions, true));
 
 	//Lastly add back any value that is currently being used.
 	//Rethink this...
-	foreach($old_definitions as $old_key => $old_value) {
-		//Is $old_value being used else where?
-		if(is_definition_being_used($document_id, $old_value)){
-			crada_log("Definition Found: $old_value");
-			// Remove it from the old list.
-			unset($old_definitions[$old_key]);
-			crada_log("keep definition: $old_value");
-		}
-	}
-
-	crada_log("New filtered: FINAL");
-	crada_log(print_r($new_definitions, true));
-
-
-	foreach($old_definitions as $old_key => $old_value) {
-		//
-		// Virtually delete.
-		//  If current_element_version equals 
-		// current_document_version then add the word 'silent'
-		// to the text area.  Otherwise create a copy of latest version
-		// to the current version and add the word 'silent' to the text area. 
-		//
-		crada_log("REMOVING OLD VALUE $old_value by marking it SILENT");
-		$query = "SELECT document_element_id FROM crada_document_element ";
-		$query .= " where term ='{$old_value}' and document_id=$document_id;";
-		crada_log($query);
-		$result=db_query($query);
-		$row = $result->fetchObject();
-		$document_element_id = $row->document_element_id;
-//		db_document_element_version_exist($document_id, $document_element_id);
-		$current_document_version = create_element($document_id, $document_element_id);
-
-		crada_log("$current_document_version");
-		$query = "UPDATE ignore crada_document_element
-				SET	document_element_text = 'silent',
-					updated_by = $user->uid
-				WHERE document_id = $document_id
-				and term = '{$old_value}'
-				and document_version = $current_document_version";
-		crada_log($query);
-		$result=db_query($query);
-	}
-
-	crada_log(print_r($new_definitions, true));
-	foreach($new_definitions as $new_key => $new_value) {
-		crada_log("CREATING NEW VALUE $new_value by adding new definition.");
-		//
-		// Find max id and add one, then copy latest.
-		// If an entry exists for the document_element_id and max_version and text='silent' then replace with original...
-		// otherwise create a new one with the max version in crada_document
-		//
-		//
-		//Get term count for document
-		//
-		$query = "select count(*) as count from crada_document_element where term = '{$new_value}' and document_id = {$document_id}";
-		$result = db_query($query);
-		$row = $result->fetchObject();
-		$term_count = $row->count;
-		crada_log("term_count: $term_count");
-		//Get original definition for term
-		$query = "select definition from crada_definition where term ='{$new_value}' and document_id = 
-					(select master_document_id from crada_document where document_id = {$document_id}) ";
-		$result = db_query($query);
-		$row = $result->fetchObject();
-
-		$definition = mysql_escape_mimic(stripslashes($row->definition));
-
-		if($term_count == 0) {
-			crada_log("term does not exist yet so append to bottom of the definition section");
-			$current_document_version = db_current_document_version($document_id);
-			//Get last document_element_id
-			$query = "select max(document_element_id) as max_document_element_id from crada_document_element where section = 'Definitions' and document_id = {$document_id}";
-			$result = db_query($query);
-			$row = $result->fetchObject();
-			$document_element_id = $row->max_document_element_id;
-			crada_log("Max document_element_id $document_element_id");
-			//Increment $document_element_id
-			$document_element_id++;
-			//Create new definition
-			$document_version = db_current_document_version($document_id);
-			$section = "'Definitions'";
-			$subsection ="''";
-			$location = $document_element_id;
-			$alternate_text_type = "'default'";
-			$document_element_text = "'<strong>{$new_value}</strong>: {$definition}'";
-			$confidential_annotation = "null";
-			$public_annotation = "null";
-			$survivable = 0;
-			$required = 0;
-			$source_question = "null";
-			$source_answer = "null";
-			$answer_changed = 1;
-			$term = "'{$new_value}'";
-			$updated_by = $user->uid;
-			$updated_date = "'".date('Y-m-d H:i:s', time())."'";
-
-			$query = "INSERT INTO crada_document_element ";
-			$query .= "(document_element_id, document_version, document_id, section, subsection, location, alternate_text_type,  ";
-			$query .= "document_element_text, confidential_annotation, public_annotation, survivable, required, source_question,  ";
-			$query .= "source_answer,  answer_changed, term,updated_by,updated_date) ";
-			$query .= "VALUES ";
-			$query .= "($document_element_id, ";
-			$query .= "$document_version, ";
-			$query .= "$document_id, ";
-			$query .= "$section, ";
-			$query .= "$subsection, ";
-			$query .= "$location, ";
-			$query .= "$alternate_text_type, ";
-			$query .= "$document_element_text, ";
-			$query .= "$confidential_annotation, ";
-			$query .= "$public_annotation, ";
-			$query .= "$survivable, ";
-			$query .= "$required, ";
-			$query .= "$source_question, ";
-			$query .= "$source_answer, ";
-			$query .= "$answer_changed, ";
-			$query .= "$term, ";
-			$query .= "$updated_by, ";
-			$query .= "$updated_date); ";
-			crada_log("Mother load");
-			crada_log($query);
-			$result=db_query($query);
-
-		} else {
-			//if lastest version is silent
-			// then create a new element then update
-			$query = "select document_element_text from crada_document_element ";
-			$query .= "where document_id = $document_id and term = '{$new_value}' ";
-			$query .= "and document_version = (SELECT max(document_version)  ";
-			$query .= "FROM crada_document_element where document_id = {$document_id} and term = '{$new_value}') ";
-			$result=db_query($query);
-			$row = $result->fetchObject();
-			if($row->document_element_text == 'silent') {
-				//Create a new one and update definiton
-				crada_log("Creating a new definition under current version and changing silent to original definition.");
-				$query = "SELECT document_element_id FROM crada_document_element ";
-				$query .= " where term ='{$new_value}' and document_id=$document_id;";
-				crada_log($query);
-				$result=db_query($query);
-				$row = $result->fetchObject();
-				$document_element_id = $row->document_element_id;
-		//		db_document_element_version_exist($document_id, $document_element_id);
-				$current_document_version = create_element($document_id, $document_element_id);
-				$document_element_text = "<strong>{$new_value}</strong>: $definition";
-				crada_log("$current_document_version");
-				$query = "UPDATE ignore crada_document_element
-						SET	document_element_text = '{$document_element_text}',
-							answer_changed = 1,
-							updated_by = $user->uid
-						WHERE document_id = $document_id
-						and term = '{$new_value}'
-						and document_version = $current_document_version";
-				crada_log($query);
-				$result=db_query($query);
-
+	if(isset($old_definitions)) {
+		foreach($old_definitions as $old_key => $old_value) {
+			//Is $old_value being used else where?
+			if(is_definition_being_used($document_id, $old_value)){
+				crada_log("Definition Found: $old_value");
+				// Remove it from the old list.
+				unset($old_definitions[$old_key]);
+				crada_log("keep definition: $old_value");
 			}
 		}
+	}
+	//crada_log("New filtered: FINAL");
+	//crada_log(print_r($new_definitions, true));
+	if(isset($old_definitions)) {
+		foreach($old_definitions as $old_key => $old_value) {
+			//
+			// Virtually delete.
+			//  If current_element_version equals 
+			// current_document_version then add the word 'silent'
+			// to the text area.  Otherwise create a copy of latest version
+			// to the current version and add the word 'silent' to the text area. 
+			//
+			crada_log("REMOVING OLD VALUE $old_value by marking it SILENT");
+			$query = "SELECT document_element_id FROM crada_document_element ";
+			$query .= " where term ='{$old_value}' and document_id=$document_id;";
+			crada_log($query);
+			$result=db_query($query);
+			$row = $result->fetchObject();
+			$document_element_id = $row->document_element_id;
+	//		db_document_element_version_exist($document_id, $document_element_id);
+			$current_document_version = create_element($document_id, $document_element_id);
 
+			crada_log("$current_document_version");
+			$query = "UPDATE ignore crada_document_element
+					SET	document_element_text = 'silent',
+						updated_by = $user->uid
+					WHERE document_id = $document_id
+					and term = '{$old_value}'
+					and document_version = $current_document_version";
+			crada_log($query);
+			$result=db_query($query);
+		}
+	}
+
+	//crada_log("ERROR HERE: Invalid argument foreach()");
+	//crada_log(print_r($new_definitions, true));
+	if(isset($new_definitions)) {
+		foreach($new_definitions as $new_key => $new_value) {
+			crada_log("CREATING NEW VALUE $new_value by adding new definition.");
+			//
+			// Find max id and add one, then copy latest.
+			// If an entry exists for the document_element_id and max_version and text='silent' then replace with original...
+			// otherwise create a new one with the max version in crada_document
+			//
+			//
+			//Get term count for document
+			//
+			$query = "select count(*) as count from crada_document_element where term = '{$new_value}' and document_id = {$document_id}";
+			$result = db_query($query);
+			$row = $result->fetchObject();
+			$term_count = $row->count;
+			crada_log("term_count: $term_count");
+			//Get original definition for term
+			$query = "select definition from crada_definition where term ='{$new_value}' and document_id = 
+						(select master_document_id from crada_document where document_id = {$document_id}) ";
+			$result = db_query($query);
+			$row = $result->fetchObject();
+
+			$definition = mysql_escape_mimic(stripslashes($row->definition));
+
+			if($term_count == 0) {
+				crada_log("term does not exist yet so append to bottom of the definition section");
+				$current_document_version = db_current_document_version($document_id);
+				//Get last document_element_id
+				$query = "select max(document_element_id) as max_document_element_id from crada_document_element where section = 'Definitions' and document_id = {$document_id}";
+				$result = db_query($query);
+				$row = $result->fetchObject();
+				$document_element_id = $row->max_document_element_id;
+				crada_log("Max document_element_id $document_element_id");
+				//Increment $document_element_id
+				$document_element_id++;
+				//Create new definition
+				$document_version = db_current_document_version($document_id);
+				$section = "'Definitions'";
+				$subsection ="''";
+				$location = $document_element_id;
+				$alternate_text_type = "'default'";
+				$document_element_text = "'<strong>{$new_value}</strong>: {$definition}'";
+				$confidential_annotation = "null";
+				$public_annotation = "null";
+				$survivable = 0;
+				$required = 0;
+				$source_question = "null";
+				$source_answer = "null";
+				$answer_changed = 1;
+				$term = "'{$new_value}'";
+				$updated_by = $user->uid;
+				$updated_date = "'".date('Y-m-d H:i:s', time())."'";
+
+				$query = "INSERT INTO crada_document_element ";
+				$query .= "(document_element_id, document_version, document_id, section, subsection, location, alternate_text_type,  ";
+				$query .= "document_element_text, confidential_annotation, public_annotation, survivable, required, source_question,  ";
+				$query .= "source_answer,  answer_changed, term,updated_by,updated_date) ";
+				$query .= "VALUES ";
+				$query .= "($document_element_id, ";
+				$query .= "$document_version, ";
+				$query .= "$document_id, ";
+				$query .= "$section, ";
+				$query .= "$subsection, ";
+				$query .= "$location, ";
+				$query .= "$alternate_text_type, ";
+				$query .= "$document_element_text, ";
+				$query .= "$confidential_annotation, ";
+				$query .= "$public_annotation, ";
+				$query .= "$survivable, ";
+				$query .= "$required, ";
+				$query .= "$source_question, ";
+				$query .= "$source_answer, ";
+				$query .= "$answer_changed, ";
+				$query .= "$term, ";
+				$query .= "$updated_by, ";
+				$query .= "$updated_date); ";
+				crada_log("Mother load");
+				crada_log($query);
+				$result=db_query($query);
+
+			} else {
+				//if lastest version is silent
+				// then create a new element then update
+				$query = "select document_element_text from crada_document_element ";
+				$query .= "where document_id = $document_id and term = '{$new_value}' ";
+				$query .= "and document_version = (SELECT max(document_version)  ";
+				$query .= "FROM crada_document_element where document_id = {$document_id} and term = '{$new_value}') ";
+				$result=db_query($query);
+				$row = $result->fetchObject();
+				if($row->document_element_text == 'silent') {
+					//Create a new one and update definiton
+					crada_log("Creating a new definition under current version and changing silent to original definition.");
+					$query = "SELECT document_element_id FROM crada_document_element ";
+					$query .= " where term ='{$new_value}' and document_id=$document_id;";
+					crada_log($query);
+					$result=db_query($query);
+					$row = $result->fetchObject();
+					$document_element_id = $row->document_element_id;
+			//		db_document_element_version_exist($document_id, $document_element_id);
+					$current_document_version = create_element($document_id, $document_element_id);
+					$document_element_text = "<strong>{$new_value}</strong>: $definition";
+					crada_log("$current_document_version");
+					$query = "UPDATE ignore crada_document_element
+							SET	document_element_text = '{$document_element_text}',
+								answer_changed = 1,
+								updated_by = $user->uid
+							WHERE document_id = $document_id
+							and term = '{$new_value}'
+							and document_version = $current_document_version";
+					crada_log($query);
+					$result=db_query($query);
+
+				}
+			}
+		}
 	}
 
 	//Find old terms that have gone away and delete the latest copy.
@@ -2218,9 +2225,9 @@ function create_new_document () {
 
 	//$answers = $_REQUEST['answers'];
 	crada_log("ANSWERS");
-	crada_log(print_r($answers));
+//	crada_log(print_r($answers));
 
-	crada_log(json_encode($answers));
+//	crada_log(json_encode($answers));
 
 //	crada_log("THE BIG ONE");
 //	crada_log(print_r($data, true));
@@ -2266,12 +2273,18 @@ function create_new_document () {
 			crada_log("alternate_text: {$alternate_text}");
 */
 			if($data[$i]['section'] == NULL) {
-				crada_log("Got a blank seciton");
+				crada_log("Got a blank secton");
 			}
-
-			$subsection = $data[$i]['subsection'];
+			//$subsection = $data[$i]['subsection'];
 //			crada_log("subsection: $subsection");
-			$subsection = ($subsection == NULL) ? "" : $subsection;
+			$subsection = isset($data[$i]['subsection']) ? $data[$i]['subsection'] : "";
+			crada_log("subsection:"+$subsection);
+			$source_question = isset($data[$i]['source_question']) ? $data[$i]['source_question'] : NULL;
+			$source_answer = isset($data[$i]['source_answer']) ? $data[$i]['source_answer'] : NULL;
+			$public_annotation = isset($data[$i]['public_annotation']) ? $data[$i]['public_annotation'] : NULL;
+			$confidential_annotation = isset($data[$i]['confidential_annotation']) ? $data[$i]['confidential_annotation'] : NULL;
+
+
 			$index = ($data[$i]['section'] == 'Definitions') ? $i + DEFINITION_INDEX_OFFSET : $i;
 			crada_log("index = $index");
 
@@ -2285,10 +2298,11 @@ function create_new_document () {
 					$data[$i]['section'],
 					$subsection,
 					$data[$i]['text'],
-					$data[$i]['confidential_annotation'],
-					$data[$i]['public_annotation'],
+					$confidential_annotation,
+					$public_annotation,
 					$data[$i]['survivable'],
-					$data[$i]['source_question'], $data[$i]['source_answer'],
+					$source_question, 
+					$source_answer,
 					$alternate_text);
 					$output["row"][$i] = $data[$i]['text'];
 
@@ -2314,14 +2328,14 @@ function create_new_document () {
 }
 
 function db_insert_new_document ($title, $master_document_id, $demographic_answers) {
-  global $user;
-  crada_log("***We are in db_insert_new_document");
+	global $user;
 
+	crada_log("***We are in db_insert_new_document");
 	crada_log("db_insert_new_document");
-	crada_log("name =$name, master_document_id = $master_document_id");
-	crada_log("**************************** DEMOGRAPHIC_ANSWERS");
-	crada_log("demographic_answers = $demographic_answers");
-  crada_log("GLOBAL uid {$user->uid}");
+	//crada_log("name =$name, master_document_id = $master_document_id");
+	//crada_log("**************************** DEMOGRAPHIC_ANSWERS");
+	//crada_log("demographic_answers = $demographic_answers");
+ 	//crada_log("GLOBAL uid {$user->uid}");
 
 	$document_id = db_insert('crada_document')
 	->fields(array(
