@@ -1060,6 +1060,7 @@ function get_document_elements_callback(data) {
             .append('You are not authorized to access this page.')
 
     );
+    $('#download-word').css('display', 'none');
     return;
   }
 	//Clear document content
