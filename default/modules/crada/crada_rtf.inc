@@ -124,7 +124,7 @@ class CradaRtf extends PHPRtfLite {
     $this->section->writeText($content, $this->fontNormal);
     $content = add_demographics($document['document_id'], "an Institute, Center, or Division (hereinafter referred to as the “{ICD}” of the <br>");
     $this->section->writeText($content, $this->fontNormal);
-    $content = add_demographics($document['document_id'], "<b>{Agency_Full}</b><br><br>");
+    $content = add_demographics($document['document_id'], "<b>{Agency_Full} ({Agency})</b><br><br>");
     $this->section->writeText($content, $this->fontNormal);
     $content = "and<br><br>";
     $this->section->writeText($content, $this->fontNormal);
