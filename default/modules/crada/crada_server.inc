@@ -32,6 +32,34 @@ if (!isset($user->uid)) {
 * http://en.wikipedia.org/wiki/Base64
 */
 function valid_uri($uri) {
+
+	$valid = true;
+
+	$pos = strpos($uri, "java");
+	if(!($pos === false)) {
+		crada_log("URL ERROR: java is present in url");
+		$valid = false;
+	}
+	$pos = strpos($uri, "alert");
+	if(!($pos === false)) {
+		crada_log("URL ERROR: alert is present in url");
+		$valid = false;
+	}
+	$pos = strpos($uri, "src=");
+	if(!($pos === false)) {
+		crada_log("URL ERROR: src= is present in url");
+		$valid = false;
+	}
+	$pos = strpos($uri, "iframe");
+	if(!($pos === false)) {
+		crada_log("URL ERROR: iframe is present in url");
+		$valid = false;
+	}
+	$pos = strpos($uri, "input");
+	if(!($pos === false)) {
+		crada_log("URL ERROR: iframe is present in url");
+		$valid = false;
+	}
 //
 //Remove text from set_annotation and save_element
 //
@@ -54,19 +82,18 @@ function valid_uri($uri) {
 		$uri = substr($uri, 0, strrpos($uri, 'section'));
 	}
 
-	$valid = true;
 	// Don't forget & and ?
 	$pattern = '([A-Z]|[a-z]|[0-9]|[\+]|[&]|[\?]|[=]|[_]|[/])';
 	$number = preg_match_all($pattern, $uri, $matches);
-	//crada_log("preg_match_all: ".$number);
-	//crada_log("URI:");
-	//crada_log($uri);
+	crada_log("preg_match_all: ".$number);
+	crada_log("URI:");
+	crada_log($uri);
 	//crada_log(print_r($matches, true));
 	$results = implode("", $matches[0]);
 	//crada_log($results);
 	//crada_log('******************************** MATCHES');
-	//crada_log("String length of uri: ".strlen($uri));
-	//crada_log("String length of search: ".strlen($results));
+	crada_log("String length of uri: ".strlen($uri));
+	crada_log("String length of search: ".strlen($results));
 
 	if(strlen($results) != strlen($uri)) {
 		$valid = false;
@@ -162,7 +189,7 @@ function sanitize_url_variables(){
 function crada_server() {
 	$msg = sanitize_url_variables();
 	if($msg['status'] == "Error") {
-		http_response_code(403);
+		http_response_code(400);
 		echo json_encode($msg, JSON_PRETTY_PRINT);
 		exit();
 	}
@@ -202,6 +229,13 @@ function crada_server() {
 		else if ($action == 'get_document_count') $output = get_document_count();
 		else if ($action == 'search_clauses') $output = search_clauses();
 		else if ($action == 'echo') $output = echo_data();
+		else {
+			$msg["status"] = 'Error';
+			$msg["message"] = "No Actions"; 
+			http_response_code(400);
+			echo json_encode($msg, JSON_PRETTY_PRINT);
+			exit();
+		}
 
 	} catch (Exception $e) {
 		crada_log("*******************");
@@ -213,15 +247,21 @@ function crada_server() {
 
 		crada_log(json_encode($e));
 		crada_log_sql_error($e);
+		http_response_code(400);
+		exit();
+		echo "";
 	}
 
-	if (isset($output))
+	if (isset($output)) {
+		header('Content-Type: application/json');
+//		header('Content-Type: text/html; charset=UTF-8');
 		echo json_encode($output, JSON_PRETTY_PRINT);
-	else {
+	} else {
 		$error["status"] = 'Error';
 		$error["message"] = 'Function action = '.$action .'does not produce an output.';
-		http_response_code(403);
-		echo json_encode($error, JSON_PRETTY_PRINT);
+		http_response_code(400);
+		echo json_encode($msg, JSON_PRETTY_PRINT);
+		exit();
 	}
 }
 function search_clauses() {
