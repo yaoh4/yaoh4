@@ -1896,15 +1896,12 @@ function db_get_title() {
 
 function db_get_document_templates() {
 
-	$query = db_select('crada_document', 'cd')
-		->fields('cd')
-		->condition('is_master', 1, '=')
-		->orderBy('document_id', 'desc');
+	$query = "select template.document_name, template.title, template.document_id from ( ";
+	$query .= "select * from crada_document where is_master = 1 order by document_id desc ";
+	$query .= ") as template group by upper(document_name);";
+	crada_log($query);
 
-	//crada_log((string) $query);
-	//crada_log($query->arguments());
-
-	$result = $query->execute();
+	$result = db_query($query);
 	$list = array();
 	for ($count = 0; $row = $result->fetchObject(); $count++) {
 		$element = array();
@@ -1914,9 +1911,11 @@ function db_get_document_templates() {
 
 		array_push($list, $document);
 	}
+
 	$output = array();
-    $output["status"] = "Ok";
-    $output["templates"] = $list;
+	$output["status"] = "Ok";
+	$output["templates"] = $list;
+
 	return $output;
 }
 

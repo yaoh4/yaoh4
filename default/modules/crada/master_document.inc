@@ -17,31 +17,31 @@ function master_document_form($form, &$form_state) {
 	//Document Title
 	$form['document_title'] = array(
 			'#type' => 'textfield',
-			'#title' => 'Document Title',
+			'#title' => 'Document Version',
 			'#required' => TRUE,
-			'#description' => 'Please enter a document title',
+			'#description' => 'Enter the document version name.',
 			'#size' => 100,
 	);
 	//Document Name
 	$form['document_name'] = array(
 			'#type' => 'textfield',
-			'#title' => 'Document Short Name',
+			'#title' => 'Base Template Name',
 			'#required' => TRUE,
-			'#description' => 'Please enter the reference-name for this document',
+			'#description' => 'Enter a short name for this base template. To replace a previous version of the template, use the same base template name.',
  			'#attributes' => array('maxlength' => 100),
 			'#size' => 20,
 	);
 	//File
 	$form['file'] = array(
 			'#type' => 'file',
-			'#title' => 'Filename',
+			'#title' => 'Base Template Spreadsheet Filename',
 			'#accept' => 'xls,xlsx',
-			'#description' => 'Choose a Base Template File',
+			'#description' => 'Choose a base template spreadsheet file.',
 	);
 	//Submit
 	$form['submit'] = array(
 			'#type' => 'submit',
-			'#value' => 'Create New Master Document',
+			'#value' => 'Load Master Document',
 	);
 
 	return $form;
@@ -151,11 +151,13 @@ function master_document_form_validate($form, &$form_state) {
 	//
 	//Check to see if document_name is already in use
 	//
+	/*
 	$crada_document = getDocumentNames();
 	if (in_array(strtoupper(t($form['document_name']['#value'])), $crada_document['document_names'])) {
 		form_error($form['document_name'], "Document Short Name <b>{$form['document_name']['#value']}</b> is already in use .  Please enter a unique Document Short Name.");
 		return;
 	}
+	*/
 	$file = file_save_upload('file',$validators);
 	if ($file) {
 		// Make it a permanent file so it doesn't get deleted by cron.

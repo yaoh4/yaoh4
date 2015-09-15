@@ -83,7 +83,7 @@ function add_choose_template_div() {
 <TR><TD>
 
 <label for='template_chooser'>
-Choose Base Template:
+Base Template:
 </label>
 
 </TD><TD><SELECT id='template_chooser'> </SELECT></TD></TR>
